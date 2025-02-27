@@ -1,40 +1,109 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/pages/api-reference/create-next-app).
+# Robotics Society PEC - Official Website
 
-## Getting Started
+<div align="center">
 
-First, run the development server:
+[![Next.js](https://img.shields.io/badge/Next.js-13.4-blue?style=for-the-badge&logo=nextdotjs)](https://nextjs.org/)
+[![React](https://img.shields.io/badge/React-18-blue?style=for-the-badge&logo=react)](https://react.dev/)
+[![Yarn](https://img.shields.io/badge/Yarn-1.22-blue?style=for-the-badge&logo=yarn)](https://yarnpkg.com/)  
+[![GitHub issues](https://img.shields.io/github/issues/Robotics-PEC/Robotics-PEC.github.io?style=for-the-badge)](https://github.com/Robotics-PEC/Robotics-PEC.github.io/issues)
+[![GitHub forks](https://img.shields.io/github/forks/Robotics-PEC/Robotics-PEC.github.io?style=for-the-badge)](https://github.com/Robotics-PEC/Robotics-PEC.github.io/network)
+[![GitHub stars](https://img.shields.io/github/stars/Robotics-PEC/Robotics-PEC.github.io?style=for-the-badge)](https://github.com/Robotics-PEC/Robotics-PEC.github.io/stargazers)
+
+</div>
+
+This is the **official repository** for the website of **Robotics Society PEC**. The website is built using **Next.js** and **React**, and it uses **Yarn** for package management.
+
+---
+
+## 🚀 Getting Started
+
+### Prerequisites
+Ensure you have the following installed:
+- [Node.js](https://nodejs.org/)
+- [Yarn](https://yarnpkg.com/)
+
+### Installation
+
+Clone the repository and install dependencies:
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+$ git clone https://github.com/Robotics-PEC/Robotics-PEC.github.io.git
+$ cd Robotics-PEC.github.io
+$ yarn install
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### Running the Development Server
 
-You can start editing the page by modifying `pages/index.tsx`. The page auto-updates as you edit the file.
+```bash
+$ yarn dev
+```
 
-[API routes](https://nextjs.org/docs/pages/building-your-application/routing/api-routes) can be accessed on [http://localhost:3000/api/hello](http://localhost:3000/api/hello). This endpoint can be edited in `pages/api/hello.ts`.
+Open [http://localhost:3000](http://localhost:3000) in your browser to see the result.
 
-The `pages/api` directory is mapped to `/api/*`. Files in this directory are treated as [API routes](https://nextjs.org/docs/pages/building-your-application/routing/api-routes) instead of React pages.
+---
 
-This project uses [`next/font`](https://nextjs.org/docs/pages/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## 📂 Project Structure
 
-## Learn More
+```
+Robotics-PEC.github.io/
+│── pages/           # Next.js pages, including API routes
+│── components/      # Reusable React components
+│── public/          # Static assets
+│── styles/         # Global styles
+│── package.json     # Dependencies and scripts
+│── README.md        # Project documentation
+```
 
-To learn more about Next.js, take a look at the following resources:
+---
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn-pages-router) - an interactive Next.js tutorial.
+## 📜 Contributing Guidelines
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+We welcome contributions, but we follow a **STRICT MERGING POLICY**. Please read carefully before submitting PRs.
 
-## Deploy on Vercel
+### **Branching & Commits**
+- Create a feature branch from `main` (e.g., `feature/awesome-feature`)
+- Follow conventional commit messages (e.g., `feat: add navbar`)
+- Keep PRs **small and focused**
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+### **Merging Rules**
+✅ **Only** the following merge strategies are allowed:
+- **Rebase and Merge** (Preferred)
+- **Squash and Merge** (For small commits)
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/pages/building-your-application/deploying) for more details.
+❌ **DO NOT use**: "Merge Commit" (No direct merges from feature branches to `main`)
+
+### **Submitting a Pull Request (PR)**
+1. Ensure your branch is **rebased** on `main`
+2. Run `yarn lint` and fix any linting errors
+3. Ensure all tests pass
+4. Create a **detailed PR description**
+5. Assign at least **one reviewer**
+6. Wait for approvals before merging
+
+---
+
+## 🚀 Deployment
+
+The website is deployed using **GitHub Pages**. Any push to the `master` branch will automatically trigger deployment.
+
+For more details, refer to the [GitHub Pages Documentation](https://pages.github.com/).
+
+---
+
+## 📖 Learn More
+
+- [Next.js Documentation](https://nextjs.org/docs)
+- [React Documentation](https://react.dev/)
+- [Yarn Documentation](https://yarnpkg.com/)
+
+---
+
+## ⭐ Show Your Support
+If you find this project useful, **star the repository** ⭐ and contribute to the community!
+
+---
+
+## 📞 Contact
+For any queries or suggestions, please open an [issue](https://github.com/Robotics-PEC/Robotics-PEC.github.io/issues) or join our [Discord Community](https://discord.gg/cZYm9U5s5c).
+
+---
