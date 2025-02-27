@@ -1,4 +1,7 @@
+"use client";
+
 import { useState } from "react";
+import Image from "next/image"; // Import Next.js Image component
 import { Button } from "@/components/ui/button";
 import { GitFork, Menu } from "lucide-react";
 import Link from "next/link";
@@ -24,9 +27,19 @@ const Header = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="h-16 flex items-center justify-between">
           <div className="flex items-center gap-6">
-            <Link href="/" className="text-xl font-bold">
-              PEC Robotics
+            {/* Logo */}
+            <Link href="/">
+              <Image
+                src="/logo.png" // Update with actual path to your logo
+                alt="PEC Robotics Logo"
+                width={120} // Adjust width as needed
+                height={40} // Adjust height as needed
+                className="object-contain"
+                priority // Ensures fast loading
+              />
             </Link>
+
+            {/* Desktop Navigation */}
             <nav className="hidden md:flex items-center gap-6">
               {navigation.map((item) => (
                 <Link
@@ -39,6 +52,8 @@ const Header = () => {
               ))}
             </nav>
           </div>
+
+          {/* Buttons and Mobile Menu */}
           <div className="flex items-center gap-4">
             <Button
               variant="outline"

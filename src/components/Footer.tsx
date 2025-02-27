@@ -109,10 +109,10 @@ const Footer = () => {
                   Punjab Engineering College, Sector 12, Chandigarh, 160012
                 </span>
               </li>
-              <li className="flex items-center space-x-3">
+              {/* <li className="flex items-center space-x-3">
                 <Phone className="h-5 w-5 text-muted-foreground" />
                 <span className="text-sm text-muted-foreground">+91 123-456-7890</span>
-              </li>
+              </li> */}
               <li className="flex items-center space-x-3">
                 <Mail className="h-5 w-5 text-muted-foreground" />
                 <span className="text-sm text-muted-foreground">robotics@pec.edu.in</span>
