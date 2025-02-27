@@ -36,15 +36,15 @@ const Activities = () => {
   ];
 
   const toggleBookmark = (id: number) => {
-    setBookmarkedActivities(prev => 
-      prev.includes(id) 
+    setBookmarkedActivities(prev =>
+      prev.includes(id)
         ? prev.filter(activityId => activityId !== id)
         : [...prev, id]
     );
   };
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col bg-[#F6F6F7]">
       <Head>
         <title>Robotics Society | Punjab Engineering College</title>
         <meta name="description" content="PEC Robotics Society at Punjab Engineering College is dedicated to innovation in robotics and automation. Explore our projects and join our team." />
@@ -54,11 +54,11 @@ const Activities = () => {
         <meta property="og:description" content="Discover groundbreaking robotics projects and cutting-edge automation innovations at PEC Robotics Society." />
         <meta property="og:image" content="/images/robotics-banner.jpg" />
         <meta property="og:type" content="website" />
-        <meta property="og:url" content="https://pecrobotics.com" />
-        <link rel="canonical" href="https://pecrobotics.com" />
+        <meta property="og:url" content="https://roboticspec.com" />
+        <link rel="canonical" href="https://roboticspec.com" />
       </Head>
       <Header />
-      <main className="flex-grow py-24 bg-light-gray">
+      <main className="flex-grow py-24">
         <div className="container mx-auto px-4">
           <div className="text-center mb-16">
             <h1 className="text-4xl font-bold mb-4">Our Activities</h1>
@@ -82,7 +82,7 @@ const Activities = () => {
                         onClick={() => toggleBookmark(activity.id)}
                       >
                         {bookmarkedActivities.includes(activity.id) ? (
-                          <BookmarkCheck className="h-5 w-5" />
+                          <BookmarkCheck className="h-5 w-5 text-blue-500" />
                         ) : (
                           <BookmarkPlus className="h-5 w-5" />
                         )}

@@ -41,7 +41,7 @@ const Projects = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col bg-[#F6F6F7]">
       <Head>
         <title>Robotics Society | Punjab Engineering College</title>
         <meta name="description" content="PEC Robotics Society at Punjab Engineering College is dedicated to innovation in robotics and automation. Explore our projects and join our team." />
@@ -51,11 +51,11 @@ const Projects = () => {
         <meta property="og:description" content="Discover groundbreaking robotics projects and cutting-edge automation innovations at PEC Robotics Society." />
         <meta property="og:image" content="/images/robotics-banner.jpg" />
         <meta property="og:type" content="website" />
-        <meta property="og:url" content="https://pecrobotics.com" />
-        <link rel="canonical" href="https://pecrobotics.com" />
+        <meta property="og:url" content="https://roboticspec.com" />
+        <link rel="canonical" href="https://roboticspec.com" />
       </Head>
       <Header />
-      <main className="flex-grow py-24 bg-light-gray">
+      <main className="flex-grow py-24">
         <div className="container mx-auto px-4">
           <div className="text-center mb-16">
             <h1 className="text-4xl font-bold mb-4">Our Projects</h1>
@@ -70,7 +70,7 @@ const Projects = () => {
                 transition={{ duration: 0.5 }}
               >
                 <Card className="glass-card overflow-hidden">
-                  <div className="aspect-video bg-silver" />
+                  <div className="aspect-video bg-gray-100" />
                   <div className="p-6">
                     <div className="flex justify-between items-start mb-4">
                       <h3 className="text-xl font-semibold">{project.title}</h3>
@@ -80,7 +80,7 @@ const Projects = () => {
                         onClick={() => toggleBookmark(project.id)}
                       >
                         {bookmarkedProjects.includes(project.id) ? (
-                          <BookmarkCheck className="h-5 w-5" />
+                          <BookmarkCheck className="h-5 w-5 text-blue-500" />
                         ) : (
                           <BookmarkPlus className="h-5 w-5" />
                         )}
