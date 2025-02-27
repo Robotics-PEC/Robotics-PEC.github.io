@@ -20,8 +20,8 @@ const Contact = () => {
             toast({
                 title: "Message Sent",
                 description: "Thank you for reaching out! We will get back to you soon.",
-                status: "success",
             });
+
         }
     }, [state.succeeded, toast]);
 
