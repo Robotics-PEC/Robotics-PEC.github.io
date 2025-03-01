@@ -6,10 +6,18 @@ import { ChevronRight, Bot, Users, Mail } from "lucide-react";
 import Head from "next/head";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import { useRouter } from "next/navigation";
+import { projects } from "@/constants";
+import ProjectCard from "@/components/ProjectCard";
 
 const Index = () => {
   const [isVisible, setIsVisible] = useState(false);
   const sectionRef = useRef(null);
+  const router = useRouter();
+
+  const handleClick = () => {
+    document.getElementById("projects")?.scrollIntoView({ behavior: "smooth" });
+  }
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -63,6 +71,7 @@ const Index = () => {
               </p>
               <Button
                 className="mt-8 px-8 py-6 text-lg rounded-full bg-blue-500 hover:bg-blue-600 text-white transition-all duration-300 ease-in-out hover:scale-105"
+                onClick={handleClick}
               >
                 Explore Our Projects <ChevronRight className="ml-2" />
               </Button>
@@ -71,7 +80,7 @@ const Index = () => {
         </section>
 
         {/* Projects Section */}
-        <section ref={sectionRef} className="py-24">
+        <section ref={sectionRef} className="py-24" id="projects">
           <div className="container mx-auto px-4">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -84,15 +93,7 @@ const Index = () => {
                 <p className="text-gray-600">Innovative solutions for tomorrow's challenges</p>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                {[1, 2, 3].map((i) => (
-                  <Card key={i} className="glass-card p-6">
-                    <div className="aspect-video bg-gray-100 rounded-lg mb-4" />
-                    <h3 className="text-xl font-semibold mb-2">Project {i}</h3>
-                    <p className="text-gray-600">
-                      Advanced robotics project showcasing cutting-edge technology and innovation.
-                    </p>
-                  </Card>
-                ))}
+                <ProjectCard />
               </div>
             </motion.div>
           </div>
@@ -125,7 +126,7 @@ const Index = () => {
 
       </main>
       <Footer />
-    </div>
+    </div >
   );
 };
 

@@ -7,33 +7,12 @@ import { Button } from "@/components/ui/button";
 import { Calendar, Users, BookmarkPlus, BookmarkCheck } from "lucide-react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import { activities } from "@/constants";
 
 const Activities = () => {
   const [bookmarkedActivities, setBookmarkedActivities] = useState<number[]>([]);
 
-  const activities = [
-    {
-      id: 1,
-      title: "Robotics Workshop 2024",
-      description: "Hands-on workshop on building autonomous robots",
-      date: "March 15, 2024",
-      participants: 50
-    },
-    {
-      id: 2,
-      title: "AI in Robotics Seminar",
-      description: "Expert talk on integrating AI with robotics",
-      date: "April 2, 2024",
-      participants: 75
-    },
-    {
-      id: 3,
-      title: "Robotics Competition",
-      description: "Annual inter-university robotics competition",
-      date: "May 10, 2024",
-      participants: 100
-    }
-  ];
+
 
   const toggleBookmark = (id: number) => {
     setBookmarkedActivities(prev =>
