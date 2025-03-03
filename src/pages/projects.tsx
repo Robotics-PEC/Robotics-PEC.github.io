@@ -18,6 +18,7 @@ const Projects = () => {
     <div className="min-h-screen flex flex-col bg-[#F6F6F7]">
       <Head>
         <title>Robotics Society | Punjab Engineering College</title>
+        <link rel="icon" href="/favicon.png" />
         <meta name="description" content="PEC Robotics Society at Punjab Engineering College is dedicated to innovation in robotics and automation. Explore our projects and join our team." />
         <meta name="keywords" content="PEC Robotics, Punjab Engineering College, Robotics Society, Innovation, Automation, Engineering Projects" />
         <meta name="author" content="PEC Robotics Society" />

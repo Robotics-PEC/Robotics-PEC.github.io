@@ -28,6 +28,7 @@ const Contact = () => {
     return (
         <div className="min-h-screen flex flex-col bg-[#F6F6F7]">
             <Head>
+                <link rel="icon" href="/favicon.png" />
                 <title>Robotics Society | Punjab Engineering College</title>
                 <meta name="description" content="PEC Robotics Society at Punjab Engineering College is dedicated to innovation in robotics and automation. Explore our projects and join our team." />
             </Head>
