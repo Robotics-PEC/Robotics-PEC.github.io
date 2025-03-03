@@ -68,3 +68,7 @@
   max-width: 100%;
   height: auto !important;
 }
+
+html {
+  scroll-behavior: smooth;
+}

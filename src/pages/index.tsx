@@ -101,7 +101,7 @@ const Index = () => {
         </section>
 
         {/* Team Section */}
-        <section className="py-24">
+        <section className="py-24" id="team">
           <div className="container mx-auto px-4">
             <div className="text-center mb-16">
               <h2 className="text-4xl font-bold mb-4">Our Team</h2>
