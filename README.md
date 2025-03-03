@@ -8,6 +8,7 @@
 [![GitHub issues](https://img.shields.io/github/issues/Robotics-PEC/Robotics-PEC.github.io?style=for-the-badge)](https://github.com/Robotics-PEC/Robotics-PEC.github.io/issues)
 [![GitHub forks](https://img.shields.io/github/forks/Robotics-PEC/Robotics-PEC.github.io?style=for-the-badge)](https://github.com/Robotics-PEC/Robotics-PEC.github.io/network)
 [![GitHub stars](https://img.shields.io/github/stars/Robotics-PEC/Robotics-PEC.github.io?style=for-the-badge)](https://github.com/Robotics-PEC/Robotics-PEC.github.io/stargazers)
+[![License](https://img.shields.io/github/license/Robotics-PEC/Robotics-PEC.github.io?style=for-the-badge)](./LICENSE)
 
 </div>
 
@@ -105,5 +106,10 @@ If you find this project useful, **star the repository** ⭐ and contribute to t
 
 ## 📞 Contact
 For any queries or suggestions, please open an [issue](https://github.com/Robotics-PEC/Robotics-PEC.github.io/issues) or join our [Discord Community](https://discord.gg/cZYm9U5s5c).
+
+---
+
+## 🔒 License
+This project is licensed under the [GPL-3.0 License](./LICENSE).
 
 ---
