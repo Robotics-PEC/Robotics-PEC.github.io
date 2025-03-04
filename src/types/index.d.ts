@@ -3,6 +3,7 @@ export interface ProjectType {
     title: string;
     description: string;
     image: string;
+    longDescription: string;
 };
 
 export interface EventType {

@@ -5,6 +5,7 @@ import { Card } from './ui/card'
 import { BookmarkPlus, BookmarkCheck } from "lucide-react";
 import Image from 'next/image'
 import { Button } from './ui/button'
+import Link from 'next/link';
 
 const ProjectCard = () => {
     const [bookmarkedProjects, setBookmarkedProjects] = useState<number[]>([]);
@@ -24,34 +25,36 @@ const ProjectCard = () => {
                 whileInView={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5 }}
             >
-                <Card className="glass-card overflow-hidden">
-                    <div className="relative aspect-video bg-gray-100">
-                        <Image
+                <Link href={`/project/${project.id}`}>
+                    <Card className="glass-card overflow-hidden">
+                        <div className="relative aspect-video bg-gray-100">
+                            <Image
 
-                            src={project.image}
-                            alt={project.title}
-                            fill
-                            className="object-contain"
-                        />
-                    </div>
-                    <div className="p-6">
-                        <div className="flex justify-between items-start mb-4">
-                            <h3 className="text-xl font-semibold">{project.title}</h3>
-                            <Button
-                                variant="ghost"
-                                size="icon"
-                                onClick={() => toggleBookmark(project.id)}
-                            >
-                                {bookmarkedProjects.includes(project.id) ? (
-                                    <BookmarkCheck className="h-5 w-5 text-blue-500" />
-                                ) : (
-                                    <BookmarkPlus className="h-5 w-5" />
-                                )}
-                            </Button>
+                                src={project.image}
+                                alt={project.title}
+                                fill
+                                className="object-contain"
+                            />
                         </div>
-                        <p className="text-gray-600">{project.description}</p>
-                    </div>
-                </Card>
+                        <div className="p-6">
+                            <div className="flex justify-between items-start mb-4">
+                                <h3 className="text-xl font-semibold">{project.title}</h3>
+                                <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    onClick={() => toggleBookmark(project.id)}
+                                >
+                                    {bookmarkedProjects.includes(project.id) ? (
+                                        <BookmarkCheck className="h-5 w-5 text-blue-500" />
+                                    ) : (
+                                        <BookmarkPlus className="h-5 w-5" />
+                                    )}
+                                </Button>
+                            </div>
+                            <p className="text-gray-600">{project.description}</p>
+                        </div>
+                    </Card>
+                </Link>
             </motion.div>
         ))
     )
