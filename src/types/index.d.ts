@@ -23,3 +23,11 @@ export interface ActivityType {
     date: string;
     participants: number;
 };
+
+export interface TeamMember {
+    id: number;
+    firstName: string;
+    lastName: string;
+    role: string;
+    image: string;
+};

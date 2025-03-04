@@ -1,19 +1,18 @@
 import { useState, useRef, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
 import { ChevronRight, Bot, Users, Mail } from "lucide-react";
 import Head from "next/head";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
-import { useRouter } from "next/navigation";
-import { projects } from "@/constants";
 import ProjectCard from "@/components/ProjectCard";
+import { TeamMember } from "@/types";
+import { teamMembers } from "@/constants";
+import Image from "next/image";
 
 const Index = () => {
   const [isVisible, setIsVisible] = useState(false);
   const sectionRef = useRef(null);
-  const router = useRouter();
 
   const handleClick = () => {
     document.getElementById("projects")?.scrollIntoView({ behavior: "smooth" });
@@ -107,21 +106,58 @@ const Index = () => {
               <h2 className="text-4xl font-bold mb-4">Our Team</h2>
               <p className="text-gray-600">Meet the minds behind the innovation</p>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-8">
-              {[1, 2, 3, 4].map((i) => (
-                <motion.div
-                  key={i}
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  whileInView={{ opacity: 1, scale: 1 }}
-                  transition={{ duration: 0.4 }}
-                  className="glass-card p-6 text-center"
-                >
-                  <div className="w-24 h-24 rounded-full bg-gray-100 mx-auto mb-4" />
-                  <h3 className="text-lg font-semibold">Team Member {i}</h3>
-                  <p className="text-gray-600">Role / Position</p>
-                </motion.div>
-              ))}
-            </div>
+            {
+              teamMembers.length >= 4 ?
+                (
+                  <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-8">
+                    {teamMembers?.map((member: TeamMember, index) => (
+                      <motion.div
+                        key={index}
+                        initial={{ opacity: 0, scale: 0.9 }}
+                        whileInView={{ opacity: 1, scale: 1 }}
+                        transition={{ duration: 0.4 }}
+                        className="glass-card p-6 text-center"
+                      >
+                        <div className="relative w-24 h-24 rounded-full bg-gray-100 mx-auto mb-4">
+                          <Image
+                            src={member.image}
+                            alt={member.firstName}
+                            fill
+                            className="object-contain rounded-[50px]"
+                          />
+                        </div>
+                        <p className="text-gray-600">Name : {member.firstName} {member.lastName}</p>
+                        <p className="text-gray-600">Role : {member.role}</p>
+                      </motion.div>
+                    ))}
+                  </div>
+                )
+                :
+                (
+                  <div className="flex justify-center gap-8">
+                    {teamMembers?.map((member: TeamMember, index) => (
+                      <motion.div
+                        key={index}
+                        initial={{ opacity: 0, scale: 0.9 }}
+                        whileInView={{ opacity: 1, scale: 1 }}
+                        transition={{ duration: 0.4 }}
+                        className="glass-card p-6 text-center"
+                      >
+                        <div className="relative w-24 h-24 rounded-full bg-gray-100 mx-auto mb-4">
+                          <Image
+                            src={member.image}
+                            alt={member.firstName}
+                            fill
+                            className="object-contain rounded-[50px]"
+                          />
+                        </div>
+                        <p className="text-gray-600">Name : {member.firstName} {member.lastName}</p>
+                        <p className="text-gray-600">Role : {member.role}</p>
+                      </motion.div>
+                    ))}
+                  </div>
+                )
+            }
           </div>
         </section>
 

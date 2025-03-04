@@ -1,4 +1,4 @@
-import { ActivityType, EventType, ProjectType } from "@/types";
+import { ActivityType, EventType, ProjectType, TeamMember } from "@/types";
 
 export const projects: ProjectType[] = [
     {
@@ -49,4 +49,22 @@ export const activities: ActivityType[] = [
         date: "28/12/2024",
         participants: 60
     },
+];
+
+export const teamMembers: TeamMember[] = [
+    {
+        id: 1,
+        firstName: "Lalit",
+        lastName: "Kumar",
+        role: "Secretary",
+        image: "/team/lalitsir.png"
+    },
+    {
+        id: 2,
+        firstName: "Shashank",
+        lastName: "Agarwal",
+        role: "Joint Secretary",
+        image: "/team/shashanksir.jpg"
+    },
+
 ];

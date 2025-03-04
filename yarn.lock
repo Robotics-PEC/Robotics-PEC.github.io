@@ -3002,6 +3002,18 @@ next@^15.2.0:
     "@next/swc-win32-x64-msvc" "15.2.0"
     sharp "^0.33.5"
 
+node-appwrite@^15.0.0:
+  version "15.0.0"
+  resolved "https://registry.yarnpkg.com/node-appwrite/-/node-appwrite-15.0.0.tgz#28b7c4848b7707c2c289253cc4e737e9a7fd65a1"
+  integrity sha512-ysyFGKnT/vSJHNSfikg/RaOXghv8rdHNUznVMENm7AS7yf9h/vsF8fyDynt+Uplud0hIWCQdenqZdpxEjGe46g==
+  dependencies:
+    node-fetch-native-with-agent "1.7.2"
+
+node-fetch-native-with-agent@1.7.2:
+  version "1.7.2"
+  resolved "https://registry.yarnpkg.com/node-fetch-native-with-agent/-/node-fetch-native-with-agent-1.7.2.tgz#13b74160f2c1a856c656534bfe7984da5eb5172f"
+  integrity sha512-5MaOOCuJEvcckoz7/tjdx1M6OusOY6Xc5f459IaruGStWnKzlI1qpNgaAwmn4LmFYcsSlj+jBMk84wmmRxfk5g==
+
 node-releases@^2.0.19:
   version "2.0.19"
   resolved "https://registry.yarnpkg.com/node-releases/-/node-releases-2.0.19.tgz#9e445a52950951ec4d177d843af370b411caf314"
