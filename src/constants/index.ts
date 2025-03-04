@@ -6,21 +6,27 @@ export const projects: ProjectType[] = [
         title: "CanSat",
         description: "CanSat by AAS is a mini satellite competition for educational purposes",
         image: "/projects/cansat.jpg",
-        longDescription: "The CanSat competition by the American Astronautical Society (AAS) is an annual student design-build-launch competition that challenges teams to develop a small satellite system within a soda can-sized container. Participants must design a payload capable of executing a specific mission, including telemetry transmission, deployment mechanisms, and sensor data collection during descent. The competition simulates a real satellite mission, incorporating constraints on size, weight, and functionality. It fosters skills in engineering, programming, and teamwork while providing hands-on aerospace experience. CanSat is an excellent platform for students to gain practical knowledge in space technology and systems engineering."
+        longDescription: "The CanSat competition by the American Astronautical Society (AAS) is an annual student design-build-launch competition that challenges teams to develop a small satellite system within a soda can-sized container. Participants must design a payload capable of executing a specific mission, including telemetry transmission, deployment mechanisms, and sensor data collection during descent. The competition simulates a real satellite mission, incorporating constraints on size, weight, and functionality. It fosters skills in engineering, programming, and teamwork while providing hands-on aerospace experience. CanSat is an excellent platform for students to gain practical knowledge in space technology and systems engineering.",
+        category: "Aerospace",
+        technologies: ["Telemetry", "Sensors", "Embedded Systems"]
     },
     {
         id: 2,
         title: "Robo Wars",
         description: "Robo Wars is a combat competition where robots fight for victory.",
         image: "/projects/robowars.jpg",
-        longDescription: "Robo Wars is a thrilling combat robotics competition where teams design, build, and battle remote-controlled robots in an enclosed arena. The objective is to disable opponents using weapons, strategy, and durability while adhering to weight and safety regulations. These battles test engineering skills, innovation, and teamwork as participants develop robots with powerful weaponry like spinners, flippers, and hammers. Popular worldwide, Robo Wars fosters STEM learning by encouraging mechanical design, electronics, and programming. Events range from university contests to global championships, captivating audiences with intense robot duels. The competition showcases cutting-edge technology and pushes the boundaries of robotic combat engineering."
+        longDescription: "Robo Wars is a thrilling combat robotics competition where teams design, build, and battle remote-controlled robots in an enclosed arena. The objective is to disable opponents using weapons, strategy, and durability while adhering to weight and safety regulations. These battles test engineering skills, innovation, and teamwork as participants develop robots with powerful weaponry like spinners, flippers, and hammers. Popular worldwide, Robo Wars fosters STEM learning by encouraging mechanical design, electronics, and programming. Events range from university contests to global championships, captivating audiences with intense robot duels. The competition showcases cutting-edge technology and pushes the boundaries of robotic combat engineering.",
+        category: "Combat Robotics",
+        technologies: ["Mechanical Design", "Electronics", "Remote Control"]
     },
     {
         id: 3,
         title: "Robotic Arm",
         description: "A mechanical arm mimicking human motion for automation and precision tasks.",
         image: "/projects/roboticarm.jpg",
-        longDescription: "A robotic arm is a programmable mechanical device designed to mimic the movements of a human arm. It consists of interconnected segments, joints, and actuators that enable precise motion and manipulation of objects. Controlled via computers, sensors, or AI, robotic arms are widely used in industries such as manufacturing, healthcare, and space exploration. They perform tasks like welding, assembly, surgery, and material handling with high accuracy and efficiency. Advanced models incorporate machine learning and vision systems for autonomous operation. Robotic arms enhance productivity, reduce human effort in hazardous environments, and play a crucial role in automation and modern robotics."
+        longDescription: "A robotic arm is a programmable mechanical device designed to mimic the movements of a human arm. It consists of interconnected segments, joints, and actuators that enable precise motion and manipulation of objects. Controlled via computers, sensors, or AI, robotic arms are widely used in industries such as manufacturing, healthcare, and space exploration. They perform tasks like welding, assembly, surgery, and material handling with high accuracy and efficiency. Advanced models incorporate machine learning and vision systems for autonomous operation. Robotic arms enhance productivity, reduce human effort in hazardous environments, and play a crucial role in automation and modern robotics.",
+        category: "Automation",
+        technologies: ["AI", "Control Systems", "Sensors"]
     }
 ];
 
