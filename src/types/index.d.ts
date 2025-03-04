@@ -4,6 +4,8 @@ export interface ProjectType {
     description: string;
     image: string;
     longDescription: string;
+    category: string;
+    technologies?: string[];
 };
 
 export interface EventType {
