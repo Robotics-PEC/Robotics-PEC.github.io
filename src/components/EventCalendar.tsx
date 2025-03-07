@@ -1,12 +1,13 @@
 import React, { useState } from "react";
 import { motion } from "framer-motion";
 import { Calendar } from "@/components/ui/calendar";
-import { Card } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Calendar as Clock, MapPin, Users, PlusCircle } from "lucide-react";
 import { EventType } from "@/types";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
+import clsx from "clsx";
 
 interface EventCalendarProps {
     events: EventType[];
@@ -91,21 +92,33 @@ const EventCalendar: React.FC<EventCalendarProps> = ({ events }) => {
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ duration: 0.5 }}
             >
-                <Card className="p-4 bg-white shadow-md rounded-lg">
+                <Card className="p-4 bg-white shadow-md rounded-lg w-full">
                     <Calendar
                         mode="single"
                         selected={selectedDate}
                         onSelect={setSelectedDate}
-                        className="p-3 pointer-events-auto w-full"
+                        className="h-full w-full flex"
+                        classNames={{
+                            months:
+                                "flex w-full flex-col sm:flex-row space-y-4 sm:space-x-4 sm:space-y-0 flex-1",
+                            month: "space-y-4 w-full flex flex-col",
+                            table: "w-full h-full border-collapse space-y-1",
+                            head_row: "",
+                            row: "w-full mt-2",
+                        }}
+
                         modifiers={{
-                            hasEvent: (date) => isDayWithEvent(date),
+                            hasEvent: (date) => isDayWithEvent(date)
                         }}
                         modifiersStyles={{
-                            hasEvent: {
-                                backgroundColor: '#e0f2fe',
-                                borderRadius: '0.375rem',
-                                fontWeight: 'bold',
+                            selected: {
+                                backgroundColor: "#2563eb"
                             },
+                            hasEvent: {
+                                backgroundColor: "#e0f2fe",
+                                borderRadius: "0.375rem",
+                                fontWeight: "bold",
+                            }
                         }}
                     />
                     <div className="mt-4 text-sm text-gray-500">
@@ -154,7 +167,7 @@ const EventCalendar: React.FC<EventCalendarProps> = ({ events }) => {
                                             <span>Capacity: {event.capacity}</span>
                                         </div>
                                     </div>
-                                    <div className="flex space-x-2">
+                                    <div className="grid grid-row max-sm:gap-6 md:flex md:space-x-2 lg:flex lg:space-x-2">
                                         <Button
                                             size="sm"
                                             className="bg-blue-500 hover:bg-blue-600 text-white"
