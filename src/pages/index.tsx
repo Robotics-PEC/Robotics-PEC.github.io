@@ -1,7 +1,5 @@
 import { useState, useRef, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Button } from "@/components/ui/button";
-import { ChevronRight, Bot, Users, Mail } from "lucide-react";
 import Head from "next/head";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
@@ -11,6 +9,8 @@ import Image from "next/image";
 import { getTeamMembers } from "@/lib/supabase/actions/team.actions";
 import { getProjects } from "@/lib/supabase/actions/project.actions";
 import { Loader } from "@/components/Loader";
+
+import Hero from "@/components/Hero";
 
 const Index = () => {
   const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
@@ -62,29 +62,7 @@ const Index = () => {
             <Header />
             <main className="flex-grow">
               {/* Hero Section */}
-              <section className="min-h-[calc(100vh-4rem)] flex items-center justify-center relative overflow-hidden">
-                <div className="container mx-auto px-4 text-center">
-                  <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.6 }}
-                    className="space-y-6"
-                  >
-                    <h1 className="text-6xl md:text-7xl font-bold tracking-tight text-dark-gray">
-                      PEC Robotics Society
-                    </h1>
-                    <p className="text-xl md:text-2xl text-gray-600 max-w-2xl mx-auto">
-                      Pushing the boundaries of innovation through robotics and automation
-                    </p>
-                    <Button
-                      className="mt-8 px-8 py-6 text-lg rounded-full bg-blue-500 hover:bg-blue-600 text-white transition-all duration-300 ease-in-out hover:scale-105"
-                      onClick={handleClick}
-                    >
-                      Explore Our Projects <ChevronRight className="ml-2" />
-                    </Button>
-                  </motion.div>
-                </div>
-              </section>
+              <Hero handleClick={handleClick} />
 
               {/* Projects Section */}
               <section className="py-24" id="projects">
