@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import { motion } from "framer-motion";
 import Head from "next/head";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
@@ -11,6 +10,7 @@ import { Loader } from "@/components/Loader";
 
 import Hero from "@/components/Hero";
 import Team from "@/components/Team";
+import ProjectSection from "@/components/ProjectSection";
 
 const Index = () => {
   const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
@@ -64,24 +64,7 @@ const Index = () => {
               <Hero handleClick={handleClick} />
 
               {/* Projects Section */}
-              <section className="py-24" id="projects">
-                <div className="container mx-auto px-4">
-                  <motion.div
-                    initial={{ opacity: 0, scale: 0.9 }}
-                    whileInView={{ opacity: 1, scale: 1 }}
-                    transition={{ duration: 0.4 }}
-                    className="space-y-12"
-                  >
-                    <div className="text-center mb-16">
-                      <h2 className="text-4xl font-bold mb-4">Our Projects</h2>
-                      <p className="text-gray-600">Innovative solutions for tomorrow's challenges</p>
-                    </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                      <ProjectCard projects={projects} />
-                    </div>
-                  </motion.div>
-                </div>
-              </section>
+              <ProjectSection projects={projects} />
 
               {/* Team Section */}
               <Team teamMembers={teamMembers} />
