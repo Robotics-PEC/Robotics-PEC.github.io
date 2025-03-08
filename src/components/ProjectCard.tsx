@@ -6,8 +6,9 @@ import { BookmarkPlus, BookmarkCheck } from "lucide-react";
 import Image from 'next/image'
 import { Button } from './ui/button'
 import Link from 'next/link';
+import { ProjectType } from '@/types';
 
-const ProjectCard = () => {
+const ProjectCard = ({ projects }: { projects: ProjectType[] }) => {
     const [bookmarkedProjects, setBookmarkedProjects] = useState<number[]>([]);
 
     const toggleBookmark = (id: number) => {
