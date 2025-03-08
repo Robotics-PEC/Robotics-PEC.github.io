@@ -1,11 +1,8 @@
 import { useEffect, useState } from "react";
-import { motion } from "framer-motion";
-import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import Head from "next/head";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
-import Image from "next/image";
+import ProjectSection from "@/components/ProjectSection";
 import ProjectCard from "@/components/ProjectCard";
 import { ProjectType } from "@/types";
 import { getProjects } from "@/lib/supabase/actions/project.actions";
@@ -19,10 +16,8 @@ const Projects = () => {
   useEffect(() => {
     const fetch = async () => {
       const data = await getProjects();
-
       setProjects(data);
       setLoading(false);
-
     };
 
     fetch();
@@ -56,15 +51,7 @@ const Projects = () => {
             </Head>
             <Header />
             <main className="flex-grow py-24">
-              <div className="container mx-auto px-4">
-                <div className="text-center mb-16">
-                  <h1 className="text-4xl font-bold mb-4">Our Projects</h1>
-                  <p className="text-gray-600">Discover our innovative robotics projects</p>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                  <ProjectCard projects={projects} />
-                </div>
-              </div>
+              <ProjectSection projects={projects} />
             </main>
             <Footer />
           </div>
