@@ -1,5 +1,6 @@
 name: Build and Deploy
 
+
 on:
   push:
     branches:
@@ -7,7 +8,6 @@ on:
   pull_request:
     branches:
       - master
-
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -15,8 +15,26 @@ jobs:
       - name: Set up Git repository
         uses: actions/checkout@v4
 
+
       - name: Set up Node.js
         uses: actions/setup-node@v4
+        with:
+          node-version: 18
+
+
+      - name: Create .env file and log variables
+        run: |
+          echo "NEXT_PUBLIC_SUPABASE_ANON_KEY=${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}" >> .env
+          echo "NEXT_PUBLIC_SUPABASE_API_ENDPOINT=${{ secrets.NEXT_PUBLIC_SUPABASE_API_ENDPOINT }}" >> .env
+          
+          echo "Logging environment variables..."
+          echo "NEXT_PUBLIC_SUPABASE_ANON_KEY=${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}" | sed 's/./& /g'
+          echo "NEXT_PUBLIC_SUPABASE_API_ENDPOINT=${{ secrets.NEXT_PUBLIC_SUPABASE_API_ENDPOINT }}" | sed 's/./& /g'
+
+
+      - name: Debug Environment Variables
+        run: env
+
 
       - name: Create .env file
         run: |
@@ -26,17 +44,18 @@ jobs:
       - name: Install dependencies
         run: yarn install
 
+
       - name: Build Next.js project
         run: yarn build
         env:
           NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
           NEXT_PUBLIC_SUPABASE_API_ENDPOINT: ${{ secrets.NEXT_PUBLIC_SUPABASE_API_ENDPOINT }}
-
       - name: Upload static site as artifact
         uses: actions/upload-artifact@v4
         with:
           name: nextjs-artifact
           path: out
+
 
   deploy:
     if: github.event_name == 'push'
@@ -49,10 +68,10 @@ jobs:
           name: nextjs-artifact
           path: out
 
+
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./out
           publish_branch: gh-pages
-          keep_files: true
