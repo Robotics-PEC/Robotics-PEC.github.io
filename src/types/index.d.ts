@@ -2,10 +2,10 @@ export interface ProjectType {
     id: number;
     title: string;
     description: string;
-    image: string;
     longDescription: string;
     category: string;
-    technologies?: string[];
+    technologies: string[];
+    image: string;
 };
 
 export interface EventType {
@@ -32,4 +32,9 @@ export interface TeamMember {
     lastName: string;
     role: string;
     image: string;
+};
+
+export interface PublicUrlType {
+    name: string;
+    url: string;
 };
