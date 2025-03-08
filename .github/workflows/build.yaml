@@ -3,7 +3,10 @@ name: Build and Deploy
 on:
   push:
     branches:
-      - master # Trigger the workflow on push to the main branch
+      - master
+  pull_request:
+    branches:
+      - master
 
 jobs:
   build:
@@ -15,11 +18,19 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v4
 
+      - name: Create .env file
+        run: |
+          echo "NEXT_PUBLIC_SUPABASE_ANON_KEY=${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}" >> .env
+          echo "NEXT_PUBLIC_SUPABASE_API_ENDPOINT=${{ secrets.NEXT_PUBLIC_SUPABASE_API_ENDPOINT }}" >> .env
+
       - name: Install dependencies
         run: yarn install
 
       - name: Build Next.js project
         run: yarn build
+        env:
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+          NEXT_PUBLIC_SUPABASE_API_ENDPOINT: ${{ secrets.NEXT_PUBLIC_SUPABASE_API_ENDPOINT }}
 
       - name: Upload static site as artifact
         uses: actions/upload-artifact@v4
@@ -28,6 +39,7 @@ jobs:
           path: out
 
   deploy:
+    if: github.event_name == 'push'
     runs-on: ubuntu-latest
     needs: build
     steps:
@@ -41,6 +53,6 @@ jobs:
         uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./out # The folder containing your static files
-          publish_branch: gh-pages # Deploy to the gh-pages branch
+          publish_dir: ./out
+          publish_branch: gh-pages
           keep_files: true
