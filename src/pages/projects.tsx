@@ -3,7 +3,6 @@ import Head from "next/head";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import ProjectSection from "@/components/ProjectSection";
-import ProjectCard from "@/components/ProjectCard";
 import { ProjectType } from "@/types";
 import { getProjects } from "@/lib/supabase/actions/project.actions";
 import { Loader } from "@/components/Loader";

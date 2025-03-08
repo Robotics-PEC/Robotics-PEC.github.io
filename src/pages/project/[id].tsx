@@ -3,7 +3,6 @@
 import Footer from '@/components/Footer';
 import Header from '@/components/Header';
 import { Button } from '@/components/ui/button';
-import { projects } from '@/constants';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
@@ -12,8 +11,9 @@ import Image from 'next/image';
 import Link from 'next/link';
 import React, { useEffect, useState } from 'react';
 import { ProjectType } from '@/types';
-import { getProjectById } from '@/lib/supabase/actions/project.actions';
+import { getProjectById, getProjects } from '@/lib/supabase/actions/project.actions';
 import { Loader } from '@/components/Loader';
+import { set } from 'date-fns';
 import { useIsMobile } from '@/hooks/use-mobile';
 
 const ProjectPage = () => {
@@ -21,15 +21,17 @@ const ProjectPage = () => {
     const id = Number(router.query.id);
     const isMobile: boolean = useIsMobile();
     const [project, setProject] = useState<ProjectType>();
+    const [projectsLength, setProjectsLength] = useState(0);
     const [loading, setLoading] = useState<Boolean>(true);
 
     useEffect(() => {
         const fetch = async () => {
             if (router.isReady) {
-                const data = await getProjectById(Number(id));
-
+                const data = await getProjectById(id);
+                const length = (await getProjects()).length;
                 data.technologies = data.technologies.split(",");
                 setProject(data);
+                setProjectsLength(length);
                 setLoading(false);
             }
         }
@@ -43,14 +45,14 @@ const ProjectPage = () => {
     const prev = () => {
         let prevId = id - 1;
         if (prevId === 0) {
-            prevId = projects.length;
+            prevId = projectsLength;
         }
         router.push(`/project/${prevId}`);
     };
 
     const next = () => {
         let nextId = id + 1;
-        if (nextId > projects.length) {
+        if (nextId > projectsLength) {
             nextId = 1;
         }
         router.push(`/project/${nextId}`);

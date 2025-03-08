@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { ProjectType } from '@/types';
 
 const ProjectCard = ({ projects }: { projects: ProjectType[] }) => {
+
     return (
         projects.map((project) => (
             <motion.div

@@ -33,3 +33,8 @@ export interface TeamMember {
     role: string;
     image: string;
 };
+
+export interface PublicUrlType {
+    name: string;
+    url: string;
+};
