@@ -49,8 +49,6 @@ const LoginForm = () => {
             }
 
             if (data) {
-                document.cookie = `sb-access-token=${data.session.access_token}; path=/; Secure`;
-                document.cookie = `sb-refresh-token=${data.session.refresh_token}; path=/; Secure`;
                 router.push("/admin/page");
             }
 

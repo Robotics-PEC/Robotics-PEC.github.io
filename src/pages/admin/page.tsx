@@ -1,3 +1,4 @@
+import Admin from '@/components/Admin';
 import { Button } from '@/components/ui/button';
 import { client } from '@/lib/supabase/supabase';
 import { useRouter } from 'next/router';
@@ -9,9 +10,6 @@ const AdminPage = () => {
     useEffect(() => {
         const checkSession = async () => {
             const { data: { session } } = await client.auth.getSession();
-
-            console.log(session);
-            console.log(new Date().getTime());
 
             if (session) {
                 setValidUser(true);
@@ -33,10 +31,7 @@ const AdminPage = () => {
             {
                 validUser ? (
                     <div>
-                        AdminPage
-                        <Button onClick={handleLogout}>
-                            Logout
-                        </Button>
+                        <Admin />
                     </div>
                 ) : (
                     <div>
