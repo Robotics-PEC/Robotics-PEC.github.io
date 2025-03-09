@@ -5,7 +5,6 @@ import { ChevronRight } from "lucide-react";
 import { getImagesFromFolder } from "@/lib/supabase/actions/storage.actions";
 import { Loader } from "./Loader";
 
-
 const Hero: React.FC<{ handleClick: () => void }> = ({ handleClick }) => {
     const [currentIndex, setCurrentIndex] = useState(0);
     const [images, setImages] = useState<string[]>([]);
@@ -18,12 +17,16 @@ const Hero: React.FC<{ handleClick: () => void }> = ({ handleClick }) => {
             setLoading(false);
         }
         fetch();
+    }, [])
+
+    useEffect(() => {
         const interval = setInterval(() => {
-            setCurrentIndex((prevIndex) => (prevIndex + 1) % images.length);
+            if (!images || images.length === 0) return;
+            setCurrentIndex((previousIndex) => (previousIndex + 1) % images.length);
         }, 5000);
 
         return () => clearInterval(interval);
-    }, []);
+    }, [images]);
 
     return (
         <>
