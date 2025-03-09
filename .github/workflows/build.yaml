@@ -26,10 +26,9 @@ jobs:
         run: |
           echo "NEXT_PUBLIC_SUPABASE_ANON_KEY=${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}" >> .env
           echo "NEXT_PUBLIC_SUPABASE_API_ENDPOINT=${{ secrets.NEXT_PUBLIC_SUPABASE_API_ENDPOINT }}" >> .env
-          
-          echo "Logging environment variables..."
-          echo "NEXT_PUBLIC_SUPABASE_ANON_KEY=${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}" | sed 's/./& /g'
-          echo "NEXT_PUBLIC_SUPABASE_API_ENDPOINT=${{ secrets.NEXT_PUBLIC_SUPABASE_API_ENDPOINT }}" | sed 's/./& /g'
+          echo "NEXT_PUBLIC_PROJECT_REF=${{secrets.NEXT_PUBLIC_PROJECT_REF}}" >> .env
+          echo "NEXT_PUBLIC_ADMIN_EMAIL=${{secrets.NEXT_PUBLIC_ADMIN_EMAIL}}" >> .env
+          echo "NEXT_PUBLIC_PASSWORD_HASH=${{secrets.NEXT_PUBLIC_PASSWORD_HASH}}" >> .env
 
 
       - name: Debug Environment Variables
@@ -40,6 +39,9 @@ jobs:
         run: |
           echo "NEXT_PUBLIC_SUPABASE_ANON_KEY=${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}" >> .env
           echo "NEXT_PUBLIC_SUPABASE_API_ENDPOINT=${{ secrets.NEXT_PUBLIC_SUPABASE_API_ENDPOINT }}" >> .env
+          echo "NEXT_PUBLIC_PROJECT_REF=${{secrets.NEXT_PUBLIC_PROJECT_REF}}" >> .env
+          echo "NEXT_PUBLIC_ADMIN_EMAIL=${{secrets.NEXT_PUBLIC_ADMIN_EMAIL}}" >> .env
+          echo "NEXT_PUBLIC_PASSWORD_HASH=${{secrets.NEXT_PUBLIC_PASSWORD_HASH}}" >> .env
 
       - name: Install dependencies
         run: yarn install
@@ -50,6 +52,10 @@ jobs:
         env:
           NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
           NEXT_PUBLIC_SUPABASE_API_ENDPOINT: ${{ secrets.NEXT_PUBLIC_SUPABASE_API_ENDPOINT }}
+          NEXT_PUBLIC_PROJECT_REF: ${{secrets.NEXT_PUBLIC_PROJECT_REF}}
+          NEXT_PUBLIC_ADMIN_EMAIL: ${{secrets.NEXT_PUBLIC_ADMIN_EMAIL}}
+          NEXT_PUBLIC_PASSWORD_HASH: ${{secrets.NEXT_PUBLIC_PASSWORD_HASH}}
+          
       - name: Upload static site as artifact
         uses: actions/upload-artifact@v4
         with:
