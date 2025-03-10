@@ -1,5 +1,5 @@
 
-import React from "react";
+import React, { ReactNode } from "react";
 import { cn } from "@/lib/utils";
 
 export interface LoaderProps {
@@ -7,6 +7,8 @@ export interface LoaderProps {
     text?: string;
     className?: string;
     variant?: "spinner" | "pulse" | "dots";
+    isLoading: Boolean;
+    children: React.ReactNode;
 }
 
 export const Loader = ({
@@ -14,6 +16,8 @@ export const Loader = ({
     text,
     className,
     variant = "spinner",
+    isLoading,
+    children
 }: LoaderProps) => {
     const sizeClasses = {
         sm: "w-8 h-8",
@@ -69,9 +73,16 @@ export const Loader = ({
     };
 
     return (
-        <div className="flex flex-col items-center justify-center gap-4">
-            {renderLoader()}
-            {text && <p className="text-foreground/80 animate-pulse text-sm md:text-base">{text}</p>}
-        </div>
+        <>{
+            isLoading ? (
+                <div className="flex flex-col items-center justify-center p-6 bg-background border w-full h-full min-h-screen">
+                    <div className="flex flex-col items-center justify-center gap-4">
+                        {renderLoader()}
+                        {text && <p className="text-foreground/80 animate-pulse text-sm md:text-base">{text}</p>}
+                    </div>
+                    <span className="mt-4 font-medium">Loading...</span>
+                </div>
+            ) : children
+        }</>
     );
 };

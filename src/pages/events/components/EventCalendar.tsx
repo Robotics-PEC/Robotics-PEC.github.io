@@ -170,7 +170,7 @@ const EventCalendar: React.FC<EventCalendarProps> = ({ events }) => {
                                     <div className="grid grid-row max-sm:gap-6 md:flex md:space-x-2 lg:flex lg:space-x-2">
                                         <Button
                                             size="sm"
-                                            className="bg-blue-500 hover:bg-blue-600 text-white"
+                                            className=" text-white"
                                             onClick={() => addToGoogleCalendar(event)}
                                         >
                                             <PlusCircle className="h-4 w-4 mr-2" />
