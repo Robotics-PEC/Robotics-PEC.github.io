@@ -1,7 +1,7 @@
 "use client";
 
-import Footer from '@/components/Footer';
-import Header from '@/components/Header';
+import Footer from '@/components/layout/Footer';
+import Header from '@/components/layout/Header';
 import { Button } from '@/components/ui/button';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import Head from 'next/head';
@@ -12,11 +12,11 @@ import Link from 'next/link';
 import React, { useEffect, useState } from 'react';
 import { ProjectType } from '@/types';
 import { getProjectById, getProjects } from '@/lib/supabase/actions/project.actions';
-import { Loader } from '@/components/Loader';
+import { Loader } from '@/components/layout/Loader';
 import { set } from 'date-fns';
 import { useIsMobile } from '@/hooks/use-mobile';
-import PageHead from '@/components/PageHead';
-import PageLayout from '@/components/PageLayout';
+import PageHead from '@/components/layout/PageHead';
+import PageLayout from '@/components/layout/PageLayout';
 
 const ProjectPage = () => {
     const router = useRouter();

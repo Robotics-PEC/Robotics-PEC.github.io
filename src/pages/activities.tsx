@@ -4,12 +4,12 @@ import { Card } from "@/components/ui/card";
 import { Calendar, Users } from "lucide-react";
 import { useEffect, useState } from "react";
 import { getActivites } from "@/lib/supabase/actions/activities.actions";
-import { Loader } from "@/components/Loader";
+import { Loader } from "@/components/layout/Loader";
 import { ActivityType } from "@/types";
 
-import PageHead from "@/components/PageHead";
-import PageLayout from "@/components/PageLayout";
-import PageSection from "@/components/PageSection";
+import PageHead from "@/components/layout/PageHead";
+import PageLayout from "@/components/layout/PageLayout";
+import PageSection from "@/components/layout/PageSection";
 
 const Activities = () => {
 

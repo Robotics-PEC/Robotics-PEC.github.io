@@ -1,11 +1,11 @@
 import { useEffect, useState } from "react";
 import { ProjectType } from "@/types";
 import { getProjects } from "@/lib/supabase/actions/project.actions";
-import { Loader } from "@/components/Loader";
-import PageHead from "@/components/PageHead";
-import PageLayout from "@/components/PageLayout";
-import PageSection from "@/components/PageSection";
-import ProjectCard from "@/components/ProjectCard";
+import { Loader } from "@/components/layout/Loader";
+import PageHead from "@/components/layout/PageHead";
+import PageLayout from "@/components/layout/PageLayout";
+import PageSection from "@/components/layout/PageSection";
+import ProjectCard from "@/pages/project/components/ProjectCard";
 
 const ProjectSection: React.FC<{ projects: ProjectType[] }> = ({ projects }) => {
   return (

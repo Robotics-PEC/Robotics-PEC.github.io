@@ -1,12 +1,12 @@
 import { motion } from "framer-motion";
 import { Card } from "@/components/ui/card";
 import { Calendar, Users, Clock, MapPin } from "lucide-react";
-import EventCalendar from "@/components/EventCalendar";
+import EventCalendar from "@/pages/events/components/EventCalendar";
 import { upcomingEvents } from "@/constants";
 
-import PageLayout from "@/components/PageLayout";
-import PageSection from "@/components/PageSection";
-import PageHead from "@/components/PageHead";
+import PageLayout from "@/components/layout/PageLayout";
+import PageSection from "@/components/layout/PageSection";
+import PageHead from "@/components/layout/PageHead";
 
 const Events = () => {
     return (

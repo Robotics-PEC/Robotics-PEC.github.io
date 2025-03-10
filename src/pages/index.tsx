@@ -1,13 +1,13 @@
 import Hero from "@/components/Hero";
 import Team from "@/components/Team";
-import PageHead from "@/components/PageHead";
-import PageLayout from "@/components/PageLayout";
+import PageHead from "@/components/layout/PageHead";
+import PageLayout from "@/components/layout/PageLayout";
 
 import { useState, useEffect } from "react";
 import { ProjectType, TeamMember } from "@/types";
 import { getProjects } from "@/lib/supabase/actions/project.actions";
 import { getTeamMembers } from "@/lib/supabase/actions/team.actions";
-import { Loader } from "@/components/Loader";
+import { Loader } from "@/components/layout/Loader";
 import { ProjectSection } from "@/pages/project/index";
 
 const Index = () => {

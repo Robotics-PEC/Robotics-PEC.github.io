@@ -1,7 +1,7 @@
 import { motion } from "framer-motion";
 import { TeamMember } from "@/types";
 import Image from "next/image";
-import PageSection from "@/components/PageSection";
+import PageSection from "@/components/layout/PageSection";
 
 const Team: React.FC<{ teamMembers: TeamMember[] }> = ({ teamMembers }) => {
 

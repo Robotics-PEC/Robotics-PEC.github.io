@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { ChevronRight } from "lucide-react";
 import { getImagesFromFolder } from "@/lib/supabase/actions/storage.actions";
-import { Loader } from "./Loader";
+import { Loader } from "./layout/Loader";
 
 const Hero: React.FC<{ handleClick: () => void }> = ({ handleClick }) => {
     const [currentIndex, setCurrentIndex] = useState(0);
