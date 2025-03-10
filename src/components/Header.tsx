@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import Image from "next/image"; // Import Next.js Image component
+import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { GitFork, Menu } from "lucide-react";
 import Link from "next/link";
@@ -16,7 +16,7 @@ const Header = () => {
 
   const navigation = [
     { name: "Home", path: "/" },
-    { name: "Projects", path: "/projects" },
+    { name: "Projects", path: "/project" },
     { name: "Activities", path: "/activities" },
     { name: "Events", path: "/events" },
     { name: "Contact", path: "/contact" },
@@ -30,12 +30,12 @@ const Header = () => {
             {/* Logo */}
             <Link href="/">
               <Image
-                src="/logo.png" // Update with actual path to your logo
+                src="/logo.png"
                 alt="PEC Robotics Logo"
-                width={120} // Adjust width as needed
-                height={40} // Adjust height as needed
+                width={120}
+                height={40}
                 className="object-contain"
-                priority // Ensures fast loading
+                priority
               />
             </Link>
 

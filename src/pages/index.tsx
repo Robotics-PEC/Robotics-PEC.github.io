@@ -1,16 +1,14 @@
+import Hero from "@/components/Hero";
+import Team from "@/components/Team";
+import PageHead from "@/components/PageHead";
+import PageLayout from "@/components/PageLayout";
+
 import { useState, useEffect } from "react";
-import Head from "next/head";
-import Header from "@/components/Header";
-import Footer from "@/components/Footer";
-import ProjectCard from "@/components/ProjectCard";
 import { ProjectType, TeamMember } from "@/types";
 import { getProjects } from "@/lib/supabase/actions/project.actions";
 import { getTeamMembers } from "@/lib/supabase/actions/team.actions";
 import { Loader } from "@/components/Loader";
-
-import Hero from "@/components/Hero";
-import Team from "@/components/Team";
-import ProjectSection from "@/components/ProjectSection";
+import { ProjectSection } from "@/pages/project/index";
 
 const Index = () => {
   const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
@@ -44,34 +42,22 @@ const Index = () => {
             <span className="mt-4 font-medium">Loading...</span>
           </div>
         ) :
-          <div className="min-h-screen flex flex-col bg-[#F6F6F7]">
-            <Head>
-              <title>Robotics Society | Punjab Engineering College</title>
-              <link rel="icon" href="/favicon.png" />
-              <meta name="description" content="PEC Robotics Society at Punjab Engineering College is dedicated to innovation in robotics and automation. Explore our projects and join our team." />
-              <meta name="keywords" content="PEC Robotics, Punjab Engineering College, Robotics Society, Innovation, Automation, Engineering Projects" />
-              <meta name="author" content="PEC Robotics Society" />
-              <meta property="og:title" content="PEC Robotics Society - Punjab Engineering College" />
-              <meta property="og:description" content="Discover groundbreaking robotics projects and cutting-edge automation innovations at PEC Robotics Society." />
-              <meta property="og:image" content="/images/robotics-banner.jpg" />
-              <meta property="og:type" content="website" />
-              <meta property="og:url" content="https://roboticspec.com" />
-              <link rel="canonical" href="https://roboticspec.com" />
-            </Head>
-            <Header />
-            <main className="flex-grow">
-              {/* Hero Section */}
-              <Hero handleClick={handleClick} />
+          <PageLayout>
 
-              {/* Projects Section */}
-              <ProjectSection projects={projects} />
+            <PageHead
+              title="Robotics Society | Punjab Engineering College"
+              description="PEC Robotics Society at Punjab Engineering College is dedicated to innovation in robotics and automation. Explore our projects and join our team."
+            />
 
-              {/* Team Section */}
-              <Team teamMembers={teamMembers} />
+            {/* Hero Section */}
+            <Hero handleClick={handleClick} />
 
-            </main>
-            <Footer />
-          </div >
+            {/* Projects Section */}
+            <ProjectSection projects={projects} />
+
+            {/* Team Section */}
+            <Team teamMembers={teamMembers} />
+          </PageLayout>
 
       }
     </>

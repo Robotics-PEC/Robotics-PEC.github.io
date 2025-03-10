@@ -15,6 +15,8 @@ import { getProjectById, getProjects } from '@/lib/supabase/actions/project.acti
 import { Loader } from '@/components/Loader';
 import { set } from 'date-fns';
 import { useIsMobile } from '@/hooks/use-mobile';
+import PageHead from '@/components/PageHead';
+import PageLayout from '@/components/PageLayout';
 
 const ProjectPage = () => {
     const router = useRouter();
@@ -67,15 +69,11 @@ const ProjectPage = () => {
                         <span className="mt-4 font-medium">Loading...</span>
                     </div>
                 ) : (
-                    <div className="min-h-screen flex flex-col bg-[#F6F6F7]">
-                        <Head>
-                            <title>Robotics Society | Punjab Engineering College</title >
-                            <link rel="icon" href="/favicon.png" />
-                            <meta name="description" content="PEC Robotics Society at Punjab Engineering College is dedicated to innovation in robotics and automation. Explore our projects and join our team." />
-                            <meta name="keywords" content="PEC Robotics, Punjab Engineering College, Robotics Society, Innovation, Automation, Engineering Projects" />
-                            <meta name="author" content="PEC Robotics Society" />
-                        </Head >
-                        <Header />
+                    <PageLayout>
+                        <PageHead
+                            title='title>Robotics Society | Punjab Engineering College'
+                            description='PEC Robotics Society at Punjab Engineering College is dedicated to innovation in robotics and automation. Explore our projects and join our team.'
+                        />
                         {
                             project ? (
                                 <AnimatePresence mode="wait">
@@ -118,7 +116,7 @@ const ProjectPage = () => {
                                             <div className="flex flex-nowrap justify-center sm:justify-between items-center max-w-5xl mx-auto gap-2 mt-12 overflow-hidden">
                                                 <Button
                                                     onClick={prev}
-                                                    className="w-full sm:w-auto max-w-[110px] px-2 sm:px-4 py-2 sm:py-4 text-xs sm:text-sm md:text-base bg-blue-500 hover:bg-blue-600 text-white flex items-center justify-center whitespace-nowrap"
+                                                    className="w-full sm:w-auto max-w-[110px] px-2 sm:px-4 py-2 sm:py-4 text-xs sm:text-sm md:text-base  text-white flex items-center justify-center whitespace-nowrap"
                                                 >
                                                     <ChevronLeft size={12} className="mr-1 sm:mr-2" />
                                                     <span>Previous</span>
@@ -126,14 +124,14 @@ const ProjectPage = () => {
 
                                                 <Button
                                                     onClick={() => router.push("/projects")}
-                                                    className="w-full sm:w-auto max-w-[140px] px-2 sm:px-4 py-2 sm:py-4 text-xs sm:text-sm md:text-base bg-blue-500 hover:bg-blue-600 text-white flex items-center justify-center whitespace-nowrap"
+                                                    className="w-full sm:w-auto max-w-[140px] px-2 sm:px-4 py-2 sm:py-4 text-xs sm:text-sm md:text-base  text-white flex items-center justify-center whitespace-nowrap"
                                                 >
                                                     View all
                                                 </Button>
 
                                                 <Button
                                                     onClick={next}
-                                                    className="w-full sm:w-auto max-w-[110px] px-2 sm:px-4 py-2 sm:py-4 text-xs sm:text-sm md:text-base bg-blue-500 hover:bg-blue-600 text-white flex items-center justify-center whitespace-nowrap"
+                                                    className="w-full sm:w-auto max-w-[110px] px-2 sm:px-4 py-2 sm:py-4 text-xs sm:text-sm md:text-base  text-white flex items-center justify-center whitespace-nowrap"
                                                 >
                                                     <span>Next</span>
                                                     <ChevronRight size={12} className="ml-1 sm:ml-2" />
@@ -145,14 +143,13 @@ const ProjectPage = () => {
                             ) : (
                                 <div className="text-center mb-12 py-10">
                                     <h1 className="text-3xl sm:text-4xl font-bold mb-4">Incorrect Project ID</h1>
-                                    <Button className="px-6 sm:px-8 py-4 sm:py-6 text-base sm:text-lg rounded-full bg-blue-500 hover:bg-blue-600 text-white transition-all duration-300 ease-in-out hover:scale-105" onClick={handleClick}>
+                                    <Button className="px-6 sm:px-8 py-4 sm:py-6 text-base sm:text-lg rounded-full  text-white transition-all duration-300 ease-in-out hover:scale-105" onClick={handleClick}>
                                         Explore Our Projects <ChevronRight className="ml-2" />
                                     </Button>
                                 </div>
                             )
                         }
-                        <Footer />
-                    </div >
+                    </PageLayout>
                 )
             }
         </>

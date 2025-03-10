@@ -76,7 +76,7 @@ const Hero: React.FC<{ handleClick: () => void }> = ({ handleClick }) => {
                                 </p>
                                 <div className="mt-12">
                                     <Button
-                                        className="px-8 py-6 text-lg rounded-full bg-blue-500 hover:bg-blue-600 text-white transition-all duration-300 ease-in-out hover:scale-105 backdrop-blur-sm bg-opacity-80"
+                                        className="px-8 py-6 text-lg rounded-full  text-white transition-all duration-300 ease-in-out hover:scale-105 backdrop-blur-sm bg-opacity-80"
                                         onClick={handleClick}
                                     >
                                         Explore Our Projects <ChevronRight className="ml-2" />

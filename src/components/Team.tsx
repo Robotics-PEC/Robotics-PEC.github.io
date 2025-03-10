@@ -1,17 +1,16 @@
 import { motion } from "framer-motion";
 import { TeamMember } from "@/types";
 import Image from "next/image";
+import PageSection from "@/components/PageSection";
 
 const Team: React.FC<{ teamMembers: TeamMember[] }> = ({ teamMembers }) => {
 
     return (
         <section className="py-24" id="team">
-            <div className="container mx-auto px-4">
-                <div className="text-center mb-16">
-                    <h2 className="text-4xl font-bold mb-4">Our Team</h2>
-                    <p className="text-gray-600">Meet the minds behind the innovation</p>
-                </div>
-
+            <PageSection
+                title="Our Team"
+                subtitle="Meet the minds behind the innovation"
+            >
                 <div className={teamMembers.length >= 4 ? "grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-8" : "flex justify-center items-center gap-8"}>
                     {teamMembers?.map((member: TeamMember, index) => (
                         <motion.div
@@ -34,7 +33,7 @@ const Team: React.FC<{ teamMembers: TeamMember[] }> = ({ teamMembers }) => {
                         </motion.div>
                     ))}
                 </div>
-            </div>
+            </PageSection>
         </section>
     );
 }
