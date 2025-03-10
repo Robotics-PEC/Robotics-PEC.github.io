@@ -34,33 +34,24 @@ const Index = () => {
   }, []);
 
   return (
-    <>
-      {
-        loading ? (
-          <div className="flex flex-col items-center justify-center p-6 bg-background border w-full h-full min-h-screen">
-            <Loader size="lg" variant="spinner" />
-            <span className="mt-4 font-medium">Loading...</span>
-          </div>
-        ) :
-          <PageLayout>
+    <Loader isLoading={loading}>
+      <PageLayout>
 
-            <PageHead
-              title="Robotics Society | Punjab Engineering College"
-              description="PEC Robotics Society at Punjab Engineering College is dedicated to innovation in robotics and automation. Explore our projects and join our team."
-            />
+        <PageHead
+          title="Robotics Society | Punjab Engineering College"
+          description="PEC Robotics Society at Punjab Engineering College is dedicated to innovation in robotics and automation. Explore our projects and join our team."
+        />
 
-            {/* Hero Section */}
-            <Hero handleClick={handleClick} />
+        {/* Hero Section */}
+        <Hero handleClick={handleClick} />
 
-            {/* Projects Section */}
-            <ProjectSection projects={projects} />
+        {/* Projects Section */}
+        <ProjectSection projects={projects} />
 
-            {/* Team Section */}
-            <Team teamMembers={teamMembers} />
-          </PageLayout>
-
-      }
-    </>
+        {/* Team Section */}
+        <Team teamMembers={teamMembers} />
+      </PageLayout>
+    </Loader>
   );
 };
 

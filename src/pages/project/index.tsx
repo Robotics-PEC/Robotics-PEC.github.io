@@ -39,24 +39,15 @@ const Projects = () => {
 
 
   return (
-    <>
-      {
-        loading ? (
-          <div className="flex flex-col items-center justify-center p-6 bg-background border w-full h-full min-h-screen" >
-            <Loader size="lg" variant="spinner" />
-            <span className="mt-4 font-medium">Loading...</span>
-          </div>
-        ) : (
-          <PageLayout>
-            <PageHead
-              title="Robotics Society | Punjab Engineering"
-              description="Projects made by Robotics Society, Punjab Engineering College"
-            />
-            <ProjectSection projects={projects} />
-          </PageLayout>
-        )
-      }
-    </>
+    <Loader isLoading={loading}>
+      <PageLayout>
+        <PageHead
+          title="Robotics Society | Punjab Engineering"
+          description="Projects made by Robotics Society, Punjab Engineering College"
+        />
+        <ProjectSection projects={projects} />
+      </PageLayout>
+    </Loader>
   );
 };
 
