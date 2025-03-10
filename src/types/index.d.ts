@@ -1,7 +1,7 @@
 import { SetStateAction } from "react";
 
 export interface ProjectType {
-    id: number;
+    id: string;
     title: string;
     description: string;
     longDescription: string;
@@ -11,7 +11,7 @@ export interface ProjectType {
 };
 
 export interface EventType {
-    id: number;
+    id: string;
     title: string;
     description: string;
     date: string;
@@ -21,7 +21,7 @@ export interface EventType {
 };
 
 export interface ActivityType {
-    id: numeber;
+    id: string;
     title: string;
     description: string;
     date: string;
@@ -29,7 +29,7 @@ export interface ActivityType {
 };
 
 export interface TeamMember {
-    id: number;
+    id: string;
     firstName: string;
     lastName: string;
     role: string;
@@ -42,7 +42,7 @@ export interface PublicUrlType {
 };
 
 export interface Project {
-    id: number | null;
+    id: string;
     title: string;
     description: string;
     image: string;

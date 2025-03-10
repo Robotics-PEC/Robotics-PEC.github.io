@@ -19,7 +19,7 @@ const Admin = () => {
   const [activeTab, setActiveTab] = useState("hero");
 
   return (
-    <PageLayout>
+    <PageLayout isAdmin={true}>
       <div className="min-h-screen bg-white p-6">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -32,18 +32,7 @@ const Admin = () => {
               <h1 className="text-4xl font-bold">Admin Dashboard</h1>
               <p className="text-gray-600 mt-2">Manage website content</p>
             </div>
-            <Button asChild variant="outline">
-              <Link href="/">
-                <ExternalLink className="h-4 w-4 mr-2" />
-                View Website
-              </Link>
-            </Button>
-            <Button asChild variant="destructive" onClick={handleLogout}>
-              <Link href="/">
-                <ExternalLink className="h-4 w-4 mr-2" />
-                Logout
-              </Link>
-            </Button>
+
           </div>
 
           <Tabs defaultValue="hero" value={activeTab} onValueChange={setActiveTab} className="w-full mb-12">

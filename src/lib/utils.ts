@@ -26,4 +26,16 @@ export const base64ToBlob = (base64Data: string, contentType = 'image/png') => {
   }
 
   return new Blob(byteArrays, { type: contentType })
+};
+
+export const urlToBase64 = async (url: string): Promise<string> => {
+  const response = await fetch(url);
+  const blob = await response.blob();
+
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onloadend = () => resolve(reader.result as string); // base64 string with data:image/... prefix
+    reader.onerror = reject;
+    reader.readAsDataURL(blob);
+  });
 }

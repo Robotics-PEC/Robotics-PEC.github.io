@@ -38,4 +38,16 @@ export const uploadImage = async (folder: string, name: string, fileData: string
     if (error) console.log(error);
 
     return data;
-}
+};
+
+export const deleteImage = async (paths: string[]) => {
+    const { data, error } = await client.storage.from("media").remove(paths);
+
+    if (error) {
+        console.log(error);
+        return;
+    }
+
+    return data;
+
+};

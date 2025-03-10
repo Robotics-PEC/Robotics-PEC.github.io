@@ -3,11 +3,12 @@
 import { useState } from "react";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
-import { GitFork, Menu } from "lucide-react";
+import { ExternalLink, GitFork, Menu } from "lucide-react";
 import Link from "next/link";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { handleLogout } from "@/lib/utils";
 
-const Header = () => {
+const Header = ({ isAdmin = false }: { isAdmin?: boolean }) => {
   const [isOpen, setIsOpen] = useState(false);
 
   const handleGithubClick = () => {
@@ -50,6 +51,18 @@ const Header = () => {
                   {item.name}
                 </Link>
               ))}
+              {
+                isAdmin && (
+                  <>
+                    <Link href="/" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
+                      View Website
+                    </Link>
+                    <Link href="/" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
+                      Logout
+                    </Link>
+                  </>
+                )
+              }
             </nav>
           </div>
 

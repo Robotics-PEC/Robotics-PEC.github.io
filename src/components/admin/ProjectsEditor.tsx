@@ -8,29 +8,31 @@ import { Plus, Trash, Edit, Save } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import MarkdownEditor from "./MarkdownEditor";
 import ReactMarkdown from "react-markdown";
-import { getProjects, uploadProject } from "@/lib/supabase/actions/project.actions";
+import { deleteProject, getProjects, updateProject, uploadProject } from "@/lib/supabase/actions/project.actions";
 import { Project } from "@/types";
 import { Loader } from "../layout/Loader";
 import FormField from "../FormField";
+import { previousDay } from "date-fns";
 
 // Default project data structure
 
 
 const ProjectsEditor = () => {
-  const { toast } = useToast();
-  const [projects, setProjects] = useState<Project[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [fileName, setFileName] = useState("");
-  const [newProject, setNewProject] = useState<Project>({
-    id: null,
+  const defaultData = {
+    id: "",
     title: "",
     description: "",
     image: "",
     longDescription: "",
     category: "",
     technologies: ""
-  });
-  const [editingId, setEditingId] = useState<number | null>(null);
+  };
+  const { toast } = useToast();
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [fileName, setFileName] = useState("");
+  const [newProject, setNewProject] = useState<Project>(defaultData);
+  const [editingId, setEditingId] = useState<string | null>(null);
 
   // Load projects from localStorage if exists
   useEffect(() => {
@@ -60,7 +62,6 @@ const ProjectsEditor = () => {
   };
 
   const handleAddProject = async () => {
-    console.log(newProject);
     if (!newProject.title ||
       !newProject.description ||
       !newProject.longDescription ||
@@ -92,26 +93,18 @@ const ProjectsEditor = () => {
 
     }
 
-
-    setNewProject({
-      id: null,
-      title: "",
-      description: "",
-      image: "",
-      longDescription: "",
-      category: "",
-      technologies: ""
-    });
+    setNewProject(defaultData);
   };
 
-  const handleUpdateProject = () => {
+  const handleUpdateProject = async () => {
     if (!editingId) return;
-
     setProjects(prev =>
       prev.map(project =>
         project.id === editingId ? newProject : project
       )
     );
+
+    await updateProject(newProject, fileName);
     setEditingId(null);
   };
 
@@ -120,20 +113,9 @@ const ProjectsEditor = () => {
     setEditingId(project.id);
   };
 
-  const handleRemoveProject = (id: number) => {
-    setProjects(prev => prev.filter(project => project.id !== id));
-    if (editingId === id) {
-      setEditingId(null);
-      setNewProject({
-        id: null,
-        title: "",
-        description: "",
-        image: "",
-        longDescription: "",
-        category: "",
-        technologies: ""
-      });
-    }
+  const handleRemoveProject = async (project: Project) => {
+    setProjects(prev => prev.filter(pr => pr.id !== project.id));
+    await deleteProject(project);
   };
 
   return (
@@ -206,18 +188,10 @@ const ProjectsEditor = () => {
                   <Save className="h-4 w-4 mr-2" /> Update Project
                 </Button>
                 <Button
-                  variant="outline"
+                  variant="destructive"
                   onClick={() => {
                     setEditingId(null);
-                    setNewProject({
-                      id: null,
-                      title: "",
-                      description: "",
-                      image: "",
-                      longDescription: "",
-                      category: "",
-                      technologies: ""
-                    });
+                    setNewProject(defaultData);
                   }}
                 >
                   Cancel
@@ -239,7 +213,7 @@ const ProjectsEditor = () => {
           ) : (
             <Accordion type="single" collapsible className="w-full">
               {projects.map((project) => (
-                <AccordionItem key={project.id} value={String(project.id)}>
+                <AccordionItem key={project.id} value={project.id}>
                   <AccordionTrigger>
                     <div className="flex justify-between items-center w-full pr-4">
                       <span>{project.title}</span>
@@ -273,7 +247,7 @@ const ProjectsEditor = () => {
                         <Button
                           size="sm"
                           variant="destructive"
-                          onClick={() => handleRemoveProject(project.id!)}
+                          onClick={() => handleRemoveProject(project)}
                         >
                           <Trash className="h-4 w-4 mr-1" /> Delete
                         </Button>
