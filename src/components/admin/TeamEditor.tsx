@@ -9,7 +9,20 @@ import { Plus, Trash, Edit, Save, User } from "lucide-react";
 import { Card } from "@/components/ui/card";
 
 // Default team members data structure
-const defaultTeamMembers = [
+
+interface Team {
+  id: string
+  firstName: string
+  lastName: string
+  role: string
+  bio: string
+  imageUrl: string
+  email: string
+  github: string
+  linkedin: string
+}
+
+const defaultTeamMembers: Team[] = [
   {
     id: "1",
     firstName: "John",
@@ -25,8 +38,8 @@ const defaultTeamMembers = [
 
 const TeamEditor = () => {
   const { toast } = useToast();
-  const [teamMembers, setTeamMembers] = useState(defaultTeamMembers);
-  const [newMember, setNewMember] = useState({
+  const [teamMembers, setTeamMembers] = useState<Team[]>(defaultTeamMembers);
+  const [newMember, setNewMember] = useState<Team>({
     id: "",
     firstName: "",
     lastName: "",
@@ -86,9 +99,9 @@ const TeamEditor = () => {
 
   const handleUpdateMember = () => {
     if (!editingId) return;
-    
-    setTeamMembers(prev => 
-      prev.map(member => 
+
+    setTeamMembers(prev =>
+      prev.map(member =>
         member.id === editingId ? newMember : member
       )
     );
@@ -106,12 +119,12 @@ const TeamEditor = () => {
     });
   };
 
-  const handleEditMember = (member) => {
+  const handleEditMember = (member: Team) => {
     setNewMember(member);
     setEditingId(member.id);
   };
 
-  const handleRemoveMember = (id) => {
+  const handleRemoveMember = (id: string) => {
     setTeamMembers(prev => prev.filter(member => member.id !== id));
     if (editingId === id) {
       setEditingId(null);
@@ -227,8 +240,8 @@ const TeamEditor = () => {
               <Button onClick={handleUpdateMember} className="flex-1">
                 <Save className="h-4 w-4 mr-2" /> Update Member
               </Button>
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 onClick={() => {
                   setEditingId(null);
                   setNewMember({
@@ -257,7 +270,7 @@ const TeamEditor = () => {
 
       <div className="space-y-4">
         <h3 className="text-lg font-medium">Current Team Members</h3>
-        
+
         {teamMembers.length === 0 ? (
           <p className="text-gray-500 italic">No team members added yet.</p>
         ) : (
@@ -277,16 +290,16 @@ const TeamEditor = () => {
                   <div className="p-4 space-y-4">
                     <div className="flex gap-4">
                       {member.imageUrl && (
-                        <img 
-                          src={member.imageUrl} 
-                          alt={`${member.firstName} ${member.lastName}`} 
+                        <img
+                          src={member.imageUrl}
+                          alt={`${member.firstName} ${member.lastName}`}
                           className="w-24 h-24 object-cover rounded-full"
                         />
                       )}
                       <div className="flex-1">
                         <p className="text-sm font-medium">Bio:</p>
                         <p className="text-sm text-gray-600 mb-2">{member.bio || "No bio provided"}</p>
-                        
+
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                           <div>
                             <p className="text-sm font-medium">Email:</p>
@@ -300,7 +313,7 @@ const TeamEditor = () => {
                               )}
                             </p>
                           </div>
-                          
+
                           <div>
                             <p className="text-sm font-medium">GitHub:</p>
                             <p className="text-sm text-gray-600 truncate">
@@ -313,7 +326,7 @@ const TeamEditor = () => {
                               )}
                             </p>
                           </div>
-                          
+
                           <div>
                             <p className="text-sm font-medium">LinkedIn:</p>
                             <p className="text-sm text-gray-600 truncate">
@@ -329,17 +342,17 @@ const TeamEditor = () => {
                         </div>
                       </div>
                     </div>
-                    
+
                     <div className="flex gap-2 justify-end">
-                      <Button 
-                        size="sm" 
+                      <Button
+                        size="sm"
                         variant="outline"
                         onClick={() => handleEditMember(member)}
                       >
                         <Edit className="h-4 w-4 mr-1" /> Edit
                       </Button>
-                      <Button 
-                        size="sm" 
+                      <Button
+                        size="sm"
                         variant="destructive"
                         onClick={() => handleRemoveMember(member.id)}
                       >
@@ -352,7 +365,7 @@ const TeamEditor = () => {
             ))}
           </Accordion>
         )}
-        
+
         <Button onClick={handleSaveAll} className="w-full mt-4">
           <Save className="h-4 w-4 mr-2" /> Save All Changes
         </Button>
