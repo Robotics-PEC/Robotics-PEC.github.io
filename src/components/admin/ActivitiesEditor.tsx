@@ -9,7 +9,20 @@ import { Plus, Trash, Edit, Save } from "lucide-react";
 import { Card } from "@/components/ui/card";
 
 // Default activity data structure
-const defaultActivities = [
+
+interface Activity {
+  id: string
+  title: string
+  shortDescription: string
+  description: string
+  duration: string
+  frequency: string
+  participants: string
+  tags: string[]
+}
+
+const defaultActivities: Activity[] = [
+
   {
     id: "1",
     title: "Robotics Workshop",
@@ -24,8 +37,10 @@ const defaultActivities = [
 
 const ActivitiesEditor = () => {
   const { toast } = useToast();
-  const [activities, setActivities] = useState(defaultActivities);
-  const [newActivity, setNewActivity] = useState({
+
+  const [activities, setActivities] = useState<Activity[]>(defaultActivities);
+  const [newActivity, setNewActivity] = useState<Activity>({
+
     id: "",
     title: "",
     shortDescription: "",
@@ -84,9 +99,11 @@ const ActivitiesEditor = () => {
 
   const handleUpdateActivity = () => {
     if (!editingId) return;
-    
-    setActivities(prev => 
-      prev.map(activity => 
+
+
+    setActivities(prev =>
+      prev.map(activity =>
+
         activity.id === editingId ? newActivity : activity
       )
     );
@@ -103,12 +120,15 @@ const ActivitiesEditor = () => {
     });
   };
 
-  const handleEditActivity = (activity) => {
+
+  const handleEditActivity = (activity: Activity) => {
+
     setNewActivity(activity);
     setEditingId(activity.id);
   };
 
-  const handleRemoveActivity = (id) => {
+  const handleRemoveActivity = (id: string) => {
+
     setActivities(prev => prev.filter(activity => activity.id !== id));
     if (editingId === id) {
       setEditingId(null);
@@ -135,7 +155,9 @@ const ActivitiesEditor = () => {
     }
   };
 
-  const handleRemoveTag = (index) => {
+
+  const handleRemoveTag = (index: number) => {
+
     setNewActivity(prev => ({
       ...prev,
       tags: prev.tags.filter((_, i) => i !== index)
@@ -251,8 +273,10 @@ const ActivitiesEditor = () => {
               <Button onClick={handleUpdateActivity} className="flex-1">
                 <Save className="h-4 w-4 mr-2" /> Update Activity
               </Button>
-              <Button 
-                variant="outline" 
+
+              <Button
+                variant="outline"
+
                 onClick={() => {
                   setEditingId(null);
                   setNewActivity({
@@ -280,7 +304,8 @@ const ActivitiesEditor = () => {
 
       <div className="space-y-4">
         <h3 className="text-lg font-medium">Current Activities</h3>
-        
+
+
         {activities.length === 0 ? (
           <p className="text-gray-500 italic">No activities added yet.</p>
         ) : (
@@ -296,10 +321,12 @@ const ActivitiesEditor = () => {
                   <div className="p-4 space-y-4">
                     <p className="text-sm font-medium">Short Description:</p>
                     <p className="text-sm text-gray-600 mb-2">{activity.shortDescription}</p>
-                    
+
+
                     <p className="text-sm font-medium">Full Description:</p>
                     <p className="text-sm text-gray-600 mb-2">{activity.description}</p>
-                    
+
+
                     <div className="grid grid-cols-3 gap-4">
                       <div>
                         <p className="text-sm font-medium">Duration:</p>
@@ -314,7 +341,9 @@ const ActivitiesEditor = () => {
                         <p className="text-sm text-gray-600">{activity.participants}</p>
                       </div>
                     </div>
-                    
+
+
+
                     {activity.tags && activity.tags.length > 0 && (
                       <div>
                         <p className="text-sm font-medium">Tags:</p>
@@ -327,17 +356,20 @@ const ActivitiesEditor = () => {
                         </div>
                       </div>
                     )}
-                    
+
+
                     <div className="flex gap-2 justify-end">
-                      <Button 
-                        size="sm" 
+                      <Button
+                        size="sm"
+
                         variant="outline"
                         onClick={() => handleEditActivity(activity)}
                       >
                         <Edit className="h-4 w-4 mr-1" /> Edit
                       </Button>
-                      <Button 
-                        size="sm" 
+                      <Button
+                        size="sm"
+
                         variant="destructive"
                         onClick={() => handleRemoveActivity(activity.id)}
                       >
@@ -350,7 +382,8 @@ const ActivitiesEditor = () => {
             ))}
           </Accordion>
         )}
-        
+
+
         <Button onClick={handleSaveAll} className="w-full mt-4">
           <Save className="h-4 w-4 mr-2" /> Save All Changes
         </Button>
