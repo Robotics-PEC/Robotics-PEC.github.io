@@ -18,7 +18,7 @@ const EventCalendar: React.FC<EventCalendarProps> = ({ events }) => {
     const { toast } = useToast();
 
     // Format events for calendar display
-    const eventDates = events.reduce((acc: Record<string, EventType[]>, event) => {
+    const eventDates = events?.reduce((acc: Record<string, EventType[]>, event) => {
         const dateKey = event.date;
         if (!acc[dateKey]) {
             acc[dateKey] = [];
