@@ -19,13 +19,13 @@ const EventCalendar: React.FC<EventCalendarProps> = ({ events }) => {
 
     // Format events for calendar display
     const eventDates = events?.reduce((acc: Record<string, EventType[]>, event) => {
-        const dateKey = event.date;
+        const dateKey = event?.date;
         if (!acc[dateKey]) {
             acc[dateKey] = [];
         }
         acc[dateKey].push(event);
         return acc;
-    }, {});
+    }, {}) || [];
 
     // Get events for selected date
     const selectedDateStr = selectedDate ? format(selectedDate, "yyyy-MM-dd") : "";
@@ -33,30 +33,30 @@ const EventCalendar: React.FC<EventCalendarProps> = ({ events }) => {
 
     // Add to Google Calendar
     const addToGoogleCalendar = (event: EventType) => {
-        const startTime = new Date(`${event.date}T${event.time}`);
+        const startTime = new Date(`${event?.date}T${event?.time}`);
         const endTime = new Date(startTime.getTime() + 2 * 60 * 60 * 1000); // 2 hours duration
 
-        const googleCalendarUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(event.title)}&details=${encodeURIComponent(event.description)}&location=${encodeURIComponent(event.location)}&dates=${startTime.toISOString().replace(/[-:]/g, '').split('.')[0]}Z/${endTime.toISOString().replace(/[-:]/g, '').split('.')[0]}Z`;
+        const googleCalendarUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(event?.title)}&details=${encodeURIComponent(event?.description)}&location=${encodeURIComponent(event?.location)}&dates=${startTime.toISOString().replace(/[-:]/g, '').split('.')[0]}Z/${endTime.toISOString().replace(/[-:]/g, '').split('.')[0]}Z`;
 
         window.open(googleCalendarUrl, '_blank');
         toast({
             title: "Event Added to Google Calendar",
-            description: `${event.title} has been added to your calendar`,
+            description: `${event?.title} has been added to your calendar`,
         });
     };
 
     // Add to Apple Calendar
     const addToAppleCalendar = (event: EventType) => {
-        const startTime = new Date(`${event.date}T${event.time}`);
+        const startTime = new Date(`${event?.date}T${event?.time}`);
         const endTime = new Date(startTime.getTime() + 2 * 60 * 60 * 1000); // 2 hours duration
 
         const icsContent = [
             'BEGIN:VCALENDAR',
             'VERSION:2.0',
             'BEGIN:VEVENT',
-            `SUMMARY:${event.title}`,
-            `DESCRIPTION:${event.description}`,
-            `LOCATION:${event.location}`,
+            `SUMMARY:${event?.title}`,
+            `DESCRIPTION:${event?.description}`,
+            `LOCATION:${event?.location}`,
             `DTSTART:${startTime.toISOString().replace(/[-:]/g, '').split('.')[0]}Z`,
             `DTEND:${endTime.toISOString().replace(/[-:]/g, '').split('.')[0]}Z`,
             'END:VEVENT',
@@ -67,14 +67,14 @@ const EventCalendar: React.FC<EventCalendarProps> = ({ events }) => {
         const url = URL.createObjectURL(blob);
         const link = document.createElement('a');
         link.href = url;
-        link.download = `${event.title}.ics`;
+        link.download = `${event?.title}.ics`;
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
 
         toast({
             title: "Event Added to Apple Calendar",
-            description: `${event.title} has been downloaded as an ICS file`,
+            description: `${event?.title} has been downloaded as an ICS file`,
         });
     };
 
@@ -145,26 +145,26 @@ const EventCalendar: React.FC<EventCalendarProps> = ({ events }) => {
                         <div className="space-y-4">
                             {eventsOnSelectedDate.map((event) => (
                                 <motion.div
-                                    key={event.id}
+                                    key={event?.id}
                                     initial={{ opacity: 0, y: 10 }}
                                     animate={{ opacity: 1, y: 0 }}
                                     transition={{ duration: 0.3 }}
                                     className="border border-gray-200 rounded-lg p-4"
                                 >
-                                    <h3 className="text-lg font-medium mb-2">{event.title}</h3>
-                                    <p className="text-gray-600 mb-3">{event.description}</p>
+                                    <h3 className="text-lg font-medium mb-2">{event?.title}</h3>
+                                    <p className="text-gray-600 mb-3">{event?.description}</p>
                                     <div className="grid grid-cols-2 gap-2 mb-3">
                                         <div className="flex items-center text-sm text-gray-500">
                                             <Clock className="h-4 w-4 mr-2" />
-                                            <span>{event.time}</span>
+                                            <span>{event?.time}</span>
                                         </div>
                                         <div className="flex items-center text-sm text-gray-500">
                                             <MapPin className="h-4 w-4 mr-2" />
-                                            <span>{event.location}</span>
+                                            <span>{event?.location}</span>
                                         </div>
                                         <div className="flex items-center text-sm text-gray-500">
                                             <Users className="h-4 w-4 mr-2" />
-                                            <span>Capacity: {event.capacity}</span>
+                                            <span>Capacity: {event?.capacity}</span>
                                         </div>
                                     </div>
                                     <div className="grid grid-row max-sm:gap-6 md:flex md:space-x-2 lg:flex lg:space-x-2">

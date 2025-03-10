@@ -7,7 +7,7 @@ import { ProjectType } from '@/types';
 const ProjectCard = ({ projects }: { projects: ProjectType[] }) => {
 
     return (
-        projects.map((project) => (
+        projects?.map((project) => (
             <motion.div
                 key={project.id}
                 initial={{ opacity: 0, y: 20 }}
