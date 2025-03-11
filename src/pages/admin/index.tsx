@@ -2,10 +2,15 @@ import LoginForm from '@/components/LoginForm'
 import PageLayout from '@/components/layout/PageLayout'
 import { motion } from "framer-motion";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import PageHead from '@/components/layout/PageHead';
 
 const AdminPage = () => {
     return (
         <PageLayout>
+            <PageHead
+                title="Robotics Society of PEC Admin"
+                description="You are in full control"
+            />
             <div className="min-h-screen flex items-center justify-center">
                 <div className="w-full max-w-md">
                     <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.5 }}>
@@ -24,6 +29,7 @@ const AdminPage = () => {
                 </div>
             </div>
         </PageLayout>
+
     )
 }
 

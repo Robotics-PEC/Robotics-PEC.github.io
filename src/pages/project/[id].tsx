@@ -70,7 +70,7 @@ const ProjectPage = () => {
         <Loader isLoading={loading}>
             <PageLayout>
                 <PageHead
-                    title='title>Robotics Society | Punjab Engineering College'
+                    title="Robotics Society | Punjab Engineering College"
                     description='PEC Robotics Society at Punjab Engineering College is dedicated to innovation in robotics and automation. Explore our projects and join our team.'
                 />
                 {

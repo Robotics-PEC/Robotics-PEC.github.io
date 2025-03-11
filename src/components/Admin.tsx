@@ -11,8 +11,8 @@ import ProjectsEditor from "@/components/admin/ProjectsEditor";
 import ActivitiesEditor from "@/components/admin/ActivitiesEditor";
 import EventsEditor from "@/components/admin/EventsEditor";
 import TeamEditor from "@/components/admin/TeamEditor";
-import { handleLogout } from "@/lib/utils";
 import PageLayout from "./layout/PageLayout";
+import PageHead from "./layout/PageHead";
 
 const Admin = () => {
   const { toast } = useToast();
@@ -20,6 +20,10 @@ const Admin = () => {
 
   return (
     <PageLayout isAdmin={true}>
+      <PageHead
+        title="Robotics Society | Punjab Engineering College"
+        description='PEC Robotics Society at Punjab Engineering College is dedicated to innovation in robotics and automation. Explore our projects and join our team.'
+      />
       <div className="min-h-screen bg-white p-6">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
