@@ -99,18 +99,46 @@ const ProjectsEditor = () => {
 
   const handleUpdateProject = async () => {
     if (!editingId) return;
+
+    for (let i = 0; i < projects.length; i++) {
+      if (projects[i].id === editingId) {
+        setFileName((projects[i].image.split("/").pop()!));
+      }
+    }
     setProjects(prev =>
       prev.map(project =>
         project.id === editingId ? newProject : project
       )
     );
 
-    await updateProject(newProject, fileName);
+
+    const error = await updateProject(newProject, fileName);
+    newProject.image = `https://bkbmdjdypixbskuvrkxi.supabase.co/storage/v1/object/public/media/projects/${fileName}`;
     setEditingId(null);
+    setNewProject(defaultData);
+
+
+    if (error) {
+      toast({
+        title: error.name,
+        description: error.message,
+        variant: "destructive"
+      });
+    }
+    else {
+      toast({
+        title: "Success",
+        description: "Project has been Updated"
+      });
+
+    }
+
   };
 
   const handleEditProject = async (project: FormProjectType) => {
+    setFileName((project.image.split("/").pop())!);
     project.image = await urlToBase64(project.image);
+
     setNewProject(project);
     setEditingId(project.id);
   };

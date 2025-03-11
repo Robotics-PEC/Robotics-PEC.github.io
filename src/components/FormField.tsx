@@ -6,6 +6,7 @@ import MarkdownEditor from './admin/MarkdownEditor'
 import Blob from './Blob'
 
 const FormField = ({ htmlFor, title, id, onChange, placeholder, value, type, setFileName }: FormFieldProps) => {
+
     switch (type) {
         case "TEXT":
             return (
@@ -23,7 +24,10 @@ const FormField = ({ htmlFor, title, id, onChange, placeholder, value, type, set
             return (
                 <div className="space-y-2">
                     <Label htmlFor={htmlFor}>Upload Image</Label>
-                    <Blob id={id} onChange={onChange} setFileName={setFileName!} />
+                    <Blob id={id}
+                        onChange={onChange}
+                        setFileName={setFileName!}
+                    />
                 </div>
             )
         case "MARKDOWN":

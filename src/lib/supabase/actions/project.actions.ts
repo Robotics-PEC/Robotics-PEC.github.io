@@ -2,6 +2,7 @@ import { FormProjectType } from "@/types";
 import { client } from "../supabase";
 import { deleteImage, uploadImage } from "./storage.actions";
 import { urlToBase64 } from "@/lib/utils";
+import { PostgrestError } from "@supabase/supabase-js";
 
 export const getProjects = async () => {
     const { data, error } = await client.from("projects").select("*");
@@ -47,13 +48,17 @@ export const deleteProject = async (project: FormProjectType) => {
 };
 
 export const updateProject = async (project: FormProjectType, fileName: string) => {
-    console.log(project);
     const oldProjectData = await getProjectById(project.id);
     await deleteImage([`projects/${oldProjectData.image.split("/").pop()!}`]);
     const { id, ...rest } = project;
-    await uploadImage("projects", fileName, project.image);
-    const { data } = client.storage.from("media").getPublicUrl(`projects/${fileName}`);
+    const imageData = await uploadImage("projects", fileName, project.image);
 
+    if (!imageData) {
+        // image upload fail
+        return new PostgrestError({ message: "Image upload fail", details: "", hint: "", code: "" });
+    }
+
+    const { data } = client.storage.from("media").getPublicUrl(`projects/${fileName}`);
     const { error } = await client.from("projects").update({ ...rest, image: data.publicUrl }).eq("id", project.id);
 
 
@@ -62,4 +67,6 @@ export const updateProject = async (project: FormProjectType, fileName: string) 
         await uploadImage("projects", oldProjectData.image.split("/").pop()!, fileData)
         console.log(error);
     }
+
+    return error;
 };

@@ -1,5 +1,10 @@
 import { SetStateAction } from "react";
 
+export interface ImageData {
+    name: string;
+    base64: string;
+};
+
 export interface ProjectType {
     id: string;
     title: string;
@@ -68,6 +73,6 @@ export interface FormFieldProps {
     value: string;
     type: "BLOB" | "TEXT" | "IMAGE" | "MARKDOWN"
     setFileName?: (value: SetStateAction<string>) => void;
-    imageData?: { name: string, base64: string }
+    imageData?: { name: string, base64: string };
 };
 

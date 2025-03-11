@@ -4,11 +4,7 @@ import { Button } from './ui/button';
 import { FormTeamType, FormProjectType } from '@/types';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from './ui/card';
 import { FileImage, Upload, X } from 'lucide-react';
-
-interface ImageData {
-    name: string;
-    base64: string;
-};
+import { ImageData } from '@/types';
 
 interface BlobProps {
     id: string;
@@ -20,6 +16,7 @@ const Blob = ({ id, onChange, setFileName }: BlobProps) => {
     const [imageData, setImageData] = useState<ImageData | null>(null);
     const [isDragging, setIsDragging] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
+
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];

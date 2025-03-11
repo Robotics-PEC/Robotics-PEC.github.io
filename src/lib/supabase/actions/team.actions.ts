@@ -2,6 +2,7 @@ import { FormTeamType } from "@/types";
 import { client } from "../supabase";
 import { deleteImage, uploadImage } from "./storage.actions";
 import { urlToBase64 } from "@/lib/utils";
+import { PostgrestError } from "@supabase/supabase-js";
 
 export const getTeamMembers = async () => {
     const { data, error } = await client.from("team").select("*");
@@ -15,7 +16,6 @@ export const getTeamMemberById = async (id: string) => {
 
     if (error) console.log(error);
     if (!data) throw new Error("Project with this id doesn't exist");
-
     return JSON.parse(JSON.stringify(data[0]));
 };
 
@@ -43,10 +43,15 @@ export const deleteTeamMember = async (member: FormTeamType) => {
 export const updateTeamMember = async (member: FormTeamType, fileName: string) => {
     const oldMemberData = await getTeamMemberById(member.id);
     await deleteImage([`team/${oldMemberData.image.split("/").pop()!}`]);
-    
+
     const { id, ...rest } = member;
-    await uploadImage("team", fileName, member.image);
-    
+    const imageData = await uploadImage("team", fileName, member.image);
+
+    if (!imageData) {
+        // image upload fail
+        return new Error("Image Upload Failed");
+    }
+
     const { data } = client.storage.from("media").getPublicUrl(`team/${fileName}`);
 
     const { error } = await client.from("team").update({ ...rest, image: data.publicUrl }).eq("id", member.id);
@@ -57,4 +62,6 @@ export const updateTeamMember = async (member: FormTeamType, fileName: string) =
         await uploadImage("projects", oldMemberData.image.split("/").pop()!, fileData)
         console.log(error);
     }
+
+    return error;
 };

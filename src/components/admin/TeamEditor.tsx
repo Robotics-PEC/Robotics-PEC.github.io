@@ -1,8 +1,5 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { useToast } from "@/hooks/use-toast";
 import { Plus, Trash, Edit, Save, User } from "lucide-react";
@@ -13,20 +10,6 @@ import { addTeamMember, deleteTeamMember, getTeamMembers, updateTeamMember } fro
 import { urlToBase64 } from "@/lib/utils";
 
 // Default team members data structure
-
-
-
-
-const defaultTeamMembers: FormTeamType[] = [
-
-  {
-    id: "1",
-    firstName: "John",
-    lastName: "Doe",
-    role: "President",
-    image: "/projects/robot1.jpg",
-  }
-];
 
 const emptyData: FormTeamType = {
   id: "",
@@ -101,20 +84,37 @@ const TeamEditor = () => {
 
   const handleUpdateMember = async () => {
     if (!editingId) return;
+
     setTeamMembers(prev =>
       prev.map(member =>
         member.id === editingId ? newMember : member
       )
     );
 
-    // await updateTeamMember(newMember, imageName);
+    const error = await updateTeamMember(newMember, imageName);
+    newMember.image = `https://bkbmdjdypixbskuvrkxi.supabase.co/storage/v1/object/public/media/team/${imageName}`;
+    setNewMember(emptyData);
+    setEditingId(null);
 
-    // setEditingId(null);
-    console.log(newMember);
+    if (error) {
+      toast({
+        title: error.name,
+        description: error.message,
+        variant: "destructive"
+      });
+    }
+    else {
+      toast({
+        title: "Success",
+        description: "Team Member has been Updated"
+      });
+    }
+
   };
 
 
   const handleEditMember = async (member: FormTeamType) => {
+    setImageName((member.image.split("/").pop())!);
     member.image = await urlToBase64(member.image);
     setNewMember(member);
     setEditingId(member.id);
