@@ -1,7 +1,6 @@
 import Admin from '@/components/Admin';
 import PageHead from '@/components/layout/PageHead';
-import PageLayout from '@/components/layout/PageLayout';
-import WrongPage from '@/components/WrongPage';
+import NotFound from '@/pages/404';
 import { client } from '@/lib/supabase/supabase';
 import React, { useEffect, useState } from 'react'
 
@@ -32,13 +31,7 @@ const AdminPage = () => {
                 title="Robotics Society of PEC Admin"
                 description="You are in full control"
             />
-            {
-                validUser ? (
-                    <Admin />
-                ) : (
-                    <WrongPage />
-                )
-            }
+            {validUser ? (<Admin />) : (< NotFound />)}
         </>
     )
 }
