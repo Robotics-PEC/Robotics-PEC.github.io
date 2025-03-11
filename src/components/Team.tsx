@@ -11,14 +11,14 @@ const Team: React.FC<{ teamMembers: TeamMember[] }> = ({ teamMembers }) => {
                 title="Our Team"
                 subtitle="Meet the minds behind the innovation"
             >
-                <div className={teamMembers.length >= 4 ? "grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-8" : "flex justify-center items-center gap-8"}>
+                <div className={teamMembers.length >= 4 ? "grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-8" : "grid grid-cols-2 md:flex lg:flex md:justify-center lg:justify-center md:items-center lg:items-center md:gap-8 lg:gap-8"}>
                     {teamMembers?.map((member: TeamMember, index) => (
                         <motion.div
                             key={index}
                             initial={{ opacity: 0, scale: 0.9 }}
                             whileInView={{ opacity: 1, scale: 1 }}
                             transition={{ duration: 0.4 }}
-                            className="glass-card p-6 text-center"
+                            className="glass-card my-5 text-center"
                         >
                             <div className="relative w-24 h-24 rounded-full bg-gray-100 mx-auto mb-4">
                                 <Image
