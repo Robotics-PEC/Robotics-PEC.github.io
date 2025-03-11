@@ -55,15 +55,15 @@ const ProjectPage = () => {
         if (prevId === 0) {
             prevId = projectsLength - 1;
         }
-        router.push(`/project/${prevId}`);
+        router.push(`/project/${totalProjects[prevId].id}`);
     };
 
     const next = () => {
         let nextId = index + 1;
-        if (nextId > projectsLength) {
+        if (nextId >= projectsLength) {
             nextId = 0;
         }
-        router.push(`/project/${nextId}`);
+        router.push(`/project/${totalProjects[nextId].id}`);
     };
 
     return (
