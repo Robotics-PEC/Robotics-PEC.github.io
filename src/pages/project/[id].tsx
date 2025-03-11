@@ -14,41 +14,54 @@ import PageLayout from '@/components/layout/PageLayout';
 
 const ProjectPage = () => {
     const router = useRouter();
-    const id = Number(router.query.id);
+    const id = router.query.id as string;
     const [project, setProject] = useState<ProjectType>();
     const [projectsLength, setProjectsLength] = useState(0);
+    const [totalProjects, setTotalProjects] = useState<ProjectType[]>([]);
+    let index = 0;
     const [loading, setLoading] = useState<Boolean>(true);
 
     useEffect(() => {
         const fetch = async () => {
             if (router.isReady) {
                 const data = await getProjectById(id);
-                const length = (await getProjects()).length;
+                const totalProjectsData = await getProjects();
+                const length = (totalProjectsData).length;
                 data.technologies = data.technologies.split(",");
                 setProject(data);
                 setProjectsLength(length);
+                setTotalProjects(totalProjectsData);
                 setLoading(false);
             }
         }
         fetch();
     }, [router.isReady, router.query]);
 
+
+
+    for (let i = 0; i < projectsLength; i++) {
+        if (totalProjects[i].id == project?.id) {
+            index = i;
+            break;
+        }
+    }
+
     const handleClick = () => {
         router.push("/#projects");
     };
 
     const prev = () => {
-        let prevId = id - 1;
+        let prevId = index - 1;
         if (prevId === 0) {
-            prevId = projectsLength;
+            prevId = projectsLength - 1;
         }
         router.push(`/project/${prevId}`);
     };
 
     const next = () => {
-        let nextId = id + 1;
+        let nextId = index + 1;
         if (nextId > projectsLength) {
-            nextId = 1;
+            nextId = 0;
         }
         router.push(`/project/${nextId}`);
     };
