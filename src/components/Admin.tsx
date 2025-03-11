@@ -6,11 +6,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { useToast } from "@/hooks/use-toast";
 import Link from "next/link";
 import { Home, FileText, Calendar, Users, ExternalLink } from "lucide-react";
-import HeroEditor from "@/components/admin/HeroEditor";
-import ProjectsEditor from "@/components/admin/ProjectsEditor";
-import ActivitiesEditor from "@/components/admin/ActivitiesEditor";
-import EventsEditor from "@/components/admin/EventsEditor";
-import TeamEditor from "@/components/admin/TeamEditor";
+import HeroEditor from "@/pages/admin/components/HeroEditor";
+import ProjectsEditor from "@/pages/admin/components/ProjectsEditor";
+import ActivitiesEditor from "@/pages/admin/components/ActivitiesEditor";
+import EventsEditor from "@/pages/admin/components/EventsEditor";
+import TeamEditor from "@/pages/admin/components/TeamEditor";
 import PageLayout from "./layout/PageLayout";
 import PageHead from "./layout/PageHead";
 
