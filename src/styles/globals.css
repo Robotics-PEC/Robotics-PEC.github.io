@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&display=swap");
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -26,7 +26,7 @@
     --ring: 221.2 83.2% 53.3%;
     --radius: 0.75rem;
   }
- 
+
   .dark {
     --background: 222.2 84% 4.9%;
     --foreground: 210 40% 98%;
@@ -57,6 +57,35 @@
   body {
     @apply bg-background text-foreground;
   }
+}
+
+.ProseMirror {
+  @apply min-h-[calc(100vh-16rem)] p-4 focus:outline-none;
+}
+
+.ProseMirror p.is-editor-empty:first-child::before {
+  @apply text-muted-foreground;
+  content: attr(data-placeholder);
+  float: left;
+  pointer-events: none;
+  height: 0;
+}
+
+.tippy-box[data-animation="fade"][data-state="hidden"] {
+  @apply opacity-0;
+}
+
+.editor-bubble-menu {
+  @apply bg-background border border-border shadow-lg rounded-lg backdrop-blur-lg 
+  p-1 flex items-center gap-1 animate-fade-in;
+}
+
+.format-button {
+  @apply p-2 rounded-md hover:bg-accent text-foreground transition-all duration-200 ease-out;
+}
+
+.format-button.active {
+  @apply bg-accent text-foreground;
 }
 
 .react-pdf__Page {

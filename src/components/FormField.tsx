@@ -38,7 +38,6 @@ const FormField = ({ htmlFor, title, id, onChange, placeholder, value, type, set
                         value={value}
                         onChange={(value) => onChange((prev: any) => ({ ...prev, [id]: value }))}
                         placeholder={placeholder}
-                        minHeight="200px"
                     />
                 </div>
             )
