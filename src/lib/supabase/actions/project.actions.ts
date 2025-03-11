@@ -1,4 +1,4 @@
-import { Project } from "@/types";
+import { FormProjectType } from "@/types";
 import { client } from "../supabase";
 import { deleteImage, uploadImage } from "./storage.actions";
 import { urlToBase64 } from "@/lib/utils";
@@ -22,7 +22,7 @@ export const getProjectById = async (id: string) => {
     return JSON.parse(JSON.stringify(data[0]));
 };
 
-export const uploadProject = async (project: Project, fileName: string) => {
+export const uploadProject = async (project: FormProjectType, fileName: string) => {
     await uploadImage("projects", fileName, project.image);
     const { data } = client.storage.from("media").getPublicUrl(`projects/${fileName}`);
 
@@ -39,15 +39,14 @@ export const uploadProject = async (project: Project, fileName: string) => {
 
 };
 
-export const deleteProject = async (project: Project) => {
-    console.log(project);
+export const deleteProject = async (project: FormProjectType) => {
     await deleteImage([`projects/${project.image.split("/").pop()!}`]);
     const response = await client.from("projects").delete().eq("id", project.id);
 
     return response;
 };
 
-export const updateProject = async (project: Project, fileName: string) => {
+export const updateProject = async (project: FormProjectType, fileName: string) => {
     console.log(project);
     const oldProjectData = await getProjectById(project.id);
     await deleteImage([`projects/${oldProjectData.image.split("/").pop()!}`]);
@@ -63,4 +62,4 @@ export const updateProject = async (project: Project, fileName: string) => {
         await uploadImage("projects", oldProjectData.image.split("/").pop()!, fileData)
         console.log(error);
     }
-}
+};

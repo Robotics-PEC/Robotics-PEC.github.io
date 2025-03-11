@@ -9,10 +9,11 @@ import { Card } from "@/components/ui/card";
 import MarkdownEditor from "./MarkdownEditor";
 import ReactMarkdown from "react-markdown";
 import { deleteProject, getProjects, updateProject, uploadProject } from "@/lib/supabase/actions/project.actions";
-import { Project } from "@/types";
+import { FormProjectType } from "@/types";
 import { Loader } from "../layout/Loader";
 import FormField from "../FormField";
 import { previousDay } from "date-fns";
+import { urlToBase64 } from "@/lib/utils";
 
 // Default project data structure
 
@@ -28,10 +29,10 @@ const ProjectsEditor = () => {
     technologies: ""
   };
   const { toast } = useToast();
-  const [projects, setProjects] = useState<Project[]>([]);
+  const [projects, setProjects] = useState<FormProjectType[]>([]);
   const [loading, setLoading] = useState(true);
   const [fileName, setFileName] = useState("");
-  const [newProject, setNewProject] = useState<Project>(defaultData);
+  const [newProject, setNewProject] = useState<FormProjectType>(defaultData);
   const [editingId, setEditingId] = useState<string | null>(null);
 
   // Load projects from localStorage if exists
@@ -108,14 +109,27 @@ const ProjectsEditor = () => {
     setEditingId(null);
   };
 
-  const handleEditProject = (project: any) => {
+  const handleEditProject = async (project: FormProjectType) => {
+    project.image = await urlToBase64(project.image);
     setNewProject(project);
     setEditingId(project.id);
   };
 
-  const handleRemoveProject = async (project: Project) => {
+  const handleRemoveProject = async (project: FormProjectType) => {
     setProjects(prev => prev.filter(pr => pr.id !== project.id));
-    await deleteProject(project);
+    const response = await deleteProject(project);
+    if (response.status == 204) {
+      toast({
+        title: "Project Deleted Successfully",
+        description: `${project.title} was successfully deleted`
+      });
+    }
+    else {
+      toast({
+        title: "Project Couldn't be deleted",
+        description: `${project.title} unable to be deleted`
+      });
+    }
   };
 
   return (

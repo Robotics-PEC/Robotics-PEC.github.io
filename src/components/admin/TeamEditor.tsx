@@ -7,54 +7,42 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { useToast } from "@/hooks/use-toast";
 import { Plus, Trash, Edit, Save, User } from "lucide-react";
 import { Card } from "@/components/ui/card";
+import { FormTeamType } from "@/types";
+import FormField from "../FormField";
+import { addTeamMember, deleteTeamMember, getTeamMembers, updateTeamMember } from "@/lib/supabase/actions/team.actions";
+import { urlToBase64 } from "@/lib/utils";
 
 // Default team members data structure
 
 
-interface Team {
-  id: string
-  firstName: string
-  lastName: string
-  role: string
-  bio: string
-  imageUrl: string
-  email: string
-  github: string
-  linkedin: string
-}
 
-const defaultTeamMembers: Team[] = [
+
+const defaultTeamMembers: FormTeamType[] = [
 
   {
     id: "1",
     firstName: "John",
     lastName: "Doe",
     role: "President",
-    bio: "John is a final year student with expertise in AI and robotics control systems.",
-    imageUrl: "/projects/robot1.jpg",
-    email: "john.doe@example.com",
-    github: "https://github.com/johndoe",
-    linkedin: "https://linkedin.com/in/johndoe"
+    image: "/projects/robot1.jpg",
   }
 ];
+
+const emptyData: FormTeamType = {
+  id: "",
+  firstName: "",
+  lastName: "",
+  role: "",
+  image: "",
+};
 
 const TeamEditor = () => {
   const { toast } = useToast();
 
-  const [teamMembers, setTeamMembers] = useState<Team[]>(defaultTeamMembers);
-  const [newMember, setNewMember] = useState<Team>({
-
-    id: "",
-    firstName: "",
-    lastName: "",
-    role: "",
-    bio: "",
-    imageUrl: "",
-    email: "",
-    github: "",
-    linkedin: ""
-  });
+  const [teamMembers, setTeamMembers] = useState<FormTeamType[]>([]);
+  const [newMember, setNewMember] = useState<FormTeamType>(emptyData);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [imageName, setImageName] = useState<string>("");
 
   // Load team members from localStorage if exists
   useEffect(() => {
@@ -65,7 +53,14 @@ const TeamEditor = () => {
       } catch (error) {
         console.error("Failed to parse saved team members data:", error);
       }
-    }
+    };
+    const fetch = async () => {
+      const data = await getTeamMembers();
+      setTeamMembers(data);
+    };
+
+    fetch();
+
   }, []);
 
   const handleSaveAll = () => {
@@ -76,79 +71,74 @@ const TeamEditor = () => {
     });
   };
 
-  const handleAddMember = () => {
-    if (!newMember.firstName || !newMember.lastName || !newMember.role) {
+  const handleAddMember = async () => {
+    if (!newMember.firstName || !newMember.lastName || !newMember.role || !newMember.image) {
       toast({
         title: "Error",
-        description: "First name, last name, and role are required",
+        description: "All Fields are required",
         variant: "destructive",
       });
       return;
     }
+    const { error } = await addTeamMember(newMember, imageName);
 
-    const newId = Date.now().toString();
-    setTeamMembers(prev => [...prev, { ...newMember, id: newId }]);
-    setNewMember({
-      id: "",
-      firstName: "",
-      lastName: "",
-      role: "",
-      bio: "",
-      imageUrl: "",
-      email: "",
-      github: "",
-      linkedin: ""
-    });
+    if (error) {
+      toast({
+        title: error.name,
+        description: error.message,
+        variant: "destructive"
+      });
+    }
+    else {
+      toast({
+        title: "Success",
+        description: "Team Member has been Added"
+      });
+    };
+    setTeamMembers(prev => [...prev, { ...newMember }]);
+    setNewMember(emptyData);
   };
 
-  const handleUpdateMember = () => {
+  const handleUpdateMember = async () => {
     if (!editingId) return;
-
-
     setTeamMembers(prev =>
       prev.map(member =>
-
         member.id === editingId ? newMember : member
       )
     );
-    setEditingId(null);
-    setNewMember({
-      id: "",
-      firstName: "",
-      lastName: "",
-      role: "",
-      bio: "",
-      imageUrl: "",
-      email: "",
-      github: "",
-      linkedin: ""
-    });
+
+    // await updateTeamMember(newMember, imageName);
+
+    // setEditingId(null);
+    console.log(newMember);
   };
 
 
-  const handleEditMember = (member: Team) => {
-
+  const handleEditMember = async (member: FormTeamType) => {
+    member.image = await urlToBase64(member.image);
     setNewMember(member);
     setEditingId(member.id);
   };
 
 
-  const handleRemoveMember = (id: string) => {
-
-    setTeamMembers(prev => prev.filter(member => member.id !== id));
-    if (editingId === id) {
-      setEditingId(null);
-      setNewMember({
-        id: "",
-        firstName: "",
-        lastName: "",
-        role: "",
-        bio: "",
-        imageUrl: "",
-        email: "",
-        github: "",
-        linkedin: ""
+  const handleRemoveMember = async (member: FormTeamType) => {
+    setTeamMembers(prev => prev.filter(mem => mem.id !== member.id));
+    const response = await deleteTeamMember(member);
+    if (response.status == 204) {
+      toast({
+        title: "Member Removed Successfully",
+        description: `${member.firstName} ${member.lastName} was successfully deleted`
       });
+    }
+    else {
+      toast({
+        title: "Member Couldn't be deleted",
+        description: `${member.firstName} ${member.lastName} unable to be deleted`
+      });
+    }
+    if (editingId === member.id) {
+      setEditingId(null);
+      setNewMember(emptyData);
     }
   };
 
@@ -160,90 +150,46 @@ const TeamEditor = () => {
         </h3>
         <div className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="firstName">First Name</Label>
-              <Input
-                id="firstName"
-                value={newMember.firstName}
-                onChange={(e) => setNewMember(prev => ({ ...prev, firstName: e.target.value }))}
-                placeholder="First name"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="lastName">Last Name</Label>
-              <Input
-                id="lastName"
-                value={newMember.lastName}
-                onChange={(e) => setNewMember(prev => ({ ...prev, lastName: e.target.value }))}
-                placeholder="Last name"
-              />
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="role">Role</Label>
-            <Input
-              id="role"
-              value={newMember.role}
-              onChange={(e) => setNewMember(prev => ({ ...prev, role: e.target.value }))}
-              placeholder="e.g., President, Technical Lead"
+            <FormField
+              id="firstName"
+              htmlFor="firstName"
+              onChange={setNewMember}
+              placeholder="First Name"
+              value={newMember.firstName}
+              title="First Name"
+              type="TEXT"
+            />
+            <FormField
+              id="lastName"
+              htmlFor="lastName"
+              onChange={setNewMember}
+              placeholder="Last Name"
+              value={newMember.lastName}
+              title="Last Name"
+              type="TEXT"
             />
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="bio">Bio</Label>
-            <Textarea
-              id="bio"
-              value={newMember.bio}
-              onChange={(e) => setNewMember(prev => ({ ...prev, bio: e.target.value }))}
-              placeholder="Short biography"
-              rows={3}
-            />
-          </div>
+          <FormField
+            id="image"
+            htmlFor="image"
+            onChange={setNewMember}
+            placeholder="Upload your image"
+            value={newMember.role}
+            title="Upload your Image"
+            type="IMAGE"
+            setFileName={setImageName}
+          />
 
-          <div className="space-y-2">
-            <Label htmlFor="imageUrl">Profile Image URL</Label>
-            <Input
-              id="imageUrl"
-              value={newMember.imageUrl}
-              onChange={(e) => setNewMember(prev => ({ ...prev, imageUrl: e.target.value }))}
-              placeholder="URL to profile image"
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
-            <Input
-              id="email"
-              type="email"
-              value={newMember.email}
-              onChange={(e) => setNewMember(prev => ({ ...prev, email: e.target.value }))}
-              placeholder="Email address"
-            />
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="github">GitHub URL</Label>
-              <Input
-                id="github"
-                value={newMember.github}
-                onChange={(e) => setNewMember(prev => ({ ...prev, github: e.target.value }))}
-                placeholder="GitHub profile URL"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="linkedin">LinkedIn URL</Label>
-              <Input
-                id="linkedin"
-                value={newMember.linkedin}
-                onChange={(e) => setNewMember(prev => ({ ...prev, linkedin: e.target.value }))}
-                placeholder="LinkedIn profile URL"
-              />
-            </div>
-          </div>
+          <FormField
+            id="role"
+            htmlFor="role"
+            onChange={setNewMember}
+            placeholder="Website Head"
+            value={newMember.role}
+            title="Role"
+            type="TEXT"
+          />
 
           {editingId ? (
             <div className="flex gap-2">
@@ -255,17 +201,7 @@ const TeamEditor = () => {
                 variant="outline"
                 onClick={() => {
                   setEditingId(null);
-                  setNewMember({
-                    id: "",
-                    firstName: "",
-                    lastName: "",
-                    role: "",
-                    bio: "",
-                    imageUrl: "",
-                    email: "",
-                    github: "",
-                    linkedin: ""
-                  });
+                  setNewMember(emptyData);
                 }}
               >
                 Cancel
@@ -302,72 +238,20 @@ const TeamEditor = () => {
                 <AccordionContent>
                   <div className="p-4 space-y-4">
                     <div className="flex gap-4">
-                      {member.imageUrl && (
-
+                      {member.image && (
                         <img
-                          src={member.imageUrl}
+                          src={member.image}
                           alt={`${member.firstName} ${member.lastName}`}
-
                           className="w-24 h-24 object-cover rounded-full"
                         />
                       )}
-                      <div className="flex-1">
-                        <p className="text-sm font-medium">Bio:</p>
-                        <p className="text-sm text-gray-600 mb-2">{member.bio || "No bio provided"}</p>
 
-
-
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                          <div>
-                            <p className="text-sm font-medium">Email:</p>
-                            <p className="text-sm text-gray-600">
-                              {member.email ? (
-                                <a href={`mailto:${member.email}`} className="text-blue-500 hover:underline">
-                                  {member.email}
-                                </a>
-                              ) : (
-                                "Not provided"
-                              )}
-                            </p>
-                          </div>
-
-
-
-                          <div>
-                            <p className="text-sm font-medium">GitHub:</p>
-                            <p className="text-sm text-gray-600 truncate">
-                              {member.github ? (
-                                <a href={member.github} target="_blank" className="text-blue-500 hover:underline">
-                                  {member.github.replace('https://github.com/', '@')}
-                                </a>
-                              ) : (
-                                "Not provided"
-                              )}
-                            </p>
-                          </div>
-
-
-                          <div>
-                            <p className="text-sm font-medium">LinkedIn:</p>
-                            <p className="text-sm text-gray-600 truncate">
-                              {member.linkedin ? (
-                                <a href={member.linkedin} target="_blank" className="text-blue-500 hover:underline">
-                                  {member.linkedin.replace('https://linkedin.com/in/', '')}
-                                </a>
-                              ) : (
-                                "Not provided"
-                              )}
-                            </p>
-                          </div>
-                        </div>
-                      </div>
                     </div>
 
 
                     <div className="flex gap-2 justify-end">
                       <Button
                         size="sm"
-
                         variant="outline"
                         onClick={() => handleEditMember(member)}
                       >
@@ -376,9 +260,8 @@ const TeamEditor = () => {
 
                       <Button
                         size="sm"
-
                         variant="destructive"
-                        onClick={() => handleRemoveMember(member.id)}
+                        onClick={() => handleRemoveMember(member)}
                       >
                         <Trash className="h-4 w-4 mr-1" /> Delete
                       </Button>
@@ -397,5 +280,4 @@ const TeamEditor = () => {
     </div>
   );
 };
-
 export default TeamEditor;

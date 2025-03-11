@@ -14,7 +14,7 @@ const FormField = ({ htmlFor, title, id, onChange, placeholder, value, type, set
                     <Input
                         id={id}
                         value={value}
-                        onChange={(e) => onChange(prev => ({ ...prev, [id]: e.target.value }))}
+                        onChange={(e) => onChange((prev: any) => ({ ...prev, [id]: e.target.value }))}
                         placeholder={placeholder}
                     />
                 </div>
@@ -32,7 +32,7 @@ const FormField = ({ htmlFor, title, id, onChange, placeholder, value, type, set
                     <Label htmlFor={htmlFor}>Detailed Description (Markdown)</Label>
                     <MarkdownEditor
                         value={value}
-                        onChange={(value) => onChange(prev => ({ ...prev, [id]: value }))}
+                        onChange={(value) => onChange((prev: any) => ({ ...prev, [id]: value }))}
                         placeholder={placeholder}
                         minHeight="200px"
                     />
@@ -45,7 +45,7 @@ const FormField = ({ htmlFor, title, id, onChange, placeholder, value, type, set
                     <Input
                         id={id}
                         value={value}
-                        onChange={(e) => onChange(prev => ({ ...prev, image: e.target.value }))}
+                        onChange={(e) => onChange((prev: any) => ({ ...prev, image: e.target.value }))}
                         placeholder={placeholder}
                     />
                 </div>

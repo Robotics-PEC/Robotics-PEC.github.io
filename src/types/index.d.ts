@@ -41,7 +41,15 @@ export interface PublicUrlType {
     url: string;
 };
 
-export interface Project {
+interface FormTeamType {
+    id: string;
+    firstName: string;
+    lastName: string;
+    role: string;
+    image: string;
+};
+
+export interface FormProjectType {
     id: string;
     title: string;
     description: string;
@@ -55,9 +63,11 @@ export interface FormFieldProps {
     htmlFor: string;
     title: string;
     id: string;
-    onChange: (value: SetStateAction<Project>) => void;
+    onChange: ((value: SetStateAction<FormProjectType>) => void) | ((value: SetStateAction<FormTeamType>) => void);
     placeholder: string;
     value: string;
     type: "BLOB" | "TEXT" | "IMAGE" | "MARKDOWN"
     setFileName?: (value: SetStateAction<string>) => void;
-}
+    imageData?: { name: string, base64: string }
+};
+

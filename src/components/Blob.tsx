@@ -1,76 +1,157 @@
 import React, { SetStateAction, useRef, useState } from 'react'
-import { useToast } from './ui/use-toast';
+import { toast } from "sonner";
 import { Button } from './ui/button';
-import { Project } from '@/types';
+import { FormTeamType, FormProjectType } from '@/types';
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from './ui/card';
+import { FileImage, Upload, X } from 'lucide-react';
 
-const Blob = ({ id, onChange, setFileName }: { id: string, onChange: (value: SetStateAction<Project>) => void, setFileName: (value: SetStateAction<string>) => void }) => {
-    const [isLoading, setIsLoading] = useState(false);
+interface ImageData {
+    name: string;
+    base64: string;
+};
+
+interface BlobProps {
+    id: string;
+    onChange: ((value: SetStateAction<FormProjectType>) => void) | ((value: SetStateAction<FormTeamType>) => void);
+    setFileName: (value: SetStateAction<string>) => void;
+};
+
+const Blob = ({ id, onChange, setFileName }: BlobProps) => {
+    const [imageData, setImageData] = useState<ImageData | null>(null);
+    const [isDragging, setIsDragging] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
-    const { toast } = useToast();
 
-    const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        const file = event.target.files?.[0];
-        if (!file) return;
+    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            processFile(file);
+        }
+    };
 
-        // Check if the file is an image
+    const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
+        e.preventDefault();
+        setIsDragging(true);
+    };
+
+    const handleDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
+        e.preventDefault();
+        setIsDragging(false);
+    };
+
+    const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
+        e.preventDefault();
+        setIsDragging(false);
+
+        const file = e.dataTransfer.files?.[0];
+        if (file) {
+            processFile(file);
+        }
+    };
+
+    const processFile = (file: File) => {
         if (!file.type.match('image.*')) {
-            toast({
-                title: "Invalid file type",
-                description: "Please select an image file",
-                variant: "destructive",
-            });
+            toast.error("Please select an image file");
             return;
         }
 
-        setIsLoading(true);
         const reader = new FileReader();
-
-        reader.onload = (e) => {
-            const result = e.target?.result as string;
-            onChange(prev => ({ ...prev, [id]: result }));
-            setFileName(file.name);
-            setIsLoading(false);
-            toast({
-                title: "Success!",
-                description: "Image successfully converted to base64",
-            });
+        reader.onload = (event) => {
+            if (event.target?.result) {
+                setFileName(file.name);
+                onChange((prev: any) => ({ ...prev, [id]: event.target?.result as string }));
+                setImageData({
+                    name: file.name,
+                    base64: event.target?.result as string
+                });
+                toast.success(`Image "${file.name}" loaded successfully`);
+            }
         };
-
         reader.onerror = () => {
-            setIsLoading(false);
-            toast({
-                title: "Error",
-                description: "Failed to read the image file",
-                variant: "destructive",
-            });
+            toast.error("Error reading file");
         };
-
         reader.readAsDataURL(file);
     };
 
-    const handleButtonClick = () => {
+    const clearImage = () => {
+        setImageData(null);
+        if (fileInputRef.current) {
+            fileInputRef.current.value = "";
+        }
+    };
+
+    const handleBrowseClick = () => {
         fileInputRef.current?.click();
     };
 
     return (
-        <div>
-            <input
-                type="file"
-                ref={fileInputRef}
-                onChange={handleFileChange}
-                accept="image/*"
-                className="hidden"
-            />
+        <div className="w-full max-w-3xl mx-auto p-4">
+            {!imageData ? (
+                <Card
+                    className={`border-2 border-dashed ${isDragging ? "border-primary bg-primary/5" : "border-muted-foreground/20"
+                        } transition-colors duration-200`}
+                >
+                    <CardContent className="p-6">
+                        <div
+                            className="flex flex-col items-center justify-center min-h-[300px] cursor-pointer"
+                            onDragOver={handleDragOver}
+                            onDragLeave={handleDragLeave}
+                            onDrop={handleDrop}
+                            onClick={handleBrowseClick}
+                        >
+                            <Upload size={48} className="text-muted-foreground mb-4" />
+                            <h3 className="text-xl font-semibold mb-2">Upload Image</h3>
+                            <p className="text-muted-foreground text-sm text-center mb-4">
+                                Drag & drop an image here, or click to browse
+                            </p>
+                            <Button variant="secondary">Browse Files</Button>
+                            <input
+                                type="file"
+                                accept="image/*"
+                                className="hidden"
+                                onChange={handleFileChange}
+                                ref={fileInputRef}
+                            />
+                        </div>
+                    </CardContent>
+                </Card>
+            ) : (
+                <Card>
+                    <CardHeader className="pb-2">
+                        <div className="flex justify-between items-center">
+                            <CardTitle className="flex items-center gap-2 text-xl">
+                                <FileImage size={20} />
+                                Image Blob Viewer
+                            </CardTitle>
+                            <Button variant="ghost" size="icon" onClick={clearImage}>
+                                <X size={18} />
+                            </Button>
+                        </div>
+                    </CardHeader>
 
-            <Button
-                onClick={handleButtonClick}
-                className="w-full mb-4"
-                disabled={isLoading}
-            >
-                {isLoading ? "Converting..." : "Select Image"}
-            </Button>
+                    <CardContent className="p-4 space-y-4">
+                        <div className="flex flex-col gap-2">
+                            <p className="text-sm font-medium">File Name:</p>
+                            <p className="text-sm bg-muted p-2 rounded">{imageData.name}</p>
+                        </div>
+
+                        <div className="overflow-hidden rounded-md border bg-white flex justify-center">
+                            <img
+                                src={imageData.base64}
+                                alt={imageData.name}
+                                className="object-contain max-h-[300px] w-auto"
+                            />
+                        </div>
+                    </CardContent>
+
+                    <CardFooter className="flex justify-end p-4">
+                        <Button onClick={handleBrowseClick}>
+                            Upload New Image
+                        </Button>
+                    </CardFooter>
+                </Card>
+            )}
         </div>
-    )
-}
+    );
+};
 
 export default Blob;
