@@ -108,9 +108,9 @@ const EventsEditor = () => {
 
   const handleUpdateEvent = () => {
     if (!editingId) return;
-    
-    setEvents(prev => 
-      prev.map(event => 
+
+    setEvents(prev =>
+      prev.map(event =>
         event.id === editingId ? newEvent : event
       )
     );
@@ -205,7 +205,6 @@ const EventsEditor = () => {
               value={newEvent.description}
               onChange={(value) => setNewEvent(prev => ({ ...prev, description: value }))}
               placeholder="Write detailed event description using Markdown"
-              minHeight="200px"
             />
           </div>
 
@@ -312,8 +311,8 @@ const EventsEditor = () => {
               <Button onClick={handleUpdateEvent} className="flex-1">
                 <Save className="h-4 w-4 mr-2" /> Update Event
               </Button>
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 onClick={() => {
                   setEditingId(null);
                   setNewEvent({
@@ -344,7 +343,7 @@ const EventsEditor = () => {
 
       <div className="space-y-4">
         <h3 className="text-lg font-medium">Current Events</h3>
-        
+
         {events.length === 0 ? (
           <p className="text-gray-500 italic">No events added yet.</p>
         ) : (
@@ -364,23 +363,23 @@ const EventsEditor = () => {
                   <div className="p-4 space-y-4">
                     <div className="flex gap-4">
                       {event.imageUrl && (
-                        <img 
-                          src={event.imageUrl} 
-                          alt={event.title} 
+                        <img
+                          src={event.imageUrl}
+                          alt={event.title}
                           className="w-24 h-24 object-cover rounded"
                         />
                       )}
                       <div className="flex-1">
                         <p className="text-sm font-medium">Short Description:</p>
                         <p className="text-sm text-gray-600 mb-2">{event.shortDescription}</p>
-                        
+
                         <p className="text-sm font-medium">Full Description:</p>
                         <div className="prose prose-sm max-w-none">
                           <ReactMarkdown>{event.description}</ReactMarkdown>
                         </div>
                       </div>
                     </div>
-                    
+
                     <div className="grid grid-cols-2 gap-4">
                       <div>
                         <p className="text-sm font-medium">Date:</p>
@@ -399,7 +398,7 @@ const EventsEditor = () => {
                         <p className="text-sm text-gray-600">{event.capacity}</p>
                       </div>
                     </div>
-                    
+
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
                         <p className="text-sm font-medium">Registration URL:</p>
@@ -414,7 +413,7 @@ const EventsEditor = () => {
                         </p>
                       </div>
                     </div>
-                    
+
                     {event.tags && event.tags.length > 0 && (
                       <div>
                         <p className="text-sm font-medium">Tags:</p>
@@ -427,17 +426,17 @@ const EventsEditor = () => {
                         </div>
                       </div>
                     )}
-                    
+
                     <div className="flex gap-2 justify-end">
-                      <Button 
-                        size="sm" 
+                      <Button
+                        size="sm"
                         variant="outline"
                         onClick={() => handleEditEvent(event)}
                       >
                         <Edit className="h-4 w-4 mr-1" /> Edit
                       </Button>
-                      <Button 
-                        size="sm" 
+                      <Button
+                        size="sm"
                         variant="destructive"
                         onClick={() => handleRemoveEvent(event.id)}
                       >
@@ -450,7 +449,7 @@ const EventsEditor = () => {
             ))}
           </Accordion>
         )}
-        
+
         <Button onClick={handleSaveAll} className="w-full mt-4">
           <Save className="h-4 w-4 mr-2" /> Save All Changes
         </Button>

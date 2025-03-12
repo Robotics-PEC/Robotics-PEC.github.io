@@ -5,7 +5,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Plus, Trash, Edit, Save, User } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { FormTeamType } from "@/types";
-import FormField from "../FormField";
+import FormField from "../../../components/FormField";
 import { addTeamMember, deleteTeamMember, getTeamMembers, updateTeamMember } from "@/lib/supabase/actions/team.actions";
 import { urlToBase64 } from "@/lib/utils";
 

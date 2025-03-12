@@ -10,8 +10,8 @@ import MarkdownEditor from "./MarkdownEditor";
 import ReactMarkdown from "react-markdown";
 import { deleteProject, getProjects, updateProject, uploadProject } from "@/lib/supabase/actions/project.actions";
 import { FormProjectType } from "@/types";
-import { Loader } from "../layout/Loader";
-import FormField from "../FormField";
+import { Loader } from "../../../components/layout/Loader";
+import FormField from "../../../components/FormField";
 import { previousDay } from "date-fns";
 import { urlToBase64 } from "@/lib/utils";
 

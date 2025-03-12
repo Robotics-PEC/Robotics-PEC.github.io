@@ -2,7 +2,7 @@ import React from 'react'
 import { Label } from './ui/label'
 import { Input } from './ui/input'
 import { FormFieldProps } from '@/types'
-import MarkdownEditor from './admin/MarkdownEditor'
+import MarkdownEditor from '../pages/admin/components/MarkdownEditor'
 import Blob from './Blob'
 
 const FormField = ({ htmlFor, title, id, onChange, placeholder, value, type, setFileName }: FormFieldProps) => {
@@ -38,7 +38,6 @@ const FormField = ({ htmlFor, title, id, onChange, placeholder, value, type, set
                         value={value}
                         onChange={(value) => onChange((prev: any) => ({ ...prev, [id]: value }))}
                         placeholder={placeholder}
-                        minHeight="200px"
                     />
                 </div>
             )
