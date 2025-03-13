@@ -4,8 +4,9 @@ import { Input } from './ui/input'
 import { FormFieldProps } from '@/types'
 import MarkdownEditor from '../pages/admin/components/MarkdownEditor'
 import Blob from './Blob'
+import DatePicker from './DatePicker'
 
-const FormField = ({ htmlFor, title, id, onChange, placeholder, value, type, setFileName }: FormFieldProps) => {
+const FormField = ({ htmlFor, title, id, onChange, placeholder, value, type, setFileName, date, setDate }: FormFieldProps) => {
 
     switch (type) {
         case "TEXT":
@@ -14,7 +15,7 @@ const FormField = ({ htmlFor, title, id, onChange, placeholder, value, type, set
                     <Label htmlFor={htmlFor}>{title}</Label>
                     <Input
                         id={id}
-                        value={value}
+                        value={value as string}
                         onChange={(e) => onChange((prev: any) => ({ ...prev, [id]: e.target.value }))}
                         placeholder={placeholder}
                     />
@@ -35,11 +36,22 @@ const FormField = ({ htmlFor, title, id, onChange, placeholder, value, type, set
                 <div className="space-y-2">
                     <Label htmlFor={htmlFor}>Detailed Description (Markdown)</Label>
                     <MarkdownEditor
-                        value={value}
+                        value={value as string}
                         onChange={(value) => onChange((prev: any) => ({ ...prev, [id]: value }))}
                         placeholder={placeholder}
                     />
                 </div>
+            )
+        case "DATE":
+            return (
+                <div className="space-y-2">
+                    <Label htmlFor={htmlFor}>{title}</Label>
+                    <DatePicker
+                        date={date}
+                        setDate={setDate!}
+                    />
+                </div>
+
             )
         default:
             return (
@@ -47,7 +59,7 @@ const FormField = ({ htmlFor, title, id, onChange, placeholder, value, type, set
                     <Label htmlFor={htmlFor}>{title}</Label>
                     <Input
                         id={id}
-                        value={value}
+                        value={value as string}
                         onChange={(e) => onChange((prev: any) => ({ ...prev, image: e.target.value }))}
                         placeholder={placeholder}
                     />

@@ -7,51 +7,31 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { useToast } from "@/hooks/use-toast";
 import { Plus, Trash, Edit, Save } from "lucide-react";
 import { Card } from "@/components/ui/card";
+import { ActivityFormType } from "@/types";
+import { deleteActivity, getActivites, updateActivity, uploadActivity } from "@/lib/supabase/actions/activities.actions";
+import { format } from "date-fns";
+import { Loader } from "@/components/layout/Loader";
+import FormField from "@/components/FormField";
 
 // Default activity data structure
 
-interface Activity {
-  id: string
-  title: string
-  shortDescription: string
-  description: string
-  duration: string
-  frequency: string
-  participants: string
-  tags: string[]
-}
 
-const defaultActivities: Activity[] = [
-
-  {
-    id: "1",
-    title: "Robotics Workshop",
-    shortDescription: "Learn robotics basics in a hands-on environment",
-    description: "A comprehensive workshop covering the fundamentals of robotics including mechanics, electronics, and programming.",
-    duration: "4 hours",
-    frequency: "Monthly",
-    participants: "20-30 students",
-    tags: ["Workshop", "Beginners", "Hands-on"]
-  }
-];
+const emptyData: ActivityFormType = {
+  id: "",
+  title: "",
+  description: "",
+  date: undefined,
+  participants: "",
+};
 
 const ActivitiesEditor = () => {
   const { toast } = useToast();
 
-  const [activities, setActivities] = useState<Activity[]>(defaultActivities);
-  const [newActivity, setNewActivity] = useState<Activity>({
-
-    id: "",
-    title: "",
-    shortDescription: "",
-    description: "",
-    duration: "",
-    frequency: "",
-    participants: "",
-    tags: []
-  });
+  const [activities, setActivities] = useState<ActivityFormType[]>([]);
+  const [newActivity, setNewActivity] = useState<ActivityFormType>(emptyData);
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [tagInput, setTagInput] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [date, setDate] = useState<Date | undefined>(undefined);
 
   // Load activities from localStorage if exists
   useEffect(() => {
@@ -63,6 +43,14 @@ const ActivitiesEditor = () => {
         console.error("Failed to parse saved activities data:", error);
       }
     }
+
+    const fetch = async () => {
+      const data = await getActivites();
+
+      setActivities(data);
+      setLoading(false);
+    }
+    fetch();
   }, []);
 
   const handleSaveAll = () => {
@@ -73,33 +61,66 @@ const ActivitiesEditor = () => {
     });
   };
 
-  const handleAddActivity = () => {
-    if (!newActivity.title || !newActivity.shortDescription) {
+  const handleAddActivity = async () => {
+    if (!newActivity.title || !newActivity.description || !newActivity.participants) {
       toast({
         title: "Error",
-        description: "Title and short description are required",
+        description: "All the fields are required",
         variant: "destructive",
       });
       return;
     }
 
-    const newId = Date.now().toString();
-    setActivities(prev => [...prev, { ...newActivity, id: newId }]);
-    setNewActivity({
-      id: "",
-      title: "",
-      shortDescription: "",
-      description: "",
-      duration: "",
-      frequency: "",
-      participants: "",
-      tags: []
-    });
+    if (!date) {
+      toast({
+        title: "Error",
+        description: "Date is required",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    newActivity.date = format(date!, "dd/MM/yyyy");
+    const { error } = await uploadActivity(newActivity);
+
+    if (error) {
+      toast({
+        title: error.name,
+        description: error.message,
+        variant: "destructive",
+      });
+      return;
+    }
+    else {
+      toast({
+        title: "Success",
+        description: "Activity was successfully uploaded",
+      });
+    };
+
+    setActivities(prev => [...prev, newActivity]);
+    setNewActivity(emptyData);
   };
 
-  const handleUpdateActivity = () => {
+  const handleUpdateActivity = async () => {
     if (!editingId) return;
 
+    const error = await updateActivity(newActivity);
+
+    if (error) {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+      return;
+    }
+    else {
+      toast({
+        title: "Success",
+        description: "Activity was successfully updated",
+      });
+    };
 
     setActivities(prev =>
       prev.map(activity =>
@@ -108,287 +129,182 @@ const ActivitiesEditor = () => {
       )
     );
     setEditingId(null);
-    setNewActivity({
-      id: "",
-      title: "",
-      shortDescription: "",
-      description: "",
-      duration: "",
-      frequency: "",
-      participants: "",
-      tags: []
-    });
+    setNewActivity(emptyData);
   };
 
 
-  const handleEditActivity = (activity: Activity) => {
-
+  const handleEditActivity = (activity: ActivityFormType) => {
     setNewActivity(activity);
+    const correctDateFormat = `${activity.date?.split("/")[2]}-${activity.date?.split("/")[1]}-${activity.date?.split("/")[0]}`;
+    setDate(new Date(correctDateFormat));
     setEditingId(activity.id);
   };
 
-  const handleRemoveActivity = (id: string) => {
+  const handleRemoveActivity = async (id: string) => {
+    const response = await deleteActivity(id);
+
+    if (response.status === 204) {
+      toast({
+        title: "Success",
+        description: "Activity was successfully deleted",
+      });
+    }
+    else {
+      toast({
+        title: String(response.status),
+        description: response.error?.message,
+        variant: "destructive"
+      });
+    }
 
     setActivities(prev => prev.filter(activity => activity.id !== id));
     if (editingId === id) {
       setEditingId(null);
-      setNewActivity({
-        id: "",
-        title: "",
-        shortDescription: "",
-        description: "",
-        duration: "",
-        frequency: "",
-        participants: "",
-        tags: []
-      });
+      setNewActivity(emptyData);
     }
   };
 
-  const handleAddTag = () => {
-    if (tagInput.trim()) {
-      setNewActivity(prev => ({
-        ...prev,
-        tags: [...(prev.tags || []), tagInput.trim()]
-      }));
-      setTagInput("");
-    }
-  };
-
-
-  const handleRemoveTag = (index: number) => {
-
-    setNewActivity(prev => ({
-      ...prev,
-      tags: prev.tags.filter((_, i) => i !== index)
-    }));
-  };
 
   return (
-    <div className="space-y-8">
-      <Card className="p-6">
-        <h3 className="text-lg font-medium mb-4">
-          {editingId ? "Edit Activity" : "Add New Activity"}
-        </h3>
-        <div className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="title">Title</Label>
-            <Input
+    <Loader isLoading={loading}>
+      <div className="space-y-8">
+        <Card className="p-6">
+          <h3 className="text-lg font-medium mb-4">
+            {editingId ? "Edit Activity" : "Add New Activity"}
+          </h3>
+          <div className="space-y-4">
+            <FormField
               id="title"
               value={newActivity.title}
-              onChange={(e) => setNewActivity(prev => ({ ...prev, title: e.target.value }))}
-              placeholder="Activity title"
+              onChange={setNewActivity}
+              placeholder="Introduction to ROS"
+              htmlFor="title"
+              type="TEXT"
+              title="Title"
             />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="shortDescription">Short Description</Label>
-            <Input
-              id="shortDescription"
-              value={newActivity.shortDescription}
-              onChange={(e) => setNewActivity(prev => ({ ...prev, shortDescription: e.target.value }))}
-              placeholder="Brief activity description"
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="description">Detailed Description</Label>
-            <Textarea
+            <FormField
               id="description"
               value={newActivity.description}
-              onChange={(e) => setNewActivity(prev => ({ ...prev, description: e.target.value }))}
-              placeholder="Detailed activity description"
-              rows={3}
+              onChange={setNewActivity}
+              placeholder="Hands-on workshop introducing fundamentals of Robot Operating System (ROS) development."
+              htmlFor="description"
+              type="TEXT"
+              title="Description"
             />
-          </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="duration">Duration</Label>
-              <Input
-                id="duration"
-                value={newActivity.duration}
-                onChange={(e) => setNewActivity(prev => ({ ...prev, duration: e.target.value }))}
-                placeholder="e.g., 2 hours"
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <FormField
+                htmlFor="date"
+                title="Date"
+                id="date"
+                value={newActivity.date}
+                onChange={setNewActivity}
+                placeholder={`${new Date().getDate()}/${new Date().getMonth()}/${new Date().getFullYear()}`}
+                type="DATE"
+                date={date}
+                setDate={setDate}
               />
-            </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="frequency">Frequency</Label>
-              <Input
-                id="frequency"
-                value={newActivity.frequency}
-                onChange={(e) => setNewActivity(prev => ({ ...prev, frequency: e.target.value }))}
-                placeholder="e.g., Weekly, Monthly"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="participants">Participants</Label>
-              <Input
+              <FormField
                 id="participants"
                 value={newActivity.participants}
-                onChange={(e) => setNewActivity(prev => ({ ...prev, participants: e.target.value }))}
-                placeholder="e.g., 15-20 students"
+                onChange={setNewActivity}
+                placeholder="50"
+                htmlFor="participants"
+                type="TEXT"
+                title="Participants"
               />
             </div>
-          </div>
 
-          <div className="space-y-2">
-            <Label>Tags</Label>
-            <div className="flex gap-2">
-              <Input
-                value={tagInput}
-                onChange={(e) => setTagInput(e.target.value)}
-                placeholder="Add a tag"
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') {
-                    e.preventDefault();
-                    handleAddTag();
-                  }
-                }}
-              />
-              <Button type="button" onClick={handleAddTag}>Add</Button>
-            </div>
-            {newActivity.tags && newActivity.tags.length > 0 && (
-              <div className="flex flex-wrap gap-2 mt-2">
-                {newActivity.tags.map((tag, index) => (
-                  <div key={index} className="bg-secondary text-secondary-foreground px-3 py-1 rounded-full flex items-center gap-1">
-                    {tag}
-                    <button
-                      type="button"
-                      onClick={() => handleRemoveTag(index)}
-                      className="text-gray-500 hover:text-gray-700"
-                    >
-                      &times;
-                    </button>
-                  </div>
-                ))}
+            {editingId ? (
+              <div className="flex gap-2">
+                <Button onClick={handleUpdateActivity} className="flex-1">
+                  <Save className="h-4 w-4 mr-2" /> Update Activity
+                </Button>
+
+                <Button
+                  variant="outline"
+
+                  onClick={() => {
+                    setEditingId(null);
+                    setNewActivity(emptyData);
+                  }}
+                >
+                  Cancel
+                </Button>
               </div>
+            ) : (
+              <Button onClick={handleAddActivity} className="w-full">
+                <Plus className="h-4 w-4 mr-2" /> Add Activity
+              </Button>
             )}
           </div>
+        </Card>
 
-          {editingId ? (
-            <div className="flex gap-2">
-              <Button onClick={handleUpdateActivity} className="flex-1">
-                <Save className="h-4 w-4 mr-2" /> Update Activity
-              </Button>
+        <div className="space-y-4">
+          <h3 className="text-lg font-medium">Current Activities</h3>
 
-              <Button
-                variant="outline"
 
-                onClick={() => {
-                  setEditingId(null);
-                  setNewActivity({
-                    id: "",
-                    title: "",
-                    shortDescription: "",
-                    description: "",
-                    duration: "",
-                    frequency: "",
-                    participants: "",
-                    tags: []
-                  });
-                }}
-              >
-                Cancel
-              </Button>
-            </div>
+          {activities.length === 0 ? (
+            <p className="text-gray-500 italic">No activities added yet.</p>
           ) : (
-            <Button onClick={handleAddActivity} className="w-full">
-              <Plus className="h-4 w-4 mr-2" /> Add Activity
-            </Button>
-          )}
-        </div>
-      </Card>
-
-      <div className="space-y-4">
-        <h3 className="text-lg font-medium">Current Activities</h3>
-
-
-        {activities.length === 0 ? (
-          <p className="text-gray-500 italic">No activities added yet.</p>
-        ) : (
-          <Accordion type="single" collapsible className="w-full">
-            {activities.map((activity) => (
-              <AccordionItem key={activity.id} value={activity.id}>
-                <AccordionTrigger>
-                  <div className="flex justify-between items-center w-full pr-4">
-                    <span>{activity.title}</span>
-                  </div>
-                </AccordionTrigger>
-                <AccordionContent>
-                  <div className="p-4 space-y-4">
-                    <p className="text-sm font-medium">Short Description:</p>
-                    <p className="text-sm text-gray-600 mb-2">{activity.shortDescription}</p>
-
-
-                    <p className="text-sm font-medium">Full Description:</p>
-                    <p className="text-sm text-gray-600 mb-2">{activity.description}</p>
-
-
-                    <div className="grid grid-cols-3 gap-4">
-                      <div>
-                        <p className="text-sm font-medium">Duration:</p>
-                        <p className="text-sm text-gray-600">{activity.duration}</p>
-                      </div>
-                      <div>
-                        <p className="text-sm font-medium">Frequency:</p>
-                        <p className="text-sm text-gray-600">{activity.frequency}</p>
-                      </div>
-                      <div>
-                        <p className="text-sm font-medium">Participants:</p>
-                        <p className="text-sm text-gray-600">{activity.participants}</p>
-                      </div>
+            <Accordion type="single" collapsible className="w-full">
+              {activities.map((activity) => (
+                <AccordionItem key={activity.id} value={activity.id}>
+                  <AccordionTrigger>
+                    <div className="flex justify-between items-center w-full pr-4">
+                      <span>{activity.title}</span>
                     </div>
+                  </AccordionTrigger>
+                  <AccordionContent>
+                    <div className="p-4 space-y-4">
+                      <p className="text-sm font-medium">Full Description:</p>
+                      <p className="text-sm text-gray-600 mb-2">{activity.description}</p>
 
 
-
-                    {activity.tags && activity.tags.length > 0 && (
-                      <div>
-                        <p className="text-sm font-medium">Tags:</p>
-                        <div className="flex flex-wrap gap-2 mt-1">
-                          {activity.tags.map((tag, index) => (
-                            <span key={index} className="bg-secondary text-secondary-foreground px-2 py-1 text-xs rounded-full">
-                              {tag}
-                            </span>
-                          ))}
+                      <div className="grid grid-cols-3 gap-4">
+                        <div>
+                          <p className="text-sm font-medium">Date:</p>
+                          <p className="text-sm text-gray-600">{activity.date}</p>
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium">Participants:</p>
+                          <p className="text-sm text-gray-600">{activity.participants}</p>
                         </div>
                       </div>
-                    )}
 
+                      <div className="flex gap-2 justify-end">
+                        <Button
+                          size="sm"
 
-                    <div className="flex gap-2 justify-end">
-                      <Button
-                        size="sm"
+                          variant="outline"
+                          onClick={() => handleEditActivity(activity)}
+                        >
+                          <Edit className="h-4 w-4 mr-1" /> Edit
+                        </Button>
+                        <Button
+                          size="sm"
 
-                        variant="outline"
-                        onClick={() => handleEditActivity(activity)}
-                      >
-                        <Edit className="h-4 w-4 mr-1" /> Edit
-                      </Button>
-                      <Button
-                        size="sm"
-
-                        variant="destructive"
-                        onClick={() => handleRemoveActivity(activity.id)}
-                      >
-                        <Trash className="h-4 w-4 mr-1" /> Delete
-                      </Button>
+                          variant="destructive"
+                          onClick={() => handleRemoveActivity(activity.id)}
+                        >
+                          <Trash className="h-4 w-4 mr-1" /> Delete
+                        </Button>
+                      </div>
                     </div>
-                  </div>
-                </AccordionContent>
-              </AccordionItem>
-            ))}
-          </Accordion>
-        )}
+                  </AccordionContent>
+                </AccordionItem>
+              ))}
+            </Accordion>
+          )}
 
 
-        <Button onClick={handleSaveAll} className="w-full mt-4">
-          <Save className="h-4 w-4 mr-2" /> Save All Changes
-        </Button>
+          <Button onClick={handleSaveAll} className="w-full mt-4">
+            <Save className="h-4 w-4 mr-2" /> Save All Changes
+          </Button>
+        </div>
       </div>
-    </div>
+    </Loader>
   );
 };
 

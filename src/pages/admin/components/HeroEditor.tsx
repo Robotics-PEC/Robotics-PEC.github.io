@@ -9,19 +9,6 @@ import { Plus, Trash, Save } from "lucide-react";
 import { getImagesFromFolder } from "@/lib/supabase/actions/storage.actions";
 import { Loader } from "@/components/layout/Loader";
 
-/*
-// Default data structure
-const defaultHeroData = {
-  title: "PEC Robotics Society",
-  description: "Pushing the boundaries of innovation through robotics and automation",
-  images: [
-    "/gallery/image1.jpg",
-    "/gallery/image2.jpg",
-    "/gallery/image3.jpg",
-  ]
-};
-*/
-
 interface HeroData {
   title: string;
   description: string;

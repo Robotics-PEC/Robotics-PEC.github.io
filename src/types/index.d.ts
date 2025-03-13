@@ -64,15 +64,24 @@ export interface FormProjectType {
     technologies: string;
 };
 
+export interface ActivityFormType {
+    id: string;
+    title: string;
+    description: string;
+    date: string | undefined;
+    participants: string;
+};
+
 export interface FormFieldProps {
     htmlFor: string;
     title: string;
     id: string;
-    onChange: ((value: SetStateAction<FormProjectType>) => void) | ((value: SetStateAction<FormTeamType>) => void);
+    onChange: ((value: SetStateAction<FormProjectType>) => void) | ((value: SetStateAction<FormTeamType>) => void) | ((value: SetStateAction<ActivityFormType>) => void);
     placeholder: string;
-    value: string;
-    type: "BLOB" | "TEXT" | "IMAGE" | "MARKDOWN"
+    value: string | Date | undefined;
+    type: "BLOB" | "TEXT" | "IMAGE" | "MARKDOWN" | "DATE"
     setFileName?: (value: SetStateAction<string>) => void;
     imageData?: { name: string, base64: string };
+    date?: Date | undefined;
+    setDate?: (date: Date | undefined) => void;
 };
-
