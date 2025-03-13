@@ -7,7 +7,7 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { useToast } from "@/hooks/use-toast";
 import { Plus, Trash, Edit, Save } from "lucide-react";
 import { Card } from "@/components/ui/card";
-import { ActivityFormType } from "@/types";
+import { FormActivityType } from "@/types";
 import { deleteActivity, getActivites, updateActivity, uploadActivity } from "@/lib/supabase/actions/activities.actions";
 import { format } from "date-fns";
 import { Loader } from "@/components/layout/Loader";
@@ -16,7 +16,7 @@ import FormField from "@/components/FormField";
 // Default activity data structure
 
 
-const emptyData: ActivityFormType = {
+const emptyData: FormActivityType = {
   id: "",
   title: "",
   description: "",
@@ -27,8 +27,8 @@ const emptyData: ActivityFormType = {
 const ActivitiesEditor = () => {
   const { toast } = useToast();
 
-  const [activities, setActivities] = useState<ActivityFormType[]>([]);
-  const [newActivity, setNewActivity] = useState<ActivityFormType>(emptyData);
+  const [activities, setActivities] = useState<FormActivityType[]>([]);
+  const [newActivity, setNewActivity] = useState<FormActivityType>(emptyData);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [date, setDate] = useState<Date | undefined>(undefined);
@@ -133,7 +133,7 @@ const ActivitiesEditor = () => {
   };
 
 
-  const handleEditActivity = (activity: ActivityFormType) => {
+  const handleEditActivity = (activity: FormActivityType) => {
     setNewActivity(activity);
     const correctDateFormat = `${activity.date?.split("/")[2]}-${activity.date?.split("/")[1]}-${activity.date?.split("/")[0]}`;
     setDate(new Date(correctDateFormat));

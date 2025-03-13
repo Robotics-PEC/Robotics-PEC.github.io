@@ -64,7 +64,7 @@ export interface FormProjectType {
     technologies: string;
 };
 
-export interface ActivityFormType {
+export interface FormActivityType {
     id: string;
     title: string;
     description: string;
@@ -72,16 +72,27 @@ export interface ActivityFormType {
     participants: string;
 };
 
+export interface FormEventType {
+    id: string;
+    title: string;
+    description: string;
+    date: string;
+    time: string;
+    location: string;
+    capacity: string;
+};
+
 export interface FormFieldProps {
     htmlFor: string;
     title: string;
     id: string;
-    onChange: ((value: SetStateAction<FormProjectType>) => void) | ((value: SetStateAction<FormTeamType>) => void) | ((value: SetStateAction<ActivityFormType>) => void);
+    onChange: ((value: SetStateAction<FormProjectType>) => void) | ((value: SetStateAction<FormTeamType>) => void) | ((value: SetStateAction<FormActivityType>) => void) | ((value: SetStateAction<FormEventType>) => void);
     placeholder: string;
     value: string | Date | undefined;
-    type: "BLOB" | "TEXT" | "IMAGE" | "MARKDOWN" | "DATE"
+    type: "BLOB" | "TEXT" | "IMAGE" | "MARKDOWN" | "DATE" | "TIME"
     setFileName?: (value: SetStateAction<string>) => void;
     imageData?: { name: string, base64: string };
     date?: Date | undefined;
     setDate?: (date: Date | undefined) => void;
 };
+

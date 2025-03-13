@@ -1,4 +1,4 @@
-import { ActivityFormType } from "@/types";
+import { FormActivityType } from "@/types";
 import { client } from "../supabase"
 
 export const getActivites = async () => {
@@ -15,7 +15,7 @@ export const getActivityById = async (id: string) => {
     return JSON.parse(JSON.stringify(data[0]));
 };
 
-export const uploadActivity = async (activity: ActivityFormType) => {
+export const uploadActivity = async (activity: FormActivityType) => {
     const { id, ...rest } = activity;
     const { error } = await client.from("activities").insert(rest);
     if (error) {
@@ -26,7 +26,7 @@ export const uploadActivity = async (activity: ActivityFormType) => {
 
 };
 
-export const updateActivity = async (activity: ActivityFormType) => {
+export const updateActivity = async (activity: FormActivityType) => {
     const { id, ...rest } = activity;
     const { error } = await client.from("activities").update(rest).eq("id", activity.id);
     if (error) {

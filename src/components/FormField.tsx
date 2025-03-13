@@ -34,7 +34,7 @@ const FormField = ({ htmlFor, title, id, onChange, placeholder, value, type, set
         case "MARKDOWN":
             return (
                 <div className="space-y-2">
-                    <Label htmlFor={htmlFor}>Detailed Description (Markdown)</Label>
+                    <Label htmlFor={htmlFor}>{title}</Label>
                     <MarkdownEditor
                         value={value as string}
                         onChange={(value) => onChange((prev: any) => ({ ...prev, [id]: value }))}
@@ -53,6 +53,7 @@ const FormField = ({ htmlFor, title, id, onChange, placeholder, value, type, set
                 </div>
 
             )
+
         default:
             return (
                 <div className="space-y-2">
