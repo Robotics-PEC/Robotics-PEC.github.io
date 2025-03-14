@@ -74,6 +74,7 @@
     "sonner": "^1.5.0",
     "tailwind-merge": "^2.5.2",
     "tailwindcss-animate": "^1.0.7",
+    "turndown": "^7.2.0",
     "vaul": "^0.9.3",
     "zod": "^3.23.8"
   },
@@ -90,6 +91,7 @@
     "@types/react": "18",
     "@types/react-dom": "18",
     "@types/react-syntax-highlighter": "^15.5.13",
+    "@types/turndown": "^5.0.5",
     "autoprefixer": "^10.4.20",
     "eslint": "^9",
     "eslint-config-next": "15.1.7",

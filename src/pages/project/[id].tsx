@@ -1,5 +1,3 @@
-"use client";
-
 import { Button } from '@/components/ui/button';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { useRouter } from 'next/router';
@@ -11,6 +9,8 @@ import { getProjectById, getProjects } from '@/lib/supabase/actions/project.acti
 import { Loader } from '@/components/layout/Loader';
 import PageHead from '@/components/layout/PageHead';
 import PageLayout from '@/components/layout/PageLayout';
+import ReactMarkdown from "react-markdown";
+import { htmlToMarkdown } from '@/lib/utils';
 
 const ProjectPage = () => {
     const router = useRouter();
@@ -109,7 +109,7 @@ const ProjectPage = () => {
                                     <div className="max-w-3xl mx-auto mb-12 px-4 sm:px-0">
                                         <h2 className="text-xl sm:text-2xl font-medium mb-4">About this project</h2>
                                         <p className="text-base sm:text-lg text-gray-700 leading-relaxed">
-                                            {project.longDescription}
+                                            <ReactMarkdown>{htmlToMarkdown(project.longDescription)}</ReactMarkdown>
                                         </p>
                                     </div>
                                     <div className="flex flex-nowrap justify-center sm:justify-between items-center max-w-5xl mx-auto gap-2 mt-12 overflow-hidden">

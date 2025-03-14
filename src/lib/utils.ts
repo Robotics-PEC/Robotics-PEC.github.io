@@ -1,6 +1,7 @@
 import { clsx, type ClassValue } from "clsx"
 import { twMerge } from "tailwind-merge"
 import { client } from "./supabase/supabase";
+import TurndownService from "turndown";
 
 export interface TimeValue {
   hours: number;
@@ -11,6 +12,12 @@ export interface TimeValue {
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 };
+
+export const htmlToMarkdown = (html: string) => {
+  const turndownService = new TurndownService();
+  const markdown = turndownService.turndown(html);
+  return markdown;
+}
 
 export const handleLogout = async () => {
   await client.auth.signOut();
