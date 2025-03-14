@@ -2,13 +2,27 @@ import { motion } from "framer-motion";
 import { Card } from "@/components/ui/card";
 import { Calendar, Users, Clock, MapPin } from "lucide-react";
 import EventCalendar from "@/pages/events/components/EventCalendar";
-import { upcomingEvents } from "@/constants";
 
 import PageLayout from "@/components/layout/PageLayout";
 import PageSection from "@/components/layout/PageSection";
 import PageHead from "@/components/layout/PageHead";
+import { useEffect, useState } from "react";
+import { EventType } from "@/types";
+import { getEvents } from "@/lib/supabase/actions/events.actions";
 
 const Events = () => {
+
+    const [upcomingEvents, setUpcomingEvents] = useState<any[]>([]);
+
+    useEffect(() => {
+        const fetch = async () => {
+            const data = await getEvents();
+            setUpcomingEvents(data!);
+        }
+
+        fetch();
+    });
+
     return (
         <PageLayout>
             {/* Meta tags for SEO Optimisations */}
