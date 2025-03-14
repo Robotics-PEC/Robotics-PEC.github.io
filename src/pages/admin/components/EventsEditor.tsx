@@ -10,10 +10,11 @@ import MarkdownEditor from "./MarkdownEditor";
 import ReactMarkdown from "react-markdown";
 import { FormEventType } from "@/types";
 import { Loader } from "@/components/layout/Loader";
-import { getEvents } from "@/lib/supabase/actions/events.actions";
+import { deleteEvent, getEvents, updateEvent, uploadEvent } from "@/lib/supabase/actions/events.actions";
 import FormField from "@/components/FormField";
 import { isEndTimeAfterStartTime, TimeValue } from "@/lib/utils";
 import TimeField from "@/components/TimeField";
+import { formatDate } from "date-fns";
 
 // Default events data structure
 
@@ -76,23 +77,68 @@ const EventsEditor = () => {
     });
   };
 
-  const handleAddEvent = () => {
-    if (!newEvent.title || !newEvent.date) {
+  const handleAddEvent = async () => {
+    if (!newEvent.title || !newEvent.description || !startTime || !endTime) {
       toast({
         title: "Error",
-        description: "Title and date are required",
+        description: "All fields are required",
         variant: "destructive",
       });
       return;
     }
 
-    const newId = Date.now().toString();
-    setEvents(prev => [...prev, { ...newEvent, id: newId }]);
+    const stTime = `${(startTime.hours < 10) ? "0" + startTime.hours : startTime.hours}:${(startTime.minutes < 10) ? "0" + startTime.minutes : startTime.minutes} ${startTime.period}`
+    const enTime = `${(endTime.hours < 10) ? "0" + endTime.hours : endTime.hours}:${(endTime.minutes < 10) ? "0" + endTime.minutes : endTime.minutes} ${endTime.period}`
+
+
+    const error = await uploadEvent({ ...newEvent, time: `${stTime}-${enTime}`, date: formatDate(date!, "dd/MM/yyyy") });
+
+    if (error) {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+      return;
+    }
+    else {
+      toast({
+        title: "Success",
+        description: "Event Added Successfully",
+      });
+    }
+
+    setEvents(prev => [...prev, { ...newEvent }]);
     setNewEvent(emptyData);
   };
 
-  const handleUpdateEvent = () => {
+  const handleUpdateEvent = async () => {
     if (!editingId) return;
+
+    if (!startTime || !endTime) {
+      console.log("No start or endtime");
+      return;
+    }
+
+    const stTime = `${(startTime.hours < 10) ? "0" + startTime.hours : startTime.hours}:${(startTime.minutes < 10) ? "0" + startTime.minutes : startTime.minutes} ${startTime.period}`
+    const enTime = `${(endTime.hours < 10) ? "0" + endTime.hours : endTime.hours}:${(endTime.minutes < 10) ? "0" + endTime.minutes : endTime.minutes} ${endTime.period}`
+
+    const error = await updateEvent({ ...newEvent, time: `${stTime}-${enTime}`, date: formatDate(date!, "dd/MM/yyyy") });
+
+    if (error) {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+      return;
+    }
+    else {
+      toast({
+        title: "Success",
+        description: "Event Updated Successfully",
+      });
+    }
 
     setEvents(prev =>
       prev.map(event =>
@@ -106,9 +152,45 @@ const EventsEditor = () => {
   const handleEditEvent = (event: FormEventType) => {
     setNewEvent(event);
     setEditingId(event.id);
+
+
+    const startHours = Number(event.time.split(":")[0]);
+    const startMinutes = Number(event.time.split(":")[1].slice(0, 2));
+    const startPeriod = event.time.split(" ")[1].slice(0, 2);
+
+    const endHours = Number(event.time.split("-")[1].split(":")[0]);
+    const endMinutes = Number(event.time.split("-")[1].split(":")[1].slice(0, 2));
+    const endPeriod = event.time.split(" ")[2];
+    console.log({ endHours, endMinutes, endPeriod });
+
+    setStartTime({ hours: startHours, minutes: startMinutes, period: startPeriod as ("AM" | "PM") });
+    setEndTime({ hours: endHours, minutes: endMinutes, period: endPeriod as ("AM" | "PM") });
+
+    const correctDateFormat = `${event.date?.split("/")[2]}-${event.date?.split("/")[1]}-${event.date?.split("/")[0]}`;
+    setDate(new Date(correctDateFormat));
+
+
   };
 
-  const handleRemoveEvent = (id: string) => {
+  const handleRemoveEvent = async (id: string) => {
+
+    const response = await deleteEvent(id);
+
+    if (response.status == 204) {
+      toast({
+        title: "Success",
+        description: "Event was deleted successfully",
+      });
+    }
+    else {
+      toast({
+        title: String(response.status),
+        description: response.error?.message,
+        variant: "destructive",
+      });
+      return;
+    }
+
     setEvents(prev => prev.filter(event => event.id !== id));
     if (editingId === id) {
       setEditingId(null);
@@ -153,7 +235,7 @@ const EventsEditor = () => {
                 id="date"
                 value={newEvent.date}
                 onChange={setNewEvent}
-                placeholder={`${new Date().getDate()}/${new Date().getMonth()}/${new Date().getFullYear()}`}
+                placeholder={`${new Date().getDate()} /${new Date().getMonth()}/${new Date().getFullYear()} `}
                 type="DATE"
                 date={date}
                 setDate={setDate}
@@ -199,7 +281,7 @@ const EventsEditor = () => {
                   <Save className="h-4 w-4 mr-2" /> Update Event
                 </Button>
                 <Button
-                  variant="outline"
+                  variant="destructive"
                   onClick={() => {
                     setEditingId(null);
                     setNewEvent(emptyData);

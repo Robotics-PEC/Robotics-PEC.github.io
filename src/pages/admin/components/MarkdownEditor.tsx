@@ -4,6 +4,7 @@ import Placeholder from "@tiptap/extension-placeholder";
 import Typography from "@tiptap/extension-typography";
 import BubbleMenu from "./BubbleMenu";
 import MenuBar from "./MenuBar";
+import { useEffect } from "react";
 
 interface MarkdownEditorProps {
   value: string;
@@ -33,7 +34,11 @@ const MarkdownEditor: React.FC<MarkdownEditorProps> = ({ value, onChange, placeh
       onChange(editor.getHTML());
     },
   });
-
+  useEffect(() => {
+    if (editor && value !== editor.getHTML()) {
+      editor.commands.setContent(value);
+    }
+  }, [value, editor]);
   return (
     <div className="my-8 animate-fade-in">
       <div className="bg-card rounded-xl shadow-sm overflow-hidden border border-border transition-all duration-300">

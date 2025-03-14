@@ -198,7 +198,7 @@ const TeamEditor = () => {
               </Button>
 
               <Button
-                variant="outline"
+                variant="destructive"
                 onClick={() => {
                   setEditingId(null);
                   setNewMember(emptyData);

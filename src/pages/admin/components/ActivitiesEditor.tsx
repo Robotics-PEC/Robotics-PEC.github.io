@@ -223,8 +223,7 @@ const ActivitiesEditor = () => {
                 </Button>
 
                 <Button
-                  variant="outline"
-
+                  variant="destructive"
                   onClick={() => {
                     setEditingId(null);
                     setNewActivity(emptyData);
