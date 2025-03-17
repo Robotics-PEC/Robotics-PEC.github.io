@@ -4,16 +4,26 @@ import { Button } from "@/components/ui/button";
 import { ChevronRight } from "lucide-react";
 import { getImagesFromFolder } from "@/lib/supabase/actions/storage.actions";
 import { Loader } from "./layout/Loader";
+import { getData } from "@/lib/supabase/actions/hero.actions";
+import { HeroType } from "@/types";
+
+const emptyData = {
+    heading: "",
+    description: ""
+}
 
 const Hero: React.FC<{ handleClick: () => void }> = ({ handleClick }) => {
     const [currentIndex, setCurrentIndex] = useState(0);
     const [images, setImages] = useState<string[]>([]);
     const [loading, setLoading] = useState(true);
+    const [heroData, setHeroData] = useState<HeroType>(emptyData);
 
     useEffect(() => {
         const fetch = async () => {
+            const hero: HeroType | null = await getData();
             const publicUrls = await getImagesFromFolder("hero");
             setImages(publicUrls);
+            setHeroData(hero);
             setLoading(false);
         }
         fetch();
@@ -63,10 +73,10 @@ const Hero: React.FC<{ handleClick: () => void }> = ({ handleClick }) => {
                             className="space-y-8"
                         >
                             <h1 className="text-6xl md:text-7xl font-bold tracking-tight text-white">
-                                PEC Robotics Society
+                                {heroData.heading}
                             </h1>
                             <p className="text-xl md:text-2xl text-gray-200 max-w-2xl mx-auto">
-                                Pushing the boundaries of innovation through robotics and automation
+                                {heroData.description}
                             </p>
                             <div className="mt-12">
                                 <Button

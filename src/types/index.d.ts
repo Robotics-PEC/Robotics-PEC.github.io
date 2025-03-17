@@ -96,3 +96,14 @@ export interface FormFieldProps {
     setDate?: (date: Date | undefined) => void;
 };
 
+export interface HeroType {
+    heading: string;
+    description: string;
+};
+
+export interface ImageObjectType {
+    image1: string;
+    image2: string;
+    image3: string;
+};
+
