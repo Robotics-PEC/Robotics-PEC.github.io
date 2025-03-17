@@ -86,7 +86,7 @@ export interface FormFieldProps {
     htmlFor: string;
     title: string;
     id: string;
-    onChange: ((value: SetStateAction<FormProjectType>) => void) | ((value: SetStateAction<FormTeamType>) => void) | ((value: SetStateAction<FormActivityType>) => void) | ((value: SetStateAction<FormEventType>) => void);
+    onChange: ((value: SetStateAction<FormProjectType>) => void) | ((value: SetStateAction<FormTeamType>) => void) | ((value: SetStateAction<FormActivityType>) => void) | ((value: SetStateAction<FormEventType>) => void) | ((value: SetStateAction<HeroType>) => void);
     placeholder: string;
     value: string | Date | undefined;
     type: "BLOB" | "TEXT" | "IMAGE" | "MARKDOWN" | "DATE" | "TIME"

@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { ChevronRight } from "lucide-react";
 import { getImagesFromFolder } from "@/lib/supabase/actions/storage.actions";
 import { Loader } from "./layout/Loader";
-import { getData } from "@/lib/supabase/actions/hero.actions";
+import { getHeroData } from "@/lib/supabase/actions/hero.actions";
 import { HeroType } from "@/types";
 
 const emptyData = {
@@ -20,7 +20,7 @@ const Hero: React.FC<{ handleClick: () => void }> = ({ handleClick }) => {
 
     useEffect(() => {
         const fetch = async () => {
-            const hero: HeroType | null = await getData();
+            const hero: HeroType | null = await getHeroData();
             const publicUrls = await getImagesFromFolder("hero");
             setImages(publicUrls);
             setHeroData(hero);

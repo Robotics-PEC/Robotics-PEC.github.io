@@ -1,14 +1,14 @@
 import React, { SetStateAction, useRef, useState } from 'react'
 import { toast } from "sonner";
 import { Button } from './ui/button';
-import { FormTeamType, FormProjectType, FormActivityType, FormEventType, ImageObjectType } from '@/types';
+import { FormTeamType, FormProjectType, FormActivityType, FormEventType, ImageObjectType, HeroType } from '@/types';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from './ui/card';
 import { FileImage, Upload, X } from 'lucide-react';
 import { ImageData } from '@/types';
 
 interface BlobProps {
     id: string;
-    onChange: ((value: SetStateAction<FormProjectType>) => void) | ((value: SetStateAction<FormTeamType>) => void) | ((value: SetStateAction<FormActivityType>) => void) | ((value: SetStateAction<FormEventType>) => void) | ((value: SetStateAction<ImageObjectType | undefined>) => void);
+    onChange: ((value: SetStateAction<FormProjectType>) => void) | ((value: SetStateAction<FormTeamType>) => void) | ((value: SetStateAction<FormActivityType>) => void) | ((value: SetStateAction<FormEventType>) => void) | ((value: SetStateAction<ImageObjectType>) => void) | ((value: SetStateAction<HeroType>) => void);
     setFileName: (value: SetStateAction<string>) => void;
 };
 

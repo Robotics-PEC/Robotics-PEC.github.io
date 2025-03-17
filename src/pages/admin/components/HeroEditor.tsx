@@ -6,17 +6,24 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { Plus, Trash, Save } from "lucide-react";
-import { getImagesFromFolder } from "@/lib/supabase/actions/storage.actions";
+import { deleteImage, getImagesFromFolder, uploadImage } from "@/lib/supabase/actions/storage.actions";
 import { Loader } from "@/components/layout/Loader";
-import { getData } from "@/lib/supabase/actions/hero.actions";
+import { getHeroData, updateHeroData } from "@/lib/supabase/actions/hero.actions";
 import { HeroType, ImageObjectType } from "@/types";
 import Blob from "@/components/Blob";
+import FormField from "@/components/FormField";
 
 
 const emptyData: HeroType = {
   heading: "",
   description: "",
 };
+
+const emptyImageObject: ImageObjectType = {
+  image1: "",
+  image2: "",
+  image3: ""
+}
 
 const HeroEditor = () => {
 
@@ -25,7 +32,7 @@ const HeroEditor = () => {
   const [heroData, setHeroData] = useState<HeroType>(emptyData);
   const [images, setImages] = useState<string[]>([]);
 
-  const [imagesObject, setImagesObject] = useState<ImageObjectType>();
+  const [imagesObject, setImagesObject] = useState<ImageObjectType>(emptyImageObject);
 
   const [image1FileName, setImage1FileName] = useState("");
   const [image2FileName, setImage2FileName] = useState("");
@@ -34,7 +41,7 @@ const HeroEditor = () => {
   useEffect(() => {
     const fetch = async () => {
       const data = await getImagesFromFolder("hero");
-      const textData = await getData();
+      const textData = await getHeroData();
       setHeroData(textData);
       setImages(data);
       setLoading(false);
@@ -44,53 +51,102 @@ const HeroEditor = () => {
 
   const { toast } = useToast();
 
-  // Load data from localStorage if exists
-  useEffect(() => {
-    const savedData = localStorage.getItem("heroData");
-    if (savedData) {
-      try {
-        setHeroData(JSON.parse(savedData));
-      } catch (error) {
-        console.error("Failed to parse saved hero data:", error);
-      }
-    }
-  }, []);
+  const saveImages = async (folder: string) => {
+    let size = 0;
 
-  const handleSave = () => {
-    localStorage.setItem("heroData", JSON.stringify(heroData));
+    for (const [key, value] of Object.entries(imagesObject)) {
+      if (value) size++;
+    }
+
+    const currentImages = (await getImagesFromFolder(folder)).map((image) => image.split("/").pop());
+
+    console.log(currentImages);
+
+    for (let i = 0; i < size; i++) {
+      await deleteImage([`${folder}/${currentImages[i]}`]);
+    }
+
+    if (imagesObject["image1"]) {
+      await uploadImage(folder, image1FileName, imagesObject["image1"]);
+    }
+
+    if (imagesObject["image2"]) {
+      await uploadImage(folder, image2FileName, imagesObject["image2"]);
+    }
+
+    if (imagesObject["image3"]) {
+      await uploadImage(folder, image3FileName, imagesObject["image3"]);
+    }
+
     toast({
-      title: "Changes saved",
-      description: "Hero section has been updated successfully.",
+      title: "Success",
+      description: "Uploaded all the images successfully"
     });
+  }
+
+  const handleSave = async () => {
+
+    // pre update check to make sure data is different that what is currently stored
+
+    const data = await getHeroData();
+
+    if (data.heading == heroData.heading && data.description == heroData.description && (image1FileName == "" && image2FileName == "" && image3FileName == "")) {
+      toast({
+        title: "Error",
+        description: "Please make some changes",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // save the images and remove the old ones
+    await saveImages("hero");
+
+    // update the data base with the current record
+    const error = await updateHeroData(heroData);
+
+    if (error) {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive"
+      });
+      return;
+    }
+    else {
+      toast({
+        title: "Success",
+        description: "Hero data updated successfully",
+      });
+      location.reload();
+    }
+
   };
 
   const handleRemoveImage = (index: number) => { };
-  const handleAddImage = () => { };
-
 
   return (
     <Loader isLoading={loading}>
-      < div className="space-y-6" >
-        <div className="space-y-2">
-          <Label htmlFor="title">Title</Label>
-          <Input
-            id="title"
-            value={heroData.heading}
-            onChange={(e) => setHeroData(prev => ({ ...prev, title: e.target.value }))}
-            placeholder="Enter hero title"
-          />
-        </div>
+      <div className="space-y-6">
+        <FormField
+          id="heading"
+          title="Heading"
+          htmlFor="heading"
+          onChange={setHeroData}
+          placeholder="Enter Heading"
+          type="TEXT"
+          value={heroData.heading}
+        />
 
-        <div className="space-y-2">
-          <Label htmlFor="description">Description</Label>
-          <Textarea
-            id="description"
-            value={heroData.description}
-            onChange={(e) => setHeroData(prev => ({ ...prev, description: e.target.value }))}
-            placeholder="Enter hero description"
-          />
-        </div>
-
+        <FormField
+          id="description"
+          title="Description"
+          htmlFor="description"
+          onChange={setHeroData}
+          placeholder="Enter Description"
+          type="TEXT"
+          value={heroData.description}
+        />
         <div className="space-y-4">
           <Label>Background Images</Label>
 
@@ -118,7 +174,7 @@ const HeroEditor = () => {
             ))}
           </div>
 
-          <div className="flex gap-2">
+          <div className="grid gap-2 grid-cols-1 md:grid-cols-3">
             <Blob
               id="image1"
               onChange={setImagesObject}
@@ -135,9 +191,6 @@ const HeroEditor = () => {
               setFileName={setImage3FileName}
             />
           </div>
-          <Button onClick={handleAddImage} className="w-full">
-            <Plus className="w-full mr-1" /> Add Image
-          </Button>
         </div>
 
         <Button onClick={handleSave} className="mt-6 w-full" size="lg">
