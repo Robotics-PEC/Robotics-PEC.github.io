@@ -28,7 +28,7 @@ const EventCalendar: React.FC<EventCalendarProps> = ({ events }) => {
     }, {}) || [];
 
     // Get events for selected date
-    const selectedDateStr = selectedDate ? format(selectedDate, "yyyy-MM-dd") : "";
+    const selectedDateStr = selectedDate ? format(selectedDate, "dd/MM/yyyy") : "";
     const eventsOnSelectedDate = eventDates[selectedDateStr] || [];
 
     // Add to Google Calendar
@@ -80,7 +80,7 @@ const EventCalendar: React.FC<EventCalendarProps> = ({ events }) => {
 
     // Function to highlight dates with events
     const isDayWithEvent = (date: Date) => {
-        const dateStr = format(date, "yyyy-MM-dd");
+        const dateStr = format(date, "dd/MM/yyyy");
         return !!eventDates[dateStr];
     };
 
@@ -138,7 +138,7 @@ const EventCalendar: React.FC<EventCalendarProps> = ({ events }) => {
             >
                 <div className="bg-white p-6 rounded-lg shadow-md">
                     <h2 className="text-xl font-semibold mb-4">
-                        {selectedDate ? format(selectedDate, "MMMM d, yyyy") : "Select a date"}
+                        {selectedDate ? format(selectedDate, "dd MMMM , yyyy") : "Select a date"}
                     </h2>
 
                     {eventsOnSelectedDate.length > 0 ? (
