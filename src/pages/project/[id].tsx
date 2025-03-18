@@ -108,7 +108,7 @@ const ProjectPage = () => {
                                     </div>
                                     <div className="max-w-3xl mx-auto mb-12 px-4 sm:px-0">
                                         <h2 className="text-xl sm:text-2xl font-medium mb-4">About this project</h2>
-                                        <p className="text-base sm:text-lg text-gray-700 leading-relaxed">
+                                        <p className="sm:text-lg prose">
                                             <ReactMarkdown>{htmlToMarkdown(project.longDescription)}</ReactMarkdown>
                                         </p>
                                     </div>

@@ -8,6 +8,8 @@ import { EventType } from "@/types";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import clsx from "clsx";
+import { htmlToMarkdown } from "@/lib/utils";
+import ReactMarkdown from "react-markdown";
 
 interface EventCalendarProps {
     events: EventType[];
@@ -152,7 +154,11 @@ const EventCalendar: React.FC<EventCalendarProps> = ({ events }) => {
                                     className="border border-gray-200 rounded-lg p-4"
                                 >
                                     <h3 className="text-lg font-medium mb-2">{event?.title}</h3>
-                                    <p className="text-gray-600 mb-3">{event?.description}</p>
+                                    <div className="sm:text-lg prose">
+                                        <ReactMarkdown>
+                                            {htmlToMarkdown(event?.description)}
+                                        </ReactMarkdown>
+                                    </div>
                                     <div className="grid grid-cols-2 gap-2 mb-3">
                                         <div className="flex items-center text-sm text-gray-500">
                                             <Clock className="h-4 w-4 mr-2" />
