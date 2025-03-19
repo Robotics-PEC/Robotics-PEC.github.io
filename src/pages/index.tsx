@@ -34,8 +34,8 @@ const Index = () => {
   }, []);
 
   return (
-    <Loader isLoading={loading}>
-      <PageLayout>
+    <PageLayout>
+      <Loader isLoading={loading}>
 
         <PageHead
           title="Robotics Society | Punjab Engineering College"
@@ -50,8 +50,8 @@ const Index = () => {
 
         {/* Team Section */}
         <Team teamMembers={teamMembers} />
-      </PageLayout>
-    </Loader>
+      </Loader>
+    </PageLayout>
   );
 };
 

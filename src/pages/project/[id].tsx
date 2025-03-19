@@ -10,7 +10,7 @@ import { Loader } from '@/components/layout/Loader';
 import PageHead from '@/components/layout/PageHead';
 import PageLayout from '@/components/layout/PageLayout';
 import ReactMarkdown from "react-markdown";
-import { htmlToMarkdown } from '@/lib/utils';
+import { HTMLToMarkdown } from '@/lib/utils';
 
 const ProjectPage = () => {
     const router = useRouter();
@@ -67,8 +67,8 @@ const ProjectPage = () => {
     };
 
     return (
-        <Loader isLoading={loading}>
-            <PageLayout>
+        <PageLayout>
+            <Loader isLoading={loading}>
                 <PageHead
                     title="Robotics Society | Punjab Engineering College"
                     description='PEC Robotics Society at Punjab Engineering College is dedicated to innovation in robotics and automation. Explore our projects and join our team.'
@@ -109,7 +109,13 @@ const ProjectPage = () => {
                                     <div className="max-w-3xl mx-auto mb-12 px-4 sm:px-0">
                                         <h2 className="text-xl sm:text-2xl font-medium mb-4">About this project</h2>
                                         <p className="sm:text-lg prose">
-                                            <ReactMarkdown>{htmlToMarkdown(project.longDescription)}</ReactMarkdown>
+                                            <ReactMarkdown
+                                                components={{
+                                                    h3: ({ node, ...props }) => <h3 className="text-4xl font-bold mb-4" {...props} />,
+                                                    p: ({ node, ...props }) => <p className="text-gray-700 leading-relaxed mb-2" {...props} />,
+                                                    a: ({ node, ...props }) => <a className="text-blue-600 underline" {...props} />,
+                                                }}
+                                            >{HTMLToMarkdown(project.longDescription)}</ReactMarkdown>
                                         </p>
                                     </div>
                                     <div className="flex flex-nowrap justify-center sm:justify-between items-center max-w-5xl mx-auto gap-2 mt-12 overflow-hidden">
@@ -148,8 +154,8 @@ const ProjectPage = () => {
                         </div>
                     )
                 }
-            </PageLayout>
-        </Loader>
+            </Loader>
+        </PageLayout>
     );
 };
 

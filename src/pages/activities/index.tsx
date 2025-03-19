@@ -10,6 +10,7 @@ import { ActivityType } from "@/types";
 import PageHead from "@/components/layout/PageHead";
 import PageLayout from "@/components/layout/PageLayout";
 import PageSection from "@/components/layout/PageSection";
+import Link from "next/link";
 
 const Activities = () => {
 
@@ -27,8 +28,8 @@ const Activities = () => {
   }, []);
 
   return (
-    <Loader isLoading={loading}>
-      <PageLayout>
+    <PageLayout>
+      <Loader isLoading={loading}>
         <PageHead
           title="Robotics Society | Punjab Engineering College"
           description="Join us in our robotics journey. Explore our activities and be part of our community."
@@ -53,24 +54,26 @@ const Activities = () => {
                       transition={{ duration: 0.5 }}
                       whileHover={{ y: -5 }}
                     >
-                      <Card className="overflow-hidden hover:shadow-lg transition-all duration-300">
-                        <div className="p-6">
-                          <div className="flex justify-between items-start mb-4">
-                            <h3 className="text-xl font-semibold">{activity.title}</h3>
-                          </div>
-                          <p className="text-gray-600 mb-4">{activity.description}</p>
-                          <div className="flex items-center gap-4 text-sm text-gray-500">
-                            <div className="flex items-center gap-1">
-                              <Calendar className="h-4 w-4" />
-                              <span>{activity.date}</span>
+                      <Link href={`/activities/${activity.id}`}>
+                        <Card className="overflow-hidden hover:shadow-lg transition-all duration-300">
+                          <div className="p-6">
+                            <div className="flex justify-between items-start mb-4">
+                              <h3 className="text-xl font-semibold">{activity.title}</h3>
                             </div>
-                            <div className="flex items-center gap-1">
-                              <Users className="h-4 w-4" />
-                              <span>{activity.participants} participants</span>
+                            <p className="text-gray-600 mb-4">{activity.description}</p>
+                            <div className="flex items-center gap-4 text-sm text-gray-500">
+                              <div className="flex items-center gap-1">
+                                <Calendar className="h-4 w-4" />
+                                <span>{activity.date}</span>
+                              </div>
+                              <div className="flex items-center gap-1">
+                                <Users className="h-4 w-4" />
+                                <span>{activity.participants} Participants</span>
+                              </div>
                             </div>
                           </div>
-                        </div>
-                      </Card>
+                        </Card>
+                      </Link>
                     </motion.div>
 
                   ))}
@@ -83,8 +86,8 @@ const Activities = () => {
             }
           </PageSection>
         </ section >
-      </PageLayout >
-    </Loader>
+      </Loader >
+    </PageLayout >
   );
 };
 

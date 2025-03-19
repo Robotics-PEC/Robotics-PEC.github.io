@@ -5,6 +5,7 @@ import Typography from "@tiptap/extension-typography";
 import BubbleMenu from "./BubbleMenu";
 import MenuBar from "./MenuBar";
 import { useEffect } from "react";
+import Image from "@tiptap/extension-image";
 
 interface MarkdownEditorProps {
   value: string;
@@ -21,6 +22,7 @@ const MarkdownEditor: React.FC<MarkdownEditorProps> = ({ value, onChange, placeh
           levels: [1, 2, 3],
         },
       }),
+      Image,
       Placeholder.configure({ placeholder }),
       Typography,
     ],

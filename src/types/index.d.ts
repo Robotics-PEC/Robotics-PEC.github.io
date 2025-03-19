@@ -67,7 +67,8 @@ export interface FormProjectType {
 export interface FormActivityType {
     id: string;
     title: string;
-    description: string;
+    longDescription: string;
+    shortDescription: string;
     date: string | undefined;
     participants: string;
 };

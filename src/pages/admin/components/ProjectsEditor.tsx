@@ -13,7 +13,7 @@ import { FormProjectType } from "@/types";
 import { Loader } from "../../../components/layout/Loader";
 import FormField from "../../../components/FormField";
 import { previousDay } from "date-fns";
-import { htmlToMarkdown, urlToBase64 } from "@/lib/utils";
+import { HTMLToMarkdown, urlToBase64 } from "@/lib/utils";
 
 // Default project data structure
 
@@ -274,7 +274,7 @@ const ProjectsEditor = () => {
                         <div className="flex-1">
                           <p className="text-sm text-gray-600 mb-2">{project.description}</p>
                           <div className="prose prose-sm max-w-none">
-                            <ReactMarkdown>{htmlToMarkdown(project.longDescription)}</ReactMarkdown>
+                            <ReactMarkdown>{HTMLToMarkdown(project.longDescription)}</ReactMarkdown>
                           </div>
                         </div>
                       </div>

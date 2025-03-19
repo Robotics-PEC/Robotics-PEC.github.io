@@ -8,7 +8,7 @@ import PageHead from "@/components/layout/PageHead";
 import { useEffect, useState } from "react";
 import { getEvents } from "@/lib/supabase/actions/events.actions";
 import { Loader } from "@/components/layout/Loader";
-import { htmlToMarkdown } from "@/lib/utils";
+import { HTMLToMarkdown } from "@/lib/utils";
 import ReactMarkdown from "react-markdown";
 
 const Events = () => {
@@ -61,7 +61,7 @@ const Events = () => {
                                                     <h3 className="text-xl font-semibold mb-3">{event.title}</h3>
                                                     <div className="sm:text-lg prose">
                                                         <ReactMarkdown>
-                                                            {htmlToMarkdown(event.description)}
+                                                            {HTMLToMarkdown(event.description)}
                                                         </ReactMarkdown>
                                                     </div>
                                                     <div className="space-y-2 mb-4">

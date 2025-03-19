@@ -39,15 +39,15 @@ const Projects = () => {
 
 
   return (
-    <Loader isLoading={loading}>
-      <PageLayout>
+    <PageLayout>
+      <Loader isLoading={loading}>
         <PageHead
           title="Robotics Society | Punjab Engineering"
           description="Projects made by Robotics Society, Punjab Engineering College"
         />
         <ProjectSection projects={projects} />
-      </PageLayout>
-    </Loader>
+      </Loader>
+    </PageLayout>
   );
 };
 

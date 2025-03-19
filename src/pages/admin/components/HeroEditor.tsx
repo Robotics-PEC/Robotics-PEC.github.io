@@ -60,8 +60,6 @@ const HeroEditor = () => {
 
     const currentImages = (await getImagesFromFolder(folder)).map((image) => image.split("/").pop());
 
-    console.log(currentImages);
-
     for (let i = 0; i < size; i++) {
       await deleteImage([`${folder}/${currentImages[i]}`]);
     }

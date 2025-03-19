@@ -12,6 +12,8 @@ import { deleteActivity, getActivites, updateActivity, uploadActivity } from "@/
 import { format } from "date-fns";
 import { Loader } from "@/components/layout/Loader";
 import FormField from "@/components/FormField";
+import { HTMLToMarkdown, markdownToHTML } from "@/lib/utils";
+import { getMarkdownFile } from "@/lib/supabase/actions/storage.actions";
 
 // Default activity data structure
 
@@ -19,7 +21,8 @@ import FormField from "@/components/FormField";
 const emptyData: FormActivityType = {
   id: "",
   title: "",
-  description: "",
+  shortDescription: "",
+  longDescription: "",
   date: undefined,
   participants: "",
 };
@@ -62,7 +65,7 @@ const ActivitiesEditor = () => {
   };
 
   const handleAddActivity = async () => {
-    if (!newActivity.title || !newActivity.description || !newActivity.participants) {
+    if (!newActivity.title || !newActivity.shortDescription || !newActivity.participants || !newActivity.longDescription) {
       toast({
         title: "Error",
         description: "All the fields are required",
@@ -133,11 +136,20 @@ const ActivitiesEditor = () => {
   };
 
 
-  const handleEditActivity = (activity: FormActivityType) => {
+  const handleEditActivity = async (activity: FormActivityType) => {
+    const markdownData = await getMarkdownFile(`${activity.id}.md`, "activities");
+    if (!markdownData) return;
+
+    const htmlData = await markdownToHTML(markdownData);
+    if (!htmlData) return;
+
+    activity.longDescription = htmlData;
+    console.log(activity.longDescription);
     setNewActivity(activity);
     const correctDateFormat = `${activity.date?.split("/")[2]}-${activity.date?.split("/")[1]}-${activity.date?.split("/")[0]}`;
     setDate(new Date(correctDateFormat));
     setEditingId(activity.id);
+
   };
 
   const handleRemoveActivity = async (id: string) => {
@@ -183,13 +195,22 @@ const ActivitiesEditor = () => {
               title="Title"
             />
             <FormField
-              id="description"
-              value={newActivity.description}
+              id="shortDescription"
+              value={newActivity.shortDescription}
               onChange={setNewActivity}
               placeholder="Hands-on workshop introducing fundamentals of Robot Operating System (ROS) development."
-              htmlFor="description"
+              htmlFor="shortDescription"
               type="TEXT"
-              title="Description"
+              title="Short Description"
+            />
+            <FormField
+              id="longDescription"
+              value={newActivity.longDescription}
+              onChange={setNewActivity}
+              placeholder="Hands-on workshop introducing fundamentals of Robot Operating System (ROS) development."
+              htmlFor="longDescription"
+              type="MARKDOWN"
+              title="Detailed Description"
             />
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -258,7 +279,7 @@ const ActivitiesEditor = () => {
                   <AccordionContent>
                     <div className="p-4 space-y-4">
                       <p className="text-sm font-medium">Full Description:</p>
-                      <p className="text-sm text-gray-600 mb-2">{activity.description}</p>
+                      <p className="text-sm text-gray-600 mb-2">{activity.shortDescription}</p>
 
 
                       <div className="grid grid-cols-3 gap-4">
