@@ -27,7 +27,7 @@ const FormField = ({ htmlFor, title, id, onChange, placeholder, value, type, set
                     <Label htmlFor={htmlFor}>Upload Image</Label>
                     <Blob id={id}
                         onChange={onChange}
-                        setFileName={setFileName!}
+                        setFileName={setFileName}
                     />
                 </div>
             )
@@ -53,7 +53,6 @@ const FormField = ({ htmlFor, title, id, onChange, placeholder, value, type, set
                 </div>
 
             )
-
         default:
             return (
                 <div className="space-y-2">
@@ -61,12 +60,11 @@ const FormField = ({ htmlFor, title, id, onChange, placeholder, value, type, set
                     <Input
                         id={id}
                         value={value as string}
-                        onChange={(e) => onChange((prev: any) => ({ ...prev, image: e.target.value }))}
+                        onChange={(e) => onChange((prev: any) => ({ ...prev, [id]: e.target.value }))}
                         placeholder={placeholder}
                     />
                 </div>
             )
-
     }
 }
 

@@ -161,7 +161,6 @@ const EventsEditor = () => {
     const endHours = Number(event.time.split("-")[1].split(":")[0]);
     const endMinutes = Number(event.time.split("-")[1].split(":")[1].slice(0, 2));
     const endPeriod = event.time.split(" ")[2];
-    console.log({ endHours, endMinutes, endPeriod });
 
     setStartTime({ hours: startHours, minutes: startMinutes, period: startPeriod as ("AM" | "PM") });
     setEndTime({ hours: endHours, minutes: endMinutes, period: endPeriod as ("AM" | "PM") });

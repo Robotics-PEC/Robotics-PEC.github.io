@@ -1,11 +1,14 @@
-import { useEditor, EditorContent } from "@tiptap/react";
+import { useEditor, EditorContent, generateJSON } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import Placeholder from "@tiptap/extension-placeholder";
 import Typography from "@tiptap/extension-typography";
 import BubbleMenu from "./BubbleMenu";
 import MenuBar from "./MenuBar";
-import { useEffect } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import Image from "@tiptap/extension-image";
+import { Label } from "@/components/ui/label";
+import Blob from "@/components/Blob";
+import { ImageType } from "@/types";
 
 interface MarkdownEditorProps {
   value: string;
@@ -15,6 +18,10 @@ interface MarkdownEditorProps {
 
 const MarkdownEditor: React.FC<MarkdownEditorProps> = ({ value, onChange, placeholder }) => {
 
+  const [imageData, setImageData] = useState("");
+
+  const hasLoaded = useRef(false);
+
   const editor = useEditor({
     extensions: [
       StarterKit.configure({
@@ -22,7 +29,7 @@ const MarkdownEditor: React.FC<MarkdownEditorProps> = ({ value, onChange, placeh
           levels: [1, 2, 3],
         },
       }),
-      Image,
+      Image.configure({ allowBase64: true }),
       Placeholder.configure({ placeholder }),
       Typography,
     ],
@@ -36,17 +43,34 @@ const MarkdownEditor: React.FC<MarkdownEditorProps> = ({ value, onChange, placeh
       onChange(editor.getHTML());
     },
   });
+
   useEffect(() => {
+    if (!hasLoaded.current && value !== "") {
+      value = value.replace(/<p>\s*(<img[^>]+>)\s*<\/p>/g, '$1');
+      value = value.replace(/<img([^>]*)>/g, '<img$1 />');
+      hasLoaded.current = true;
+    }
     if (editor && value !== editor.getHTML()) {
       editor.commands.setContent(value);
     }
   }, [value, editor]);
+
+  const addImage = useCallback(() => {
+    if (imageData && editor) {
+      editor.chain().focus("end").setImage({ src: imageData }).run()
+    }
+  }, [editor, imageData]);
+
   return (
     <div className="my-8 animate-fade-in">
       <div className="bg-card rounded-xl shadow-sm overflow-hidden border border-border transition-all duration-300">
         <MenuBar editor={editor} />
         {editor && <BubbleMenu editor={editor} />}
         <EditorContent editor={editor} className="animate-slide-up" />
+      </div>
+      <div className="space-y-2">
+        <Label htmlFor="imageURL">Image (if any)</Label>
+        <Blob setData={setImageData} uploadCallback={addImage} />
       </div>
     </div>
   );

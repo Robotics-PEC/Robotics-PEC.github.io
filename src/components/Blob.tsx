@@ -1,18 +1,20 @@
 import React, { SetStateAction, useRef, useState } from 'react'
 import { toast } from "sonner";
 import { Button } from './ui/button';
-import { FormTeamType, FormProjectType, FormActivityType, FormEventType, ImageObjectType, HeroType } from '@/types';
+import { FormTeamType, FormProjectType, FormActivityType, FormEventType, ImageObjectType, HeroType, ImageType } from '@/types';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from './ui/card';
 import { FileImage, Upload, X } from 'lucide-react';
 import { ImageData } from '@/types';
 
 interface BlobProps {
-    id: string;
-    onChange: ((value: SetStateAction<FormProjectType>) => void) | ((value: SetStateAction<FormTeamType>) => void) | ((value: SetStateAction<FormActivityType>) => void) | ((value: SetStateAction<FormEventType>) => void) | ((value: SetStateAction<ImageObjectType>) => void) | ((value: SetStateAction<HeroType>) => void);
-    setFileName: (value: SetStateAction<string>) => void;
+    id?: string;
+    onChange?: ((value: SetStateAction<FormProjectType>) => void) | ((value: SetStateAction<FormTeamType>) => void) | ((value: SetStateAction<FormActivityType>) => void) | ((value: SetStateAction<FormEventType>) => void) | ((value: SetStateAction<ImageObjectType>) => void) | ((value: SetStateAction<HeroType>) => void) | ((value: SetStateAction<string>) => void);
+    setFileName?: (value: SetStateAction<string>) => void;
+    uploadCallback?: () => void;
+    setData?: (value: SetStateAction<string>) => void;
 };
 
-const Blob = ({ id, onChange, setFileName }: BlobProps) => {
+const Blob = ({ id, onChange, setFileName, uploadCallback, setData }: BlobProps) => {
     const [imageData, setImageData] = useState<ImageData | null>(null);
     const [isDragging, setIsDragging] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
@@ -54,12 +56,22 @@ const Blob = ({ id, onChange, setFileName }: BlobProps) => {
         const reader = new FileReader();
         reader.onload = (event) => {
             if (event.target?.result) {
-                setFileName(file.name);
-                onChange((prev: any) => ({ ...prev, [id]: event.target?.result as string }));
+                if (setFileName) {
+                    setFileName(file.name);
+                }
+                if (onChange && id) {
+                    onChange((prev: any) => ({ ...prev, [id]: event.target?.result as string }));
+                }
+
+                if (setData) {
+                    setData(event.target?.result as string);
+                }
+
                 setImageData({
                     name: file.name,
                     base64: event.target?.result as string
                 });
+
                 toast.success(`Image "${file.name}" loaded successfully`);
             }
         };
@@ -77,8 +89,15 @@ const Blob = ({ id, onChange, setFileName }: BlobProps) => {
     };
 
     const handleBrowseClick = () => {
+        console.log("doing something");
+        console.log(imageData);
         fileInputRef.current?.click();
     };
+
+    const handleCallbacks = () => {
+        uploadCallback ? uploadCallback() : handleBrowseClick();
+        clearImage();
+    }
 
     return (
         <div className="w-full max-w-3xl mx-auto p-4">
@@ -141,7 +160,7 @@ const Blob = ({ id, onChange, setFileName }: BlobProps) => {
                     </CardContent>
 
                     <CardFooter className="flex justify-end p-4">
-                        <Button onClick={handleBrowseClick}>
+                        <Button onClick={handleCallbacks}>
                             Upload New Image
                         </Button>
                     </CardFooter>

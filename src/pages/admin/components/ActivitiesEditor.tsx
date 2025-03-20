@@ -144,7 +144,6 @@ const ActivitiesEditor = () => {
     if (!htmlData) return;
 
     activity.longDescription = htmlData;
-    console.log(activity.longDescription);
     setNewActivity(activity);
     const correctDateFormat = `${activity.date?.split("/")[2]}-${activity.date?.split("/")[1]}-${activity.date?.split("/")[0]}`;
     setDate(new Date(correctDateFormat));
@@ -175,7 +174,6 @@ const ActivitiesEditor = () => {
       setNewActivity(emptyData);
     }
   };
-
 
   return (
     <Loader isLoading={loading}>
