@@ -5,7 +5,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import Link from "next/link";
-import { Home, FileText, Calendar, Users, ExternalLink } from "lucide-react";
+import { Home, FileText, Calendar, Users, ExternalLink, Book } from "lucide-react";
 import HeroEditor from "@/pages/admin/components/HeroEditor";
 import ProjectsEditor from "@/pages/admin/components/ProjectsEditor";
 import ActivitiesEditor from "@/pages/admin/components/ActivitiesEditor";
@@ -14,11 +14,11 @@ import TeamEditor from "@/pages/admin/components/TeamEditor";
 import PageLayout from "./layout/PageLayout";
 import PageHead from "./layout/PageHead";
 import PageSection from "./layout/PageSection";
+import ResourceEditor from "@/pages/admin/components/ResourceEditor";
 
 const Admin = () => {
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState("hero");
-
   return (
     <PageLayout isAdmin={true}>
       <PageHead
@@ -56,6 +56,9 @@ const Admin = () => {
                     <TabsTrigger value="team" className="flex items-center gap-2">
                       <Users className="h-4 w-4" /> Team
                     </TabsTrigger>
+                    <TabsTrigger value="resources" className="flex items-center gap-2">
+                      <Book className="h-4 w-4" /> Resources
+                    </TabsTrigger>
                   </TabsList>
                 </div>
 
@@ -67,6 +70,7 @@ const Admin = () => {
                       {activeTab === "activities" && "Activities Editor"}
                       {activeTab === "events" && "Events Editor"}
                       {activeTab === "team" && "Team Members Editor"}
+                      {activeTab === "resources" && "Add Resources"}
                     </CardTitle>
                     <CardDescription>
                       {activeTab === "hero" && "Edit the main heading, text and background images"}
@@ -74,6 +78,7 @@ const Admin = () => {
                       {activeTab === "activities" && "Manage robotics activities and workshops"}
                       {activeTab === "events" && "Add or edit upcoming events and competitions"}
                       {activeTab === "team" && "Manage team members and their information"}
+                      {activeTab === "resources" && "Manage Resources and Links"}
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
@@ -95,6 +100,9 @@ const Admin = () => {
 
                     <TabsContent value="team" className="mt-0">
                       <TeamEditor />
+                    </TabsContent>
+                    <TabsContent value="resources" className="mt-0">
+                      <ResourceEditor />
                     </TabsContent>
                   </CardContent>
                 </Card>

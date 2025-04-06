@@ -11,7 +11,8 @@ import {
   BookOpen,
   Users,
   Calendar,
-  ChevronRight
+  ChevronRight,
+  Book
 } from "lucide-react";
 
 
@@ -93,7 +94,8 @@ const Resources = () => {
   const resources = [
     { href: "/activities", label: "Workshops", icon: BookOpen },
     { href: "/#team", label: "Our Team", icon: Users },
-    { href: "/events", label: "Upcoming Events", icon: Calendar }
+    { href: "/events", label: "Upcoming Events", icon: Calendar },
+    { href: "/resources", label: "Addition Resources", icon: Book }
   ];
 
   return (

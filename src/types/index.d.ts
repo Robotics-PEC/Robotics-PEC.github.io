@@ -64,6 +64,12 @@ export interface FormProjectType {
     technologies: string;
 };
 
+export interface FormResourceType {
+    id: string;
+    name: string;
+    url: string;
+};
+
 export interface FormActivityType {
     id: string;
     title: string;
@@ -87,7 +93,7 @@ export interface FormFieldProps {
     htmlFor: string;
     title: string;
     id: string;
-    onChange: ((value: SetStateAction<FormProjectType>) => void) | ((value: SetStateAction<FormTeamType>) => void) | ((value: SetStateAction<FormActivityType>) => void) | ((value: SetStateAction<FormEventType>) => void) | ((value: SetStateAction<HeroType>) => void) | ((value: SetStateAction<string>) => void);
+    onChange: ((value: SetStateAction<FormProjectType>) => void) | ((value: SetStateAction<FormTeamType>) => void) | ((value: SetStateAction<FormActivityType>) => void) | ((value: SetStateAction<FormEventType>) => void) | ((value: SetStateAction<HeroType>) => void) | ((value: SetStateAction<string>) => void) | ((value: SetStateAction<FormResourceType>) => void);
     placeholder: string;
     value: string | Date | undefined;
     type: "BLOB" | "TEXT" | "IMAGE" | "MARKDOWN" | "DATE" | "TIME";
@@ -112,3 +118,9 @@ export interface ImageType {
     name: "";
     src: ""
 };
+
+export interface RepoType {
+    name: string;
+    url: string;
+};
+
