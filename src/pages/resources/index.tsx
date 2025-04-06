@@ -1,6 +1,6 @@
 import PageLayout from '@/components/layout/PageLayout'
 import React, { useEffect, useState } from 'react'
-import { CenterCard } from './components/ResourceCard';
+import ResourceCard from './components/ResourceCard';
 import { RepoType } from '@/types';
 import PageHead from '@/components/layout/PageHead';
 import { getResourceData } from '@/lib/supabase/actions/resources.actions';
@@ -40,7 +40,7 @@ const ResourcePage = () => {
                 />
                 <div className="my-10 px-10 py-10">
                     {data && data.map((repo) => (
-                        <CenterCard repo={repo} key={repo.name} />
+                        <ResourceCard repo={repo} key={repo.name} />
                     ))}
                 </div>
             </Loader>

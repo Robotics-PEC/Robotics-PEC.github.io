@@ -14,7 +14,7 @@ interface CenterCardProps {
     repo: RepoType;
 }
 
-export function CenterCard({ repo }: CenterCardProps) {
+const ResourceCard = ({ repo }: CenterCardProps) => {
 
     const handleRedirect = (url: string) => {
         console.log(url);
@@ -47,4 +47,6 @@ export function CenterCard({ repo }: CenterCardProps) {
             </Accordion>
         </Card>
     );
-}
+};
+
+export default ResourceCard;
