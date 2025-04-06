@@ -11,10 +11,10 @@ import { RepoType } from "@/types/index";
 import { Building } from "lucide-react";
 
 interface CenterCardProps {
-    repo: RepoType;
+    resource: RepoType;
 }
 
-const ResourceCard = ({ repo }: CenterCardProps) => {
+const ResourceCard = ({ resource }: CenterCardProps) => {
 
     const handleRedirect = (url: string) => {
         if (!url) return;
@@ -28,25 +28,29 @@ const ResourceCard = ({ repo }: CenterCardProps) => {
     }
 
     return (
-        
-        <Card className="mb-4 overflow-hidden border-0 shadow-md" onClick={() => handleRedirect(repo.url)}>
-            <Accordion type="single" className="w-full">
-                <AccordionItem value={repo.url} className="border-0">
-                    <AccordionTrigger className="cursor-pointer bg-white hover:bg-gray-50 px-6 py-4 text-left">
-                        <div className="flex flex-1 items-center justify-center">
-                            <div className="flex items-center space-x-4">
-                                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10">
-                                    <Building className="h-5 w-5 text-primary" />
-                                </div>
-                                <div>
-                                    <h3 className="font-medium text-lg text-center">{repo.name}</h3>
+        resource ?
+            (<Card className="mb-4 overflow-hidden border-0 shadow-md" onClick={() => handleRedirect(resource.url)}>
+                <Accordion type="single" className="w-full">
+                    <AccordionItem value={resource.url} className="border-0">
+                        <AccordionTrigger className="cursor-pointer bg-white hover:bg-gray-50 px-6 py-4 text-left">
+                            <div className="flex flex-1 items-center justify-center">
+                                <div className="flex items-center space-x-4">
+                                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10">
+                                        <Building className="h-5 w-5 text-primary" />
+                                    </div>
+                                    <div>
+                                        <h3 className="font-medium text-lg text-center">{resource.name}</h3>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                    </AccordionTrigger>
-                </AccordionItem>
-            </Accordion>
-        </Card>
+                        </AccordionTrigger>
+                    </AccordionItem>
+                </Accordion>
+            </Card>) : (
+                <div>
+                    <h1>undefined</h1>
+                </div>
+            )
     );
 };
 

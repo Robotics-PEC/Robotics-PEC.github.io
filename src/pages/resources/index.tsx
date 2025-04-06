@@ -1,7 +1,7 @@
 import PageLayout from '@/components/layout/PageLayout'
 import React, { useEffect, useState } from 'react'
 import ResourceCard from './components/ResourceCard';
-import { RepoType } from '@/types';
+import { FormResourceType, RepoType } from '@/types';
 import PageHead from '@/components/layout/PageHead';
 import { getResourceData } from '@/lib/supabase/actions/resources.actions';
 import { toast } from '@/hooks/use-toast';
@@ -17,6 +17,8 @@ const ResourcePage = () => {
     useEffect(() => {
         const fetch = async () => {
             const { data, error } = await getResourceData();
+
+            console.log(data);
 
             if (error) {
                 toast({
@@ -49,11 +51,11 @@ const ResourcePage = () => {
                 />
                 <section className="py-24" id="events">
                     <PageSection
-                        title="Upcoming Events"
-                        subtitle="Join us at our upcoming events and be part of our community."
+                        title="Resources"
+                        subtitle="Feel Free to look at the resources"
                     >
-                        {data.length > 0 && data.map((repo) => (
-                            <ResourceCard repo={repo} key={repo.name} />
+                        {data.length > 0 && data.map((resource: FormResourceType) => (
+                            <ResourceCard resource={resource} key={resource.name} />
                         ))}
                     </PageSection>
                 </section>
