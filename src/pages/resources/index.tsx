@@ -10,7 +10,7 @@ import { Loader } from '@/components/layout/Loader';
 
 const ResourcePage = () => {
 
-    const [data, setData] = useState<any[] | null>([]);
+    const [data, setData] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
@@ -21,6 +21,14 @@ const ResourcePage = () => {
                 toast({
                     title: "Error",
                     description: error.message,
+                    variant: "destructive"
+                });
+                return;
+            }
+            if (!data) {
+                toast({
+                    title: "Error",
+                    description: "Could not fetch data",
                     variant: "destructive"
                 });
                 return;

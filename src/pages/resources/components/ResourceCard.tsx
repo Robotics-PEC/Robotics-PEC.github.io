@@ -17,6 +17,7 @@ interface CenterCardProps {
 const ResourceCard = ({ repo }: CenterCardProps) => {
 
     const handleRedirect = (url: string) => {
+        if (!url) return;
         console.log(window.location.href);
         if (url.startsWith("https://")) {
             window.location.href = url;
@@ -27,7 +28,7 @@ const ResourceCard = ({ repo }: CenterCardProps) => {
     }
 
     return (
-
+        
         <Card className="mb-4 overflow-hidden border-0 shadow-md" onClick={() => handleRedirect(repo.url)}>
             <Accordion type="single" className="w-full">
                 <AccordionItem value={repo.url} className="border-0">
