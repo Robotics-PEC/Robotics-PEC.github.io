@@ -4,12 +4,12 @@ import { Card } from '@/components/ui/card';
 import { HTMLToMarkdown } from '@/lib/utils';
 import { FormResourceType } from '@/types';
 import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from '@radix-ui/react-accordion';
-import { Save, Plus, Edit, Trash } from 'lucide-react';
+import { Save, Plus, Edit, Trash, Badge } from 'lucide-react';
 import React, { useEffect, useState } from 'react'
 import { Button } from '@/components/ui/button';
 import ReactMarkdown from 'react-markdown';
 import { toast } from '@/hooks/use-toast';
-import { deleteResource, getResourceData, uploadResource } from '@/lib/supabase/actions/resources.actions';
+import { deleteResource, getResourceData, updateResource, uploadResource } from '@/lib/supabase/actions/resources.actions';
 
 const ResourceEditor = () => {
 
@@ -52,6 +52,25 @@ const ResourceEditor = () => {
                 resource.id === editingId ? newResource : resource
             )
         );
+
+        const error = await updateResource(newResource);
+        setEditingId(null);
+        setNewResource(defaultData);
+
+        if (error) {
+            toast({
+                title: error.name,
+                description: error.message,
+                variant: "destructive"
+            });
+        }
+        else {
+            toast({
+                title: "Success",
+                description: "Resource has been Updated"
+            });
+
+        }
     };
 
     const handleEditResource = async (resource: FormResourceType) => {
@@ -173,11 +192,12 @@ const ResourceEditor = () => {
                     {resources.length === 0 ? (
                         <p className="text-gray-500 italic">No resources added yet.</p>
                     ) : (
-                        <Accordion type="single" collapsible className="w-full">
+                        <Accordion type="single" collapsible className="w-full space-y-6">
                             {resources.map((resource) => (
                                 <AccordionItem key={resource.id} value={resource.id}>
                                     <AccordionTrigger>
-                                        <div className="flex justify-between items-center w-full pr-4">
+                                        <div className="flex justify-between items-center w-full pr-4 space-x-4">
+                                            <Badge className="w-5 h-5" />
                                             <span>{resource.name}</span>
                                         </div>
                                     </AccordionTrigger>
@@ -201,7 +221,7 @@ const ResourceEditor = () => {
                                                     variant="destructive"
                                                     onClick={() => handleRemoveProject(resource)}
                                                 >
-                                                    <Trash className="h-4 w-4 mr-1" /> Delete
+                                                    <Trash className="h-4 w-4 mr-1 my-10" /> Delete
                                                 </Button>
                                             </div>
                                         </div>
