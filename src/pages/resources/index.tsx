@@ -6,6 +6,7 @@ import PageHead from '@/components/layout/PageHead';
 import { getResourceData } from '@/lib/supabase/actions/resources.actions';
 import { toast } from '@/hooks/use-toast';
 import { Loader } from '@/components/layout/Loader';
+import PageSection from '@/components/layout/PageSection';
 
 
 const ResourcePage = () => {
@@ -46,11 +47,16 @@ const ResourcePage = () => {
                     title="Robotics Society | Punjab Engineering College"
                     description="PEC Robotics Society at Punjab Engineering College is dedicated to innovation in robotics and automation. Explore our projects and join our team."
                 />
-                <div className="my-10 px-10 py-10">
-                    {data && data.map((repo) => (
-                        <ResourceCard repo={repo} key={repo.name} />
-                    ))}
-                </div>
+                <section className="py-24" id="events">
+                    <PageSection
+                        title="Upcoming Events"
+                        subtitle="Join us at our upcoming events and be part of our community."
+                    >
+                        {data.length > 0 && data.map((repo) => (
+                            <ResourceCard repo={repo} key={repo.name} />
+                        ))}
+                    </PageSection>
+                </section>
             </Loader>
         </PageLayout>
     )
