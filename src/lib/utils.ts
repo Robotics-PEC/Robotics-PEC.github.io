@@ -156,4 +156,12 @@ export function getNextValidTime(startTime: TimeValue, interval: number = 1): Ti
   }
 
   return { hours, minutes, period };
-}
+};
+
+export const teamCategoryOptions = [
+  { value: "leader", label: "Leader" },
+  { value: "website", label: "Website" },
+  { value: "mechanical", label: "Mechanical" },
+  { value: "electrical", label: "Electrical" },
+  { value: "software", label: "Software" },
+];

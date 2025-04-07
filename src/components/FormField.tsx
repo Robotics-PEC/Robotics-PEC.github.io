@@ -5,6 +5,8 @@ import { FormFieldProps } from '@/types'
 import MarkdownEditor from '../pages/admin/components/MarkdownEditor'
 import Blob from './Blob'
 import DatePicker from './DatePicker'
+import SelectSearch from '@/pages/admin/components/SelectSearch'
+import { teamCategoryOptions } from '@/lib/utils'
 
 const FormField = ({ htmlFor, title, id, onChange, placeholder, value, type, setFileName, date, setDate }: FormFieldProps) => {
 
@@ -52,6 +54,18 @@ const FormField = ({ htmlFor, title, id, onChange, placeholder, value, type, set
                     />
                 </div>
 
+            )
+        case "CATEGORY":
+
+            return (
+                <div>
+                    <Label htmlFor={htmlFor}>{title}</Label>
+                    <SelectSearch
+                        options={teamCategoryOptions}
+                        value={value as string}
+                        onChange={(e) => onChange((prev: any) => ({ ...prev, [id]: e }))}
+                    />
+                </div>
             )
         default:
             return (

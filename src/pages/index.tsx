@@ -4,14 +4,25 @@ import PageHead from "@/components/layout/PageHead";
 import PageLayout from "@/components/layout/PageLayout";
 
 import { useState, useEffect } from "react";
-import { ProjectType, TeamMember } from "@/types";
+import { CategoryTeamMember, ProjectType, TeamData, TeamMember } from "@/types";
 import { getProjects } from "@/lib/supabase/actions/project.actions";
-import { getTeamMembers } from "@/lib/supabase/actions/team.actions";
+import { getTeamMembers, getTeamMembersByCategory } from "@/lib/supabase/actions/team.actions";
 import { Loader } from "@/components/layout/Loader";
 import { ProjectSection } from "@/pages/project/index";
+import { teamCategoryOptions } from "@/lib/utils";
 
 const Index = () => {
-  const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
+  const defaultData: TeamData = {
+    leader: [],
+    website: [],
+    mechanical: [],
+    electrical: [],
+    software: [],
+    length: 0,
+    emptyArrays: 5
+  };
+
+  const [teamMembers, setTeamMembers] = useState<TeamData>(defaultData);
   const [projects, setProjects] = useState<ProjectType[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -21,9 +32,26 @@ const Index = () => {
   }
 
   useEffect(() => {
-
+    const teamData: TeamData = {
+      leader: [],
+      website: [],
+      mechanical: [],
+      electrical: [],
+      software: [],
+      length: 0,
+      emptyArrays: 5
+    };
     const fetch = async () => {
-      const teamData = await getTeamMembers();
+      for (let i = 0; i < teamCategoryOptions.length; i++) {
+        const data = await getTeamMembersByCategory(teamCategoryOptions[i].value);
+        if (data.length != 0) {
+          teamData.emptyArrays--;
+        }
+        teamData[teamCategoryOptions[i].value] = teamData[teamCategoryOptions[i].value].concat(data);
+        teamData.length += data.length;
+      }
+
+
       const projectsData = await getProjects();
       setTeamMembers(teamData);
       setProjects(projectsData);

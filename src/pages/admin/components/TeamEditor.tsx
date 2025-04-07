@@ -17,6 +17,7 @@ const emptyData: FormTeamType = {
   lastName: "",
   role: "",
   image: "",
+  category: ""
 };
 
 const TeamEditor = () => {
@@ -189,6 +190,15 @@ const TeamEditor = () => {
             value={newMember.role}
             title="Role"
             type="TEXT"
+          />
+          <FormField
+            id="category"
+            htmlFor="category"
+            onChange={setNewMember}
+            placeholder="Website Head"
+            value={newMember.category}
+            title="Category"
+            type="CATEGORY"
           />
 
           {editingId ? (

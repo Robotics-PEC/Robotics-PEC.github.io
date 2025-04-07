@@ -41,6 +41,11 @@ export interface TeamMember {
     image: string;
 };
 
+export interface CategoryTeamMember {
+    category: string;
+    team: TeamMember[];
+}
+
 export interface PublicUrlType {
     name: string;
     url: string;
@@ -52,6 +57,7 @@ interface FormTeamType {
     lastName: string;
     role: string;
     image: string;
+    category: string;
 };
 
 export interface FormProjectType {
@@ -93,10 +99,10 @@ export interface FormFieldProps {
     htmlFor: string;
     title: string;
     id: string;
-    onChange: ((value: SetStateAction<FormProjectType>) => void) | ((value: SetStateAction<FormTeamType>) => void) | ((value: SetStateAction<FormActivityType>) => void) | ((value: SetStateAction<FormEventType>) => void) | ((value: SetStateAction<HeroType>) => void) | ((value: SetStateAction<string>) => void) | ((value: SetStateAction<FormResourceType>) => void);
+    onChange: ((value: SetStateAction<FormProjectType>) => void) | ((value: SetStateAction<FormTeamType>) => void) | ((value: SetStateAction<FormActivityType>) => void) | ((value: SetStateAction<FormEventType>) => void) | ((value: SetStateAction<HeroType>) => void) | ((value: SetStateAction<string>) => void) | ((value: SetStateAction<FormResourceType>) => void) | ((value: any) => void);
     placeholder: string;
     value: string | Date | undefined;
-    type: "BLOB" | "TEXT" | "IMAGE" | "MARKDOWN" | "DATE" | "TIME";
+    type: "BLOB" | "TEXT" | "IMAGE" | "MARKDOWN" | "DATE" | "TIME" | "CATEGORY";
     setFileName?: (value: SetStateAction<string>) => void;
     imageData?: { name: string, base64: string };
     date?: Date | undefined;
@@ -124,3 +130,13 @@ export interface RepoType {
     url: string;
 };
 
+export interface TeamData {
+    leader: any[],
+    website: any[],
+    mechanical: any[],
+    electrical: any[],
+    software: any[],
+    length: number,
+    emptyArrays: number;
+    [key: string]: any;
+};

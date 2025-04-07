@@ -2,7 +2,6 @@ import { FormTeamType } from "@/types";
 import { client } from "../supabase";
 import { deleteImage, uploadImage } from "./storage.actions";
 import { urlToBase64 } from "@/lib/utils";
-import { PostgrestError } from "@supabase/supabase-js";
 
 export const getTeamMembers = async () => {
     const { data, error } = await client.from("team").select("*");
@@ -15,7 +14,7 @@ export const getTeamMemberById = async (id: string) => {
     const { data, error } = await client.from("team").select().eq("id", id);
 
     if (error) console.log(error);
-    if (!data) throw new Error("Project with this id doesn't exist");
+    if (!data) throw new Error("Team member with this id doesn't exist");
     return JSON.parse(JSON.stringify(data[0]));
 };
 
@@ -64,4 +63,12 @@ export const updateTeamMember = async (member: FormTeamType, fileName: string) =
     }
 
     return error;
+};
+
+export const getTeamMembersByCategory = async (category: string) => {
+    const { data, error } = await client.from("team").select("*").eq("category", category);
+
+    if (error) console.log(error);
+    if (!data) throw new Error("Team with this category doesn't exist");
+    return data;
 };
