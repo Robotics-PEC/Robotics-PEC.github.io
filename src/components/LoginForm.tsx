@@ -62,6 +62,7 @@ const LoginForm = () => {
                 description: "Failed to log in. Please try again.",
                 variant: "destructive",
             });
+            console.log(error);
             setIsLoading(false);
         }
     };

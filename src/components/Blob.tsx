@@ -1,10 +1,11 @@
 import React, { SetStateAction, useRef, useState } from 'react'
 import { toast } from "sonner";
 import { Button } from './ui/button';
-import { FormTeamType, FormProjectType, FormActivityType, FormEventType, ImageObjectType, HeroType, ImageType, FormResourceType } from '@/types';
+import { FormTeamType, FormProjectType, FormActivityType, FormEventType, ImageObjectType, HeroType, FormResourceType } from '@/types';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from './ui/card';
 import { FileImage, Upload, X } from 'lucide-react';
 import { ImageData } from '@/types';
+import { compressImage } from '@/lib/utils';
 
 interface BlobProps {
     id?: string;
@@ -20,10 +21,13 @@ const Blob = ({ id, onChange, setFileName, uploadCallback, setData }: BlobProps)
     const fileInputRef = useRef<HTMLInputElement>(null);
 
 
-    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
-        if (file) {
-            processFile(file);
+    const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (e.target.files && e.target.files.length > 0) {
+            const file = e.target.files?.[0];
+            if (!file) return;
+
+            const compressed = await compressImage(file);
+            processFile(compressed);
         }
     };
 
@@ -89,13 +93,12 @@ const Blob = ({ id, onChange, setFileName, uploadCallback, setData }: BlobProps)
     };
 
     const handleBrowseClick = () => {
-        console.log("doing something");
-        console.log(imageData);
         fileInputRef.current?.click();
     };
 
     const handleCallbacks = () => {
-        uploadCallback ? uploadCallback() : handleBrowseClick();
+        if (uploadCallback) uploadCallback()
+        else handleBrowseClick();
         clearImage();
     }
 

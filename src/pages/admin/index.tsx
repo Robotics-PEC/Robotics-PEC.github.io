@@ -1,12 +1,12 @@
 import LoginForm from '@/components/LoginForm'
-import PageLayout from '@/components/layout/PageLayout'
+
 import { motion } from "framer-motion";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import PageHead from '@/components/layout/PageHead';
 
 const AdminPage = () => {
     return (
-        <PageLayout>
+        <>
             <PageHead
                 title="Robotics Society of PEC Admin"
                 description="You are in full control"
@@ -28,8 +28,7 @@ const AdminPage = () => {
                     </motion.div>
                 </div>
             </div>
-        </PageLayout>
-
+        </>
     )
 }
 

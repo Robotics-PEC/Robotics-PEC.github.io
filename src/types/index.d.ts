@@ -95,6 +95,15 @@ export interface FormEventType {
     capacity: string;
 };
 
+export interface BlogUserType {
+    sid: string;
+    name: string;
+    branch: string;
+    bio: string;
+    content: string;
+    image: string;
+};
+
 export interface FormFieldProps {
     htmlFor: string;
     title: string;

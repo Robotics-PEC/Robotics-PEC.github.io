@@ -6,6 +6,8 @@ export const loginUser = async (email: string, password: string) => {
 
     const hash = crypto.createHash("sha256").update(password).digest("hex");
 
+    console.log({ hash });
+
     if (hash != process.env.NEXT_PUBLIC_PASSWORD_HASH || email != process.env.NEXT_PUBLIC_ADMIN_EMAIL) {
         toast({
             title: "Error",

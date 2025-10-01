@@ -26,7 +26,7 @@ const Contact = () => {
     }, [state.succeeded, toast]);
 
     return (
-        <PageLayout>
+        <>
             {/* Meta tags for SEO Optimisations */}
             <PageHead
                 title="Robotics Society | Punjab Engineering College"
@@ -61,7 +61,7 @@ const Contact = () => {
                     </div>
                 </PageSection>
             </section>
-        </PageLayout>
+        </>
     );
 };
 
