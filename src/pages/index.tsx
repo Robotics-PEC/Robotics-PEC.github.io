@@ -1,7 +1,6 @@
 import Hero from "@/components/Hero";
 import Team from "@/components/Team";
 import PageHead from "@/components/layout/PageHead";
-import PageLayout from "@/components/layout/PageLayout";
 
 import { useState, useEffect } from "react";
 import { ProjectType, TeamData } from "@/types";

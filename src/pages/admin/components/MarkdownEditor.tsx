@@ -68,11 +68,12 @@ const MarkdownEditor: React.FC<MarkdownEditorProps> = ({ value, onChange, placeh
                 {editor && <BubbleMenu editor={editor} />}
                 <EditorContent editor={editor} className="animate-slide-up" />
             </div>
-            {
+            {!dontWantImage && (
                 <div className="space-y-2">
                     <Label htmlFor="imageURL">Image (if any)</Label>
-                    !dontWantImage && <Blob setData={setImageData} uploadCallback={addImage} />
+                    <Blob setData={setImageData} uploadCallback={addImage} />
                 </div>
+            )
             }
         </div>
     );

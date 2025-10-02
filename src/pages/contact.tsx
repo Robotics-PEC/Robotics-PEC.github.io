@@ -8,7 +8,6 @@ import { useForm, ValidationError } from "@formspree/react";
 import { useToast } from "@/components/ui/use-toast";
 
 import PageSection from "@/components/layout/PageSection";
-import PageLayout from "@/components/layout/PageLayout";
 import PageHead from "@/components/layout/PageHead";
 
 const Contact = () => {
