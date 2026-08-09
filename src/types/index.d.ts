@@ -149,3 +149,31 @@ export interface TeamData {
     emptyArrays: number;
     [key: string]: any;
 };
+
+export interface ApplicantType {
+    id: string;
+    name: string;
+    sid: string;
+    phone?: string;
+    is_walkin: boolean;
+    status: 'pending' | 'accepted' | 'rejected';
+    remarks?: string;
+    reviewed_by?: string;
+    reviewed_at?: string;
+    created_at: string;
+}
+
+export interface PanelistType {
+    id: string;
+    name: string;
+    panel_number: number;
+    is_occupied: boolean;
+    last_updated: string;
+}
+
+export interface PanelistAuthType {
+    id: string;
+    email: string;
+    name: string;
+    panel_number: number;
+}

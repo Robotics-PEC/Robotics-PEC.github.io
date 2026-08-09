@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { GitFork, Menu } from "lucide-react";
@@ -7,6 +8,16 @@ import Link from "next/link";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 
 const Header = ({ isAdmin = false }: { isAdmin?: boolean }) => {
+    const [isPanelist, setIsPanelist] = useState(false);
+
+    useEffect(() => {
+        if (typeof window !== 'undefined') {
+            const session = sessionStorage.getItem("panelist_session");
+            if (session) {
+                setIsPanelist(true);
+            }
+        }
+    }, []);
 
     const handleGithubClick = () => {
         window.open("https://github.com/Robotics-PEC", "_blank");
@@ -49,6 +60,14 @@ const Header = ({ isAdmin = false }: { isAdmin?: boolean }) => {
                                     {item.name}
                                 </Link>
                             ))}
+                            {isPanelist && (
+                                <Link
+                                    href="/panelist/dashboard"
+                                    className="text-sm font-medium text-primary hover:text-foreground transition-colors"
+                                >
+                                    Interview
+                                </Link>
+                            )}
                             {
                                 isAdmin && (
                                     <>
@@ -93,6 +112,14 @@ const Header = ({ isAdmin = false }: { isAdmin?: boolean }) => {
                                             {item.name}
                                         </Link>
                                     ))}
+                                    {isPanelist && (
+                                        <Link
+                                            href="/panelist/dashboard"
+                                            className="text-lg font-medium px-4 py-2 hover:bg-accent rounded-md transition-colors text-primary"
+                                        >
+                                            Interview
+                                        </Link>
+                                    )}
                                 </div>
                             </SheetContent>
                         </Sheet>
