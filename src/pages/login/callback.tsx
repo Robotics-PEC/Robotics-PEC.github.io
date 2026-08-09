@@ -3,14 +3,25 @@ import { useRouter } from "next/router";
 import { client } from "@/lib/supabase/supabase";
 import { toast } from "@/components/ui/use-toast";
 
-const PEC_DOMAIN = "@pec.edu.in"; 
+const PEC_DOMAIN = "@pec.edu.in"; // ← replace with your actual college domain
 
 export default function AuthCallback() {
     const router = useRouter();
 
     useEffect(() => {
         const { data: listener } = client.auth.onAuthStateChange(async (event, session) => {
-            if (!session) return;
+
+            if (!session) {
+                if (event === "INITIAL_SESSION" || event === "SIGNED_OUT") {
+                    toast({
+                        title: "Sign in failed",
+                        description: "We couldn't sign you in. Please try again.",
+                        variant: "destructive",
+                    });
+                    router.replace("/login");
+                }
+                return;
+            }
 
             const email = session.user.email?.toLowerCase();
 
