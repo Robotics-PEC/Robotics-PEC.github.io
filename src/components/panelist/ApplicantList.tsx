@@ -49,7 +49,14 @@ const ApplicantList = () => {
         });
 
     if (selectedApplicant) {
-        return <ApplicantFormView applicant={selectedApplicant} onBack={() => setSelectedApplicant(null)} />;
+        return <ApplicantFormView 
+            applicant={selectedApplicant} 
+            onBack={() => setSelectedApplicant(null)}
+            onStatusUpdate={(updatedApp) => {
+                setApplicants(prev => prev.map(app => app.id === updatedApp.id ? updatedApp : app));
+                setSelectedApplicant(updatedApp);
+            }}
+        />;
     }
 
     return (

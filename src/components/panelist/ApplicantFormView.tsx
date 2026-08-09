@@ -11,11 +11,13 @@ import { updateApplicantDecision } from "@/lib/supabase/actions/applicants.actio
 export interface ApplicantFormViewProps {
     applicant: ApplicantType;
     onBack: () => void;
+    onStatusUpdate: (updatedApplicant: ApplicantType) => void;
 }
 
 const ApplicantFormView = ({
     applicant,
     onBack,
+    onStatusUpdate,
 }: ApplicantFormViewProps) => {
     const [currentStatus, setCurrentStatus] = useState<
         "pending" | "accepted" | "rejected"
@@ -50,6 +52,13 @@ const ApplicantFormView = ({
         }
 
         setCurrentStatus(status);
+        onStatusUpdate({
+            ...applicant,
+            status,
+            remarks,
+            reviewed_by: reviewedBy,
+            reviewed_at: new Date().toISOString()
+        });
     };
 
     return (
@@ -110,6 +119,8 @@ const ApplicantFormView = ({
             <ApplicantDecision
                 applicantId={applicant.id}
                 currentStatus={currentStatus}
+                remarks={applicant.remarks}
+                reviewedBy={applicant.reviewed_by}
                 onSubmitDecision={handleSubmitDecision}
             />
         </div>

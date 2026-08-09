@@ -13,8 +13,8 @@ const MiniPanelIcon = ({ panelist }: MiniPanelIconProps) => {
                 size="sm"
             />
 
-            <span className="text-xs font-medium text-white">
-                {panelist.panel_number}
+            <span className="text-xs font-medium text-gray-700 text-center px-1">
+                {panelist.name} (P{panelist.panel_number})
             </span>
         </div>
     );

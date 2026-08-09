@@ -3,6 +3,8 @@ import { useState } from "react";
 export interface ApplicantDecisionProps {
     applicantId: string;
     currentStatus: "pending" | "accepted" | "rejected";
+    remarks?: string;
+    reviewedBy?: string;
     onSubmitDecision: (
         status: "accepted" | "rejected",
         remarks: string
@@ -12,14 +14,35 @@ export interface ApplicantDecisionProps {
 const ApplicantDecision = ({
     applicantId,
     currentStatus,
+    remarks: initialRemarks,
+    reviewedBy,
     onSubmitDecision,
 }: ApplicantDecisionProps) => {
     const [selectedStatus, setSelectedStatus] = useState<
         "accepted" | "rejected" | null
-    >(currentStatus === "pending" ? null : currentStatus);
+    >(null);
 
     const [remarks, setRemarks] = useState("");
     const [isSubmitting, setIsSubmitting] = useState(false);
+
+    if (currentStatus !== "pending") {
+        return (
+            <div className="border rounded-lg p-6 bg-slate-50">
+                <h3 className="font-semibold mb-4">Interview Decision</h3>
+                <div className="mb-4">
+                    <span className={`inline-block rounded-md px-3 py-1 text-sm font-medium ${currentStatus === "accepted" ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"}`}>
+                        {currentStatus === "accepted" ? "Accepted" : "Rejected"}
+                    </span>
+                </div>
+                <div>
+                    <label className="mb-2 block text-sm font-medium text-gray-700">Remarks from {reviewedBy || "Panelist"}</label>
+                    <div className="w-full rounded-md border border-gray-300 p-3 text-sm bg-white text-gray-700">
+                        {initialRemarks || "No remarks provided."}
+                    </div>
+                </div>
+            </div>
+        );
+    }
 
     const handleSubmit = async () => {
         if (!selectedStatus || !remarks.trim() || isSubmitting) {
