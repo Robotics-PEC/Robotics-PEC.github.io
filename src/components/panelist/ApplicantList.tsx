@@ -39,6 +39,12 @@ const ApplicantList = () => {
                     }
                     return current;
                 });
+
+                if (updatedApplicant.status === "rejected") {
+                    const audio = new Audio("/sounds/faah.mp3");
+                    audio.volume = 1.0;
+                    audio.play().catch(e => console.log("Meme audio blocked/failed:", e));
+                }
             },
             (newApplicant) => {
                 setApplicants((current) => {
