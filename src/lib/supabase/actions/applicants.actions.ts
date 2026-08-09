@@ -52,3 +52,38 @@ export const updateApplicantDecision = async (
 
     return true;
 };
+
+export const subscribeToApplicantUpdates = (
+    onUpdate: (applicant: ApplicantType) => void,
+    onInsert: (applicant: ApplicantType) => void
+) => {
+    const channel = panelistClient
+        .channel("applicants-status")
+        .on(
+            "postgres_changes",
+            {
+                event: "UPDATE",
+                schema: "public",
+                table: "applicants",
+            },
+            (payload) => {
+                onUpdate(payload.new as ApplicantType);
+            }
+        )
+        .on(
+            "postgres_changes",
+            {
+                event: "INSERT",
+                schema: "public",
+                table: "applicants",
+            },
+            (payload) => {
+                onInsert(payload.new as ApplicantType);
+            }
+        )
+        .subscribe();
+
+    return () => {
+        panelistClient.removeChannel(channel);
+    };
+};

@@ -3,7 +3,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Search, Plus } from "lucide-react";
 import { ApplicantType } from "@/types";
-import { fetchApplicants } from "@/lib/supabase/actions/applicants.actions";
+import { fetchApplicants, subscribeToApplicantUpdates } from "@/lib/supabase/actions/applicants.actions";
 import ApplicantCard from "./ApplicantCard";
 import ApplicantFormView from "./ApplicantFormView";
 import WalkInModal from "./WalkInModal";
@@ -24,6 +24,31 @@ const ApplicantList = () => {
 
     useEffect(() => {
         loadApplicants();
+    }, []);
+
+    useEffect(() => {
+        const unsubscribe = subscribeToApplicantUpdates(
+            (updatedApplicant) => {
+                setApplicants((current) =>
+                    current.map((app) => (app.id === updatedApplicant.id ? updatedApplicant : app))
+                );
+                
+                setSelectedApplicant((current) => {
+                    if (current && current.id === updatedApplicant.id) {
+                        return updatedApplicant;
+                    }
+                    return current;
+                });
+            },
+            (newApplicant) => {
+                setApplicants((current) => {
+                    if (current.some(app => app.id === newApplicant.id)) return current;
+                    return [newApplicant, ...current];
+                });
+            }
+        );
+
+        return unsubscribe;
     }, []);
 
     const handleWalkInSuccess = (newApplicant: ApplicantType) => {
