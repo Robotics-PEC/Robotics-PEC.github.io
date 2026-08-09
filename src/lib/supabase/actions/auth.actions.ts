@@ -32,3 +32,29 @@ export const loginUser = async (email: string, password: string) => {
     return JSON.parse(JSON.stringify(data));
 
 }
+
+export const loginWithGoogle = async () => {
+  const { data, error } = await client.auth.signInWithOAuth({
+    provider: "google",
+    options: {
+      redirectTo: `${window.location.origin}/login/callback`,
+      queryParams: {
+        hd: "pec.edu.in",
+      },
+    },
+  });
+
+  if (error) {
+    console.log(error);
+
+    toast({
+      title: "Error",
+      description: "Failed to log in with Google. Please try again.",
+      variant: "destructive",
+    });
+
+    return;
+  }
+
+  return data;
+};
