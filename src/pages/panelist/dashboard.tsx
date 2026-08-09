@@ -1,44 +1,48 @@
-import { useEffect, useState } from 'react';
-import { useRouter } from 'next/router';
-import PageHead from '@/components/layout/PageHead';
-import ApplicantList from '@/components/panelist/ApplicantList';
+import ApplicantList from "@/components/panelist/ApplicantList";
+import PanelSidebar from "@/components/panelist/PanelSidebar";
+import { useEffect, useState } from "react";
 
-const DashboardPage = () => {
-    const router = useRouter();
-    const [isAuthorized, setIsAuthorized] = useState(false);
+const PanelistDashboard = () => {
+    const [isAuthenticated, setIsAuthenticated] = useState(false);
 
     useEffect(() => {
         const session = sessionStorage.getItem("panelist_session");
-        if (!session) {
-            router.push('/panelist');
-        } else {
-            setIsAuthorized(true);
-        }
-    }, [router]);
 
-    if (!isAuthorized) return null;
+        if (!session) {
+            window.location.href = "/panelist";
+            return;
+        }
+
+        setIsAuthenticated(true);
+    }, []);
+
+    if (!isAuthenticated) {
+        return (
+            <div className="min-h-screen flex items-center justify-center">
+                <p>Loading...</p>
+            </div>
+        );
+    }
 
     return (
-        <>
-            <PageHead title="Interview Dashboard | PEC Robotics" />
-            <div className="min-h-[calc(100vh-4rem)] bg-slate-50 p-6">
-                <div className="max-w-7xl mx-auto flex gap-6 h-[80vh]">
-                    
-                    {/* Left 70% Area */}
+        <div className="min-h-screen bg-gray-50 px-6 py-8">
+            <div className="max-w-7xl mx-auto">
+                <h1 className="text-2xl font-bold text-gray-900 mb-6">
+                    Panelist Dashboard
+                </h1>
+
+                <div className="flex gap-6 h-[80vh]">
                     <div className="w-[70%] h-full">
                         <ApplicantList />
                     </div>
 
-                    {/* Right 30% Area - Placeholder for Panel Sidebar */}
-                    <div className="w-[30%] h-full bg-white rounded-lg border p-6 flex flex-col items-center justify-center text-center text-gray-500 border-dashed border-2">
-                        <p className="font-semibold text-lg text-gray-600 mb-2">Panel Status Sidebar</p>
-                        <p className="text-sm">Placeholder for the PanelSidebar component.</p>
+                    <div className="w-[30%] h-full">
+                        <PanelSidebar />
                     </div>
-
                 </div>
             </div>
-        </>
+        </div>
     );
 };
 
-export default DashboardPage;
+export default PanelistDashboard;
