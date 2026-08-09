@@ -29,3 +29,26 @@ export const createWalkIn = async (name: string, sid: string, phone: string): Pr
     }
     return data as ApplicantType;
 };
+export const updateApplicantDecision = async (
+    applicantId: string,
+    status: "accepted" | "rejected",
+    remarks: string,
+    reviewedBy: string
+): Promise<boolean> => {
+    const { error } = await panelistClient
+        .from("applicants")
+        .update({
+            status,
+            remarks,
+            reviewed_by: reviewedBy,
+            reviewed_at: new Date().toISOString(),
+        })
+        .eq("id", applicantId);
+
+    if (error) {
+        console.error("Error updating applicant decision:", error);
+        return false;
+    }
+
+    return true;
+};
