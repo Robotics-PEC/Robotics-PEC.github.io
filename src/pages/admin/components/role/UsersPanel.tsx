@@ -146,7 +146,7 @@ export default function UsersPanel({ roles }: { roles: Role[] }) {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value={ALL_ROLES}>All roles</SelectItem>
-              {roles.map((role) => (
+              {roles?.map((role) => (
                 <SelectItem key={role.id} value={role.id}>
                   {role.name}
                 </SelectItem>

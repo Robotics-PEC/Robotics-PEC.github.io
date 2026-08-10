@@ -33,22 +33,22 @@ export default function RoleAccordion({
 
   return (
     <Accordion type="multiple" value={open} onValueChange={setOpen} className="rounded-lg border">
-      {roles.map((role) => (
+      {roles?.map((role) => (
         <AccordionItem key={role.id} value={role.id} className="px-4">
           <AccordionTrigger className="gap-2">
             <span className="flex items-center gap-2 text-sm font-medium">
-              {role.name}
-              {role.isDefault && <Badge variant="secondary">Default</Badge>}
+              {role?.name}
+              {role?.isDefault && <Badge variant="secondary">Default</Badge>}
             </span>
           </AccordionTrigger>
           <AccordionContent>
-            {open.includes(role.id) && (
+            {open.includes(role?.id) && (
               <RoleGroup role={role} allRoles={allRoles} search={search} />
             )}
           </AccordionContent>
         </AccordionItem>
       ))}
-      {roles.length === 0 && (
+      {roles?.length === 0 && (
         <p className="px-4 py-6 text-sm text-muted-foreground">No roles to show.</p>
       )}
     </Accordion>
