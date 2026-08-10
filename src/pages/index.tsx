@@ -75,7 +75,7 @@ const Index = () => {
             <ProjectSection projects={projects} />
 
             {/* Team Section */}
-            <Team teamMembers={teamMembers} />
+            {/* <Team teamMembers={teamMembers} /> */}
         </Loader>
     );
 };
