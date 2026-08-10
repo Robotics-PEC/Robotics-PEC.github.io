@@ -43,9 +43,7 @@ import {
   createRole,
   deleteRole,
   fetchRoleCounts,
-  fetchRoleRoutes,
   fetchRoles,
-  setRoleRoutes,
   updateRole,
   type Role,
 } from "@/lib/roles";
@@ -96,14 +94,14 @@ export default function RolesPanel({ onRolesChanged }: Props) {
     if (!selectedRoleId) return;
     let active = true;
     setRoutesLoading(true);
-    fetchRoleRoutes(selectedRoleId)
-      .then((paths) => {
-        if (active) setRoutes(paths);
-      })
-      .catch((error) => toast.error(errorMessage(error, "Could not load page rules")))
-      .finally(() => {
-        if (active) setRoutesLoading(false);
-      });
+    // fetchRoleRoutes(selectedRoleId)
+    //   .then((paths) => {
+    //     if (active) setRoutes(paths);
+    //   })
+    //   .catch((error) => toast.error(errorMessage(error, "Could not load page rules")))
+    //   .finally(() => {
+    //     if (active) setRoutesLoading(false);
+    //   });
     return () => {
       active = false;
     };
@@ -119,7 +117,7 @@ export default function RolesPanel({ onRolesChanged }: Props) {
     if (!selectedRoleId) return;
     setSavingRoutes(true);
     try {
-      await setRoleRoutes(selectedRoleId, routes);
+      // await setRoleRoutes(selectedRoleId, routes);
       toast.success("Page access updated");
     } catch (error) {
       toast.error(errorMessage(error, "Could not save page access"));
@@ -185,7 +183,7 @@ export default function RolesPanel({ onRolesChanged }: Props) {
                   <TableCell>
                     <div className="flex items-center gap-2">
                       <span className="font-medium">{role.name}</span>
-                      {role.is_default && <Badge variant="secondary">Default</Badge>}
+                      {role.isDefault && <Badge variant="secondary">Default</Badge>}
                       {role.slug === "admin" && (
                         <Badge variant="outline">
                           <Shield className="mr-1 size-3" /> Admin
@@ -215,7 +213,7 @@ export default function RolesPanel({ onRolesChanged }: Props) {
                       variant="ghost"
                       size="icon"
                       aria-label={`Delete ${role.name}`}
-                      disabled={role.is_system}
+                      disabled={role.isSystem}
                       onClick={(e) => {
                         e.stopPropagation();
                         setPendingDelete(role);

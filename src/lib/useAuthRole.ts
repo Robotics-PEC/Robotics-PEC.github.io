@@ -26,7 +26,6 @@ export function useAuthRole(): AuthRoleState {
     setLoading(true);
     try {
       const { data } = await client.auth.getUser();
-      console.log({data});
       setUserId(data.user?.id ?? null);
       if (!data.user) {
         setRole(null);

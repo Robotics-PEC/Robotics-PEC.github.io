@@ -13,7 +13,7 @@ import { TableCell, TableRow } from "@/components/ui/table";
 import type { AppUser, Role } from "@/lib/roles";
 
 function initials(user: AppUser) {
-  const source = user.full_name || user.email || "?";
+  const source = user.fullName || user.email || "?";
   return source
     .split(/[\s@.]+/)
     .filter(Boolean)
@@ -40,11 +40,11 @@ export default function UserRow({
       <TableCell>
         <div className="flex items-center gap-3">
           <Avatar className="size-8">
-            {user.avatar_url && <AvatarImage src={user.avatar_url} alt="" />}
+            {user.avatarUrl && <AvatarImage src={user.avatarUrl} alt="" />}
             <AvatarFallback className="text-xs">{initials(user)}</AvatarFallback>
           </Avatar>
           <div className="min-w-0">
-            <p className="truncate text-sm font-medium">{user.full_name ?? "Unnamed user"}</p>
+            <p className="truncate text-sm font-medium">{user.fullName ?? "Unnamed user"}</p>
             <p className="truncate text-xs text-muted-foreground">{user.email}</p>
           </div>
         </div>
@@ -59,7 +59,7 @@ export default function UserRow({
       )}
 
       <TableCell className="hidden lg:table-cell text-xs text-muted-foreground">
-        {new Date(user.created_at).toLocaleDateString()}
+        {new Date(user.created_At).toLocaleDateString()}
       </TableCell>
 
       <TableCell className="w-44 text-right">

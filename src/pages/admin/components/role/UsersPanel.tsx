@@ -98,7 +98,7 @@ export default function UsersPanel({ roles }: { roles: Role[] }) {
     );
     try {
       await assignRole(user.id, roleId);
-      toast.success(`${user.full_name ?? user.email} is now ${next?.name}`);
+      toast.success(`${user.fullName ?? user.email} is now ${next?.name}`);
     } catch (error) {
       setUsers((prev) => prev.map((u) => (u.id === user.id ? { ...u, role: previous } : u)));
       toast.error(errorMessage(error, "Could not change role"));

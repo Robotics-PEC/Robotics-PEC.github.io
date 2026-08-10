@@ -20,17 +20,17 @@ export type Role = {
   name: string;
   slug: string;
   description: string | null;
-  is_default: boolean;
-  is_system: boolean;
+  isDefault: boolean;
+  isSystem: boolean;
   created_at: string;
 };
 
 export type AppUser = {
   id: string;
   email: string | null;
-  full_name: string | null;
-  avatar_url: string | null;
-  created_at: string;
+  fullName: string | null;
+  avatarUrl: string | null;
+  created_At: string;
   role: Pick<Role, "id" | "name" | "slug"> | null;
 };
 
@@ -59,8 +59,8 @@ function slugify(name: string) {
 export async function fetchRoles(): Promise<Role[]> {
   const { data, error } = await client
     .from("roles")
-    .select("id, name, slug, description, is_default, is_system, created_at")
-    .order("is_default", { ascending: false })
+    .select("id, name, slug, description, isDefault, isSystem, created_at")
+    .order("isDefault", { ascending: false })
     .order("name", { ascending: true });
   if (error) throw error;
   return (data ?? []) as Role[];
@@ -71,9 +71,9 @@ export async function fetchRoleCounts(roles: Role[]): Promise<Record<string, num
   const entries = await Promise.all(
     roles.map(async (role) => {
       const { count, error } = await client
-        .from("user_roles")
+        .from("userRoles")
         .select("id", { count: "exact", head: true })
-        .eq("role_id", role.id);
+        .eq("roleId", role.id);
       if (error) throw error;
       return [role.id, count ?? 0] as const;
     }),
@@ -121,6 +121,7 @@ export async function deleteRole(id: string) {
 
 /* ----------------------------------------------------------- page rules */
 
+/*
 export async function fetchRoleRoutes(roleId: string): Promise<string[]> {
   const { data, error } = await client
     .from("role_routes")
@@ -144,29 +145,30 @@ export async function setRoleRoutes(roleId: string, paths: string[]) {
     .insert(paths.map((path) => ({ role_id: roleId, path })));
   if (error) throw error;
 }
+*/
 
 /* ----------------------------------------------------------------- users */
 
 type ProfileRow = {
   id: string;
   email: string | null;
-  full_name: string | null;
-  avatar_url: string | null;
-  created_at: string;
-  user_roles:
-    | { role_id: string; roles: { id: string; name: string; slug: string } | null }[]
-    | { role_id: string; roles: { id: string; name: string; slug: string } | null }
+  fullName: string | null;
+  avatarUrl: string | null;
+  created_At: string;
+  userRoles:
+    | { roleId: string; roles: { id: string; name: string; slug: string } | null }[]
+    | { roleId: string; roles: { id: string; name: string; slug: string } | null }
     | null;
 };
 
 function toAppUser(row: ProfileRow): AppUser {
-  const link = Array.isArray(row.user_roles) ? row.user_roles[0] : row.user_roles;
+  const link = Array.isArray(row.userRoles) ? row.userRoles[0] : row.userRoles;
   return {
     id: row.id,
     email: row.email,
-    full_name: row.full_name,
-    avatar_url: row.avatar_url,
-    created_at: row.created_at,
+    fullName: row.fullName,
+    avatarUrl: row.avatarUrl,
+    created_At: row.created_At,
     role: link?.roles ?? null,
   };
 }
@@ -185,23 +187,23 @@ export async function fetchUsers({
   const to = from + pageSize - 1;
 
   const embed = roleId
-    ? "user_roles!inner(role_id, roles(id, name, slug))"
-    : "user_roles(role_id, roles(id, name, slug))";
+    ? "userRoles!inner(roleId, roles(id, name, slug))"
+    : "userRoles(roleId, roles(id, name, slug))";
 
   let query = client
     .from("profiles")
-    .select(`id, email, full_name, avatar_url, created_at, ${embed}`, {
+    .select(`id, email, fullName, avatarUrl, created_At, ${embed}`, {
       count: "exact",
     })
-    .order("created_at", { ascending: false })
+    .order("created_At", { ascending: false })
     .range(from, to);
 
-  if (roleId) query = query.eq("user_roles.role_id", roleId);
+  if (roleId) query = query.eq("userRoles.roleId", roleId);
 
   const term = search?.trim();
   if (term) {
     const safe = term.replace(/[%,()]/g, "");
-    query = query.or(`email.ilike.%${safe}%,full_name.ilike.%${safe}%`);
+    query = query.or(`email.ilike.%${safe}%,fullName.ilike.%${safe}%`);
   }
 
   const { data, error, count } = await query;
@@ -215,8 +217,8 @@ export async function fetchUsers({
 
 export async function assignRole(userId: string, roleId: string) {
   const { error } = await client
-    .from("user_roles")
-    .upsert({ user_id: userId, role_id: roleId }, { onConflict: "user_id" });
+    .from("userRoles")
+    .upsert({ userId, roleId }, { onConflict: "userId" });
   if (error) throw error;
 }
 
@@ -231,29 +233,44 @@ export async function fetchMyRole(): Promise<{
   if (!user) return { role: null, routes: [] };
 
   const { data, error } = await client
-    .from("user_roles")
-    .select("roles(id, name, slug, description, is_default, is_system, created_at)")
-    .eq("user_id", user.id)
-    .maybeSingle();
-  if (error) throw error;
+  .from("profiles")
+  .select(
+    "id, email, fullName, avatarUrl, created_At, " +
+    "userRoles(roleId, roles(id, name, slug, description, isDefault, isSystem, created_at))"
+  )
+  .eq("userId", user.id)          // or .eq("user_id", ...) won't work — this is the profiles table, so the column is id
+  .maybeSingle();
 
-  let role = ((data as { roles: Role | null } | null)?.roles ?? null) as Role | null;
+  if(error) {
+    console.log(error);
+    throw error;
+  }
+
+  const profile = data as any;
+
+  const link = Array.isArray(profile?.userRoles)
+  ? profile.userRoles[0]
+  : profile?.userRoles;
+
+  let role = (link?.roles ?? null) as Role | null;
 
   // No row yet (e.g. user created before the trigger) → fall back to default.
   if (!role) {
     const { data: fallback } = await client
       .from("roles")
-      .select("id, name, slug, description, is_default, is_system, created_at")
-      .eq("is_default", true)
+      .select("id, name, slug, description, isDefault, isSystem, created_at")
+      .eq("isDefault", true)
       .maybeSingle();
     role = (fallback as Role | null) ?? null;
-    if (role) await assignRole(user.id, role.id).catch(() => undefined);
+    if (role && data) {
+      await assignRole(profile.id, role.id).catch(() => undefined);
+    }
   }
 
   if (!role) return { role: null, routes: [] };
 
-  const routes = await fetchRoleRoutes(role.id);
-  return { role, routes };
+  // const routes = await fetchRoleRoutes(role.id);
+  return { role, routes: [] };
 }
 
 export function isAllowed(routes: string[], path: string) {

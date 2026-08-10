@@ -38,7 +38,7 @@ export default function RoleAccordion({
           <AccordionTrigger className="gap-2">
             <span className="flex items-center gap-2 text-sm font-medium">
               {role.name}
-              {role.is_default && <Badge variant="secondary">Default</Badge>}
+              {role.isDefault && <Badge variant="secondary">Default</Badge>}
             </span>
           </AccordionTrigger>
           <AccordionContent>
@@ -99,7 +99,7 @@ function RoleGroup({
     try {
       await assignRole(user.id, roleId);
       const next = allRoles.find((r) => r.id === roleId);
-      toast.success(`${user.full_name ?? user.email} moved to ${next?.name}`);
+      toast.success(`${user.fullName ?? user.email} moved to ${next?.name}`);
     } catch (error) {
       setUsers(previous);
       setTotal((t) => t + 1);
