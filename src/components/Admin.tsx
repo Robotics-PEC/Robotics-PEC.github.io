@@ -14,9 +14,22 @@ import PageHead from "./layout/PageHead";
 import PageSection from "./layout/PageSection";
 import ResourceEditor from "@/pages/admin/components/ResourceEditor";
 import BlogsEditor from "@/pages/admin/components/BlogsEditor";
+import Role from "@/pages/admin/components/Role";
+
+export enum TabValues {
+    HERO="hero",
+    PROJECTS="projects",
+    ACTIVITIES="activities",
+    EVENTS="events",
+    TEAM="team",
+    BLOGS = "blogs",
+    RESOURCES="resources",
+    ROLES="roles"
+
+}
 
 const Admin = () => {
-    const [activeTab, setActiveTab] = useState("hero");
+    const [activeTab, setActiveTab] = useState(TabValues.HERO);
     return (
         <>
             <PageHead
@@ -36,29 +49,32 @@ const Admin = () => {
                             className="max-w-6xl mx-auto"
                         >
 
-                            <Tabs defaultValue="hero" value={activeTab} onValueChange={setActiveTab} className="w-full mb-12">
+                            <Tabs defaultValue={TabValues.HERO} value={activeTab} onValueChange={(value: unknown) => setActiveTab(value as TabValues)} className="w-full mb-12">
                                 <div className="overflow-x-auto pb-2">
                                     <TabsList className="mb-8">
-                                        <TabsTrigger value="hero" className="flex items-center gap-2">
+                                        <TabsTrigger value={TabValues.HERO} className="flex items-center gap-2">
                                             <Home className="h-4 w-4" /> Hero Section
                                         </TabsTrigger>
-                                        <TabsTrigger value="projects" className="flex items-center gap-2">
+                                        <TabsTrigger value={TabValues.PROJECTS} className="flex items-center gap-2">
                                             <FileText className="h-4 w-4" /> Projects
                                         </TabsTrigger>
-                                        <TabsTrigger value="activities" className="flex items-center gap-2">
+                                        <TabsTrigger value={TabValues.ACTIVITIES} className="flex items-center gap-2">
                                             <FileText className="h-4 w-4" /> Activities
                                         </TabsTrigger>
-                                        <TabsTrigger value="events" className="flex items-center gap-2">
+                                        <TabsTrigger value={TabValues.EVENTS} className="flex items-center gap-2">
                                             <Calendar className="h-4 w-4" /> Events
                                         </TabsTrigger>
-                                        <TabsTrigger value="team" className="flex items-center gap-2">
+                                        <TabsTrigger value={TabValues.TEAM} className="flex items-center gap-2">
                                             <Users className="h-4 w-4" /> Team
                                         </TabsTrigger>
-                                        <TabsTrigger value="blogs" className="flex items-center gap-2">
+                                        <TabsTrigger value={TabValues.BLOGS} className="flex items-center gap-2">
                                             <Users className="h-4 w-4" /> Blogs
                                         </TabsTrigger>
-                                        <TabsTrigger value="resources" className="flex items-center gap-2">
+                                        <TabsTrigger value={TabValues.RESOURCES} className="flex items-center gap-2">
                                             <Book className="h-4 w-4" /> Resources
+                                        </TabsTrigger>
+                                        <TabsTrigger value={TabValues.ROLES} className="flex items-center gap-2">
+                                            <Book className="h-4 w-4" /> Roles
                                         </TabsTrigger>
                                     </TabsList>
                                 </div>
@@ -66,49 +82,54 @@ const Admin = () => {
                                 <Card className="shadow-md">
                                     <CardHeader>
                                         <CardTitle>
-                                            {activeTab === "hero" && "Hero Section Editor"}
-                                            {activeTab === "projects" && "Projects Editor"}
-                                            {activeTab === "activities" && "Activities Editor"}
-                                            {activeTab === "events" && "Events Editor"}
-                                            {activeTab === "team" && "Team Members Editor"}
-                                            {activeTab === "blogs" && "Blogs Editor"}
-                                            {activeTab === "resources" && "Add Resources"}
+                                            {activeTab === TabValues.HERO && "Hero Section Editor"}
+                                            {activeTab === TabValues.PROJECTS && "Projects Editor"}
+                                            {activeTab === TabValues.ACTIVITIES && "Activities Editor"}
+                                            {activeTab === TabValues.EVENTS && "Events Editor"}
+                                            {activeTab === TabValues.TEAM && "Team Members Editor"}
+                                            {activeTab === TabValues.BLOGS && "Blogs Editor"}
+                                            {activeTab === TabValues.RESOURCES && "Add Resources"}
+                                            {activeTab === TabValues.ROLES && "Define Roles"}
                                         </CardTitle>
                                         <CardDescription>
-                                            {activeTab === "hero" && "Edit the main heading, text and background images"}
-                                            {activeTab === "projects" && "Add, edit or remove projects"}
-                                            {activeTab === "activities" && "Manage robotics activities and workshops"}
-                                            {activeTab === "events" && "Add or edit upcoming events and competitions"}
-                                            {activeTab === "team" && "Manage team members and their information"}
-                                            {activeTab === "blogs" && "Manage blog posts"}
-                                            {activeTab === "resources" && "Manage Resources and Links"}
+                                            {activeTab === TabValues.HERO && "Edit the main heading, text and background images"}
+                                            {activeTab === TabValues.PROJECTS && "Add, edit or remove projects"}
+                                            {activeTab === TabValues.ACTIVITIES && "Manage robotics activities and workshops"}
+                                            {activeTab === TabValues.EVENTS && "Add or edit upcoming events and competitions"}
+                                            {activeTab === TabValues.TEAM && "Manage team members and their information"}
+                                            {activeTab === TabValues.BLOGS && "Manage blog posts"}
+                                            {activeTab === TabValues.RESOURCES && "Manage Resources and Links"}
+                                            {activeTab === TabValues.ROLES && "Manage Roles for different society members"}
                                         </CardDescription>
                                     </CardHeader>
                                     <CardContent>
-                                        <TabsContent value="hero" className="mt-0">
+                                        <TabsContent value={TabValues.HERO} className="mt-0">
                                             <HeroEditor />
                                         </TabsContent>
 
-                                        <TabsContent value="projects" className="mt-0">
+                                        <TabsContent value={TabValues.PROJECTS} className="mt-0">
                                             <ProjectsEditor />
                                         </TabsContent>
 
-                                        <TabsContent value="activities" className="mt-0">
+                                        <TabsContent value={TabValues.ACTIVITIES} className="mt-0">
                                             <ActivitiesEditor />
                                         </TabsContent>
 
-                                        <TabsContent value="events" className="mt-0">
+                                        <TabsContent value={TabValues.EVENTS} className="mt-0">
                                             <EventsEditor />
                                         </TabsContent>
 
-                                        <TabsContent value="team" className="mt-0">
+                                        <TabsContent value={TabValues.TEAM} className="mt-0">
                                             <TeamEditor />
                                         </TabsContent>
-                                        <TabsContent value="blogs" className="mt-0">
+                                        <TabsContent value={TabValues.BLOGS} className="mt-0">
                                             <BlogsEditor />
                                         </TabsContent>
-                                        <TabsContent value="resources" className="mt-0">
+                                        <TabsContent value={TabValues.RESOURCES} className="mt-0">
                                             <ResourceEditor />
+                                        </TabsContent>
+                                        <TabsContent value={TabValues.ROLES} className="mt-0">
+                                            <Role />
                                         </TabsContent>
                                     </CardContent>
                                 </Card>
