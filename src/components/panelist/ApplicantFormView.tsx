@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useAuthRole } from "@/lib/useAuthRole";
 import { ApplicantType } from "@/types";
 
 import { Button } from "@/components/ui/button";
@@ -19,6 +20,7 @@ const ApplicantFormView = ({
     onBack,
     onStatusUpdate,
 }: ApplicantFormViewProps) => {
+    const { role } = useAuthRole();
     const [currentStatus, setCurrentStatus] = useState<
         "pending" | "accepted" | "rejected"
     >(applicant.status);
@@ -27,18 +29,7 @@ const ApplicantFormView = ({
         status: "accepted" | "rejected",
         remarks: string
     ) => {
-        const session = sessionStorage.getItem("panelist_session");
-
-        let reviewedBy = "Unknown Panelist";
-
-        if (session) {
-            try {
-                const parsedSession = JSON.parse(session);
-                reviewedBy = parsedSession.name || reviewedBy;
-            } catch (error) {
-                console.error("Invalid panelist session:", error);
-            }
-        }
+        const reviewedBy = role?.slug === "admin" ? "Admin" : "Panelist";
 
         const success = await updateApplicantDecision(
             applicant.id,
@@ -57,8 +48,8 @@ const ApplicantFormView = ({
             ...applicant,
             status,
             remarks,
-            reviewed_by: reviewedBy,
-            reviewed_at: new Date().toISOString(),
+            reviewedBy: reviewedBy,
+            reviewedAt: new Date().toISOString(),
         });
     };
 
@@ -81,13 +72,13 @@ const ApplicantFormView = ({
 
                     <p className="text-muted-foreground">
                         SID: {applicant.sid}{" "}
-                        {applicant.is_walkin ? "(Walk-In)" : ""}
+                        {applicant.isWalkin ? "(Walk-In)" : ""}
                     </p>
                 </div>
             </div>
 
             {/* Applicant Details */}
-            {applicant.is_walkin ? (
+            {applicant.isWalkin ? (
                 <div className="mb-6 flex flex-1 flex-col items-center justify-center rounded-lg border bg-gray-50 p-8 text-center">
                     <h3 className="mb-4 text-xl font-medium text-gray-700">
                         Walk-In Applicant Details
@@ -182,7 +173,7 @@ const ApplicantFormView = ({
                 applicantId={applicant.id}
                 currentStatus={currentStatus}
                 remarks={applicant.remarks}
-                reviewedBy={applicant.reviewed_by}
+                reviewedBy={applicant.reviewedBy}
                 onSubmitDecision={handleSubmitDecision}
             />
         </div>

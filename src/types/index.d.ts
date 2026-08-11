@@ -163,20 +163,20 @@ export interface ApplicantType {
     q3?: string;
     q4?: string;
 
-    is_walkin: boolean;
+    isWalkin: boolean;
     status: "pending" | "accepted" | "rejected";
     remarks?: string;
-    reviewed_by?: string;
-    reviewed_at?: string;
-    created_at: string;
+    reviewedBy?: string;
+    reviewedAt?: string;
+    createdAt: string;
 }
 
 export interface PanelistType {
     id: string;
     name: string;
-    panel_number: number;
-    is_occupied: boolean;
-    last_updated: string;
+    panelNumber: number;
+    isOccupied: boolean;
+    lastUpdated: string;
 }
 
 export interface PanelistAuthType {

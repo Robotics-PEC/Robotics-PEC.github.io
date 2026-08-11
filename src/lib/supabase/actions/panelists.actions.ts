@@ -1,11 +1,11 @@
-import { panelistClient } from "../panelistClient";
+import { client } from "../supabase";
 import { PanelistType } from "@/types";
 
 export const fetchPanelists = async (): Promise<PanelistType[]> => {
-    const { data, error } = await panelistClient
+    const { data, error } = await client
         .from("panelists")
         .select("*")
-        .order("panel_number", { ascending: true });
+        .order("panelNumber", { ascending: true });
 
     if (error) {
         console.error("Error fetching panelists:", error);
@@ -19,12 +19,12 @@ export const updateMyStatus = async (
     panelNumber: number,
     isOccupied: boolean
 ): Promise<boolean> => {
-    const { error } = await panelistClient
+    const { error } = await client
         .from("panelists")
         .update({
-            is_occupied: isOccupied,
+            isOccupied: isOccupied,
         })
-        .eq("panel_number", panelNumber);
+        .eq("panelNumber", panelNumber);
 
     if (error) {
         console.error("Error updating panelist status:", error);
@@ -37,7 +37,7 @@ export const updateMyStatus = async (
 export const subscribeToPanelistUpdates = (
     onUpdate: (panelist: PanelistType) => void
 ) => {
-    const channel = panelistClient
+    const channel = client
         .channel("panelists-status")
         .on(
             "postgres_changes",
@@ -53,6 +53,6 @@ export const subscribeToPanelistUpdates = (
         .subscribe();
 
     return () => {
-        panelistClient.removeChannel(channel);
+        client.removeChannel(channel);
     };
 };

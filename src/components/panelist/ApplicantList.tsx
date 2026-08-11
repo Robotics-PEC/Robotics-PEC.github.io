@@ -3,7 +3,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Search, Plus } from "lucide-react";
 import { ApplicantType } from "@/types";
-import { fetchApplicants, subscribeToApplicantUpdates } from "@/lib/supabase/actions/applicants.actions";
+import { fetchApplicants, subscribeToApplicantUpdates, fetchApplicantWithResponses } from "@/lib/supabase/actions/applicants.actions";
 import ApplicantCard from "./ApplicantCard";
 import ApplicantFormView from "./ApplicantFormView";
 import WalkInModal from "./WalkInModal";
@@ -68,6 +68,23 @@ const ApplicantList = () => {
         'rejected': 3
     };
 
+    const handleSelectApplicant = async (applicant: ApplicantType) => {
+        if (applicant.isWalkin || (applicant.branch && applicant.q1)) {
+            setSelectedApplicant(applicant);
+            return;
+        }
+        
+        const fullApplicant = await fetchApplicantWithResponses(applicant.id);
+        if (fullApplicant) {
+            setSelectedApplicant(fullApplicant);
+            setApplicants(current =>
+                current.map(app => app.id === fullApplicant.id ? fullApplicant : app)
+            );
+        } else {
+            setSelectedApplicant(applicant);
+        }
+    };
+
     const filteredApplicants = applicants
         .filter(app => 
             app.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
@@ -114,7 +131,7 @@ const ApplicantList = () => {
                     <div className="text-center py-8 text-gray-500">No applicants found.</div>
                 ) : (
                     filteredApplicants.map(app => (
-                        <ApplicantCard key={app.id} applicant={app} onClick={setSelectedApplicant} />
+                        <ApplicantCard key={app.id} applicant={app} onClick={handleSelectApplicant} />
                     ))
                 )}
             </div>

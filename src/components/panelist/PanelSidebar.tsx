@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useAuthRole } from "@/lib/useAuthRole";
 
 import { PanelistType } from "@/types";
 
@@ -18,23 +19,21 @@ const PanelSidebar = () => {
     const [isLoading, setIsLoading] = useState(true);
     const [isUpdating, setIsUpdating] = useState(false);
 
-    useEffect(() => {
-        const session = sessionStorage.getItem("panelist_session");
+    const { role } = useAuthRole();
 
-        if (!session) {
-            setIsLoading(false);
+    useEffect(() => {
+        if (!role) {
             return;
         }
 
-        try {
-            const parsedSession = JSON.parse(session);
-
-            setMyPanelNumber(Number(parsedSession.panel_number));
-            setMyName(parsedSession.name || "");
-        } catch (error) {
-            console.error("Invalid panelist session:", error);
+        if (role.slug === "admin") {
+            setMyName("Admin");
+            setMyPanelNumber(null);
+        } else {
+            setMyName("Panelist");
+            setMyPanelNumber(1); // Default to Panel 1 for now if no custom mapping exists
         }
-    }, []);
+    }, [role]);
 
     useEffect(() => {
         const loadPanelists = async () => {
@@ -62,7 +61,7 @@ const PanelSidebar = () => {
     }, []);
 
     const myPanel = panelists.find(
-        (panelist) => panelist.panel_number === myPanelNumber
+        (panelist) => panelist.panelNumber === myPanelNumber
     );
 
     const handleToggle = async () => {
@@ -70,7 +69,7 @@ const PanelSidebar = () => {
             return;
         }
 
-        const newStatus = !myPanel.is_occupied;
+        const newStatus = !myPanel.isOccupied;
 
         setIsUpdating(true);
 
@@ -82,10 +81,10 @@ const PanelSidebar = () => {
         if (success) {
             setPanelists((currentPanelists) =>
                 currentPanelists.map((panelist) =>
-                    panelist.panel_number === myPanelNumber
+                    panelist.panelNumber === myPanelNumber
                         ? {
                               ...panelist,
-                              is_occupied: newStatus,
+                              isOccupied: newStatus,
                           }
                         : panelist
                 )
@@ -96,7 +95,7 @@ const PanelSidebar = () => {
     };
 
     const otherPanelists = panelists.filter(
-        (panelist) => panelist.panel_number !== myPanelNumber
+        (panelist) => panelist.panelNumber !== myPanelNumber
     );
 
     return (
@@ -111,17 +110,26 @@ const PanelSidebar = () => {
                     <p className="mt-6 text-sm text-gray-500">
                         Loading...
                     </p>
+                ) : role?.slug === "admin" ? (
+                    <div className="flex flex-col items-center justify-center py-4">
+                        <p className="mt-3 font-semibold text-gray-800">
+                            Admin Access
+                        </p>
+                        <p className="text-sm text-gray-500">
+                            Spectator Mode
+                        </p>
+                    </div>
                 ) : myPanel ? (
                     <>
                         <div className="mt-5">
                             <PanelStatusIcon
-                                isOccupied={myPanel.is_occupied}
+                                isOccupied={myPanel.isOccupied}
                                 size="lg"
                             />
                         </div>
 
                         <p className="mt-3 font-semibold text-gray-800">
-                            Panel {myPanel.panel_number}
+                            Panel {myPanel.panelNumber}
                         </p>
 
                         <p className="text-sm text-gray-500">
@@ -133,7 +141,7 @@ const PanelSidebar = () => {
                             onClick={handleToggle}
                             disabled={isUpdating}
                             className={`mt-5 flex items-center gap-3 rounded-full px-4 py-2 text-sm font-medium transition ${
-                                myPanel.is_occupied
+                                myPanel.isOccupied
                                     ? "bg-red-100 text-red-700"
                                     : "bg-green-100 text-green-700"
                             } ${
@@ -144,13 +152,13 @@ const PanelSidebar = () => {
                         >
                             <span
                                 className={`h-3 w-3 rounded-full ${
-                                    myPanel.is_occupied
+                                    myPanel.isOccupied
                                         ? "bg-red-500"
                                         : "bg-green-500"
                                 }`}
                             />
 
-                            {myPanel.is_occupied
+                            {myPanel.isOccupied
                                 ? "Occupied"
                                 : "Free"}
                         </button>

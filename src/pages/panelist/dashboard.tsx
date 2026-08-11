@@ -1,27 +1,31 @@
 import ApplicantList from "@/components/panelist/ApplicantList";
 import PanelSidebar from "@/components/panelist/PanelSidebar";
-import { useEffect, useState } from "react";
+import NotFound from "@/pages/404";
+import { useAuthRole } from "@/lib/useAuthRole";
+import PageHead from "@/components/layout/PageHead";
+import { useEffect } from "react";
+import { useRouter } from "next/router";
 
 const PanelistDashboard = () => {
-    const [isAuthenticated, setIsAuthenticated] = useState(false);
+    const { role, loading, userId } = useAuthRole();
+    const router = useRouter();
 
     useEffect(() => {
-        const session = sessionStorage.getItem("panelist_session");
-
-        if (!session) {
-            window.location.href = "/panelist";
-            return;
+        if (!loading && !userId) {
+            router.replace("/login");
         }
+    }, [loading, userId, router]);
 
-        setIsAuthenticated(true);
-    }, []);
-
-    if (!isAuthenticated) {
+    if (loading || !userId) {
         return (
             <div className="min-h-screen flex items-center justify-center">
                 <p>Loading...</p>
             </div>
         );
+    }
+
+    if (!role || (role.slug !== "admin" && role.slug !== "panelist")) {
+        return <NotFound />;
     }
 
     return (

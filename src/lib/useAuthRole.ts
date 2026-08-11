@@ -28,7 +28,7 @@ export function useAuthRole(): AuthRoleState {
       const { data } = await client.auth.getUser();
       setUserId(data.user?.id ?? null);
       if (!data.user) {
-        setRole(null);
+        setRole(null);  
         setRoutes([]);
         return;
       }

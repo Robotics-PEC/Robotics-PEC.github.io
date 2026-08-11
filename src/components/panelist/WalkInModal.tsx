@@ -32,10 +32,29 @@ const WalkInModal = ({ isOpen, onClose, onSuccess }: WalkInModalProps) => {
             return;
         }
 
-        if (sid.length !== 8) {
+        const nameRegex = /^[A-Za-z\s]+$/;
+        if (!nameRegex.test(name)) {
             toast({
                 title: "Error",
-                description: "SID must be exactly 8 characters.",
+                description: "Name can only contain letters and spaces.",
+                variant: "destructive"
+            });
+            return;
+        }
+
+        if (sid.length !== 8 || !/^\d{8}$/.test(sid)) {
+            toast({
+                title: "Error",
+                description: "SID must be exactly 8 digits.",
+                variant: "destructive"
+            });
+            return;
+        }
+
+        if (phone && !/^\d{10}$/.test(phone)) {
+            toast({
+                title: "Error",
+                description: "Phone number must be exactly 10 digits if provided.",
                 variant: "destructive"
             });
             return;
@@ -74,7 +93,7 @@ const WalkInModal = ({ isOpen, onClose, onSuccess }: WalkInModalProps) => {
                     </div>
                     <div className="space-y-2">
                         <Label htmlFor="phone">Phone (Optional)</Label>
-                        <Input id="phone" value={phone} onChange={e => setPhone(e.target.value)} placeholder="Phone Number" />
+                        <Input id="phone" value={phone} onChange={e => setPhone(e.target.value.replace(/\D/g, ''))} placeholder="10-digit Phone Number" maxLength={10} />
                     </div>
                     <DialogFooter>
                         <Button type="button" variant="outline" onClick={onClose}>Cancel</Button>

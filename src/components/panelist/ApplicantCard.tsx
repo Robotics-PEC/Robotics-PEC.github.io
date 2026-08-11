@@ -18,12 +18,12 @@ const ApplicantCard = ({ applicant, onClick }: ApplicantCardProps) => {
     return (
         <div 
             onClick={() => onClick(applicant)}
-            className={`flex items-center justify-between p-4 border rounded-lg mb-2 cursor-pointer hover:bg-accent transition-colors ${applicant.is_walkin ? 'bg-gray-100' : 'bg-white'}`}
+            className={`flex items-center justify-between p-4 border rounded-lg mb-2 cursor-pointer hover:bg-accent transition-colors ${applicant.isWalkin ? 'bg-gray-100' : 'bg-white'}`}
         >
             <div>
                 <h3 className="font-medium text-lg flex items-center gap-2">
                     {applicant.name}
-                    {applicant.is_walkin && <Badge variant="outline" className="text-xs">Walk-In</Badge>}
+                    {applicant.isWalkin && <Badge variant="outline" className="text-xs">Walk-In</Badge>}
                 </h3>
                 <p className="text-sm text-muted-foreground">SID: {applicant.sid}</p>
             </div>

@@ -9,12 +9,12 @@ const MiniPanelIcon = ({ panelist }: MiniPanelIconProps) => {
     return (
         <div className="flex flex-col items-center gap-1">
             <PanelStatusIcon
-                isOccupied={panelist.is_occupied}
+                isOccupied={panelist.isOccupied}
                 size="sm"
             />
 
             <span className="text-xs font-medium text-gray-700 text-center px-1">
-                {panelist.name} (P{panelist.panel_number})
+                {panelist.name} (P{panelist.panelNumber})
             </span>
         </div>
     );
