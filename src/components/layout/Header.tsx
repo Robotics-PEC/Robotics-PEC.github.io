@@ -28,6 +28,7 @@ const Header = ({ isAdmin = false }: { isAdmin?: boolean }) => {
         { name: "Projects", path: "/project" },
         { name: "Activities", path: "/activities" },
         { name: "Events", path: "/events" },
+        { name: "Apply", path: "/apply" },
         { name: "Contact", path: "/contact" },
         { name: "Resources", path: "/resources" }
     ];

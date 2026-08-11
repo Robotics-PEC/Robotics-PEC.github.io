@@ -1,6 +1,16 @@
 import { panelistClient } from "../panelistClient";
 import { ApplicantType } from "@/types";
 
+export type CreateApplicantResult =
+    | {
+          success: true;
+          applicant: ApplicantType;
+      }
+    | {
+          success: false;
+          reason: "duplicate" | "error";
+      };
+
 export const fetchApplicants = async (): Promise<ApplicantType[]> => {
     const { data, error } = await panelistClient
         .from("applicants")
@@ -11,14 +21,25 @@ export const fetchApplicants = async (): Promise<ApplicantType[]> => {
         console.error("Error fetching applicants:", error);
         return [];
     }
+
     return data as ApplicantType[];
 };
 
-export const createWalkIn = async (name: string, sid: string, phone: string): Promise<ApplicantType | null> => {
+export const createWalkIn = async (
+    name: string,
+    sid: string,
+    phone: string
+): Promise<ApplicantType | null> => {
     const { data, error } = await panelistClient
         .from("applicants")
         .insert([
-            { name, sid, phone, is_walkin: true, status: 'pending' }
+            {
+                name,
+                sid,
+                phone,
+                is_walkin: true,
+                status: "pending",
+            },
         ])
         .select()
         .single();
@@ -27,8 +48,67 @@ export const createWalkIn = async (name: string, sid: string, phone: string): Pr
         console.error("Error creating walk-in:", error);
         return null;
     }
+
     return data as ApplicantType;
 };
+
+export const createApplicant = async (
+    name: string,
+    sid: string,
+    branch: string,
+    q1: string,
+    q2: string,
+    q3: string,
+    q4: string
+): Promise<CreateApplicantResult> => {
+    const { data, error } = await panelistClient
+        .from("applicants")
+        .insert([
+            {
+                name,
+                sid,
+                branch,
+                q1,
+                q2,
+                q3,
+                q4,
+                is_walkin: false,
+                status: "pending",
+            },
+        ])
+        .select()
+        .single();
+
+    if (error) {
+        if (error.code === "23505") {
+            console.error("Duplicate application:", error);
+
+            return {
+                success: false,
+                reason: "duplicate",
+            };
+        }
+
+        console.error("Error creating applicant:", error);
+        console.error("Error details:", {
+            message: error.message,
+            details: error.details,
+            hint: error.hint,
+            code: error.code,
+        });
+
+        return {
+            success: false,
+            reason: "error",
+        };
+    }
+
+    return {
+        success: true,
+        applicant: data as ApplicantType,
+    };
+};
+
 export const updateApplicantDecision = async (
     applicantId: string,
     status: "accepted" | "rejected",

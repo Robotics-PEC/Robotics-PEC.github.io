@@ -155,8 +155,16 @@ export interface ApplicantType {
     name: string;
     sid: string;
     phone?: string;
+
+    // Regular application fields
+    branch?: string;
+    q1?: string;
+    q2?: string;
+    q3?: string;
+    q4?: string;
+
     is_walkin: boolean;
-    status: 'pending' | 'accepted' | 'rejected';
+    status: "pending" | "accepted" | "rejected";
     remarks?: string;
     reviewed_by?: string;
     reviewed_at?: string;

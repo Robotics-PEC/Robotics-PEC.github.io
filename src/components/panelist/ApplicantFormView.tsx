@@ -52,18 +52,20 @@ const ApplicantFormView = ({
         }
 
         setCurrentStatus(status);
+
         onStatusUpdate({
             ...applicant,
             status,
             remarks,
             reviewed_by: reviewedBy,
-            reviewed_at: new Date().toISOString()
+            reviewed_at: new Date().toISOString(),
         });
     };
 
     return (
-        <div className="flex flex-col h-full bg-white rounded-lg border p-6">
-            <div className="flex items-center gap-4 mb-6 pb-4 border-b">
+        <div className="flex h-full flex-col rounded-lg border bg-white p-6">
+            {/* Header */}
+            <div className="mb-6 flex items-center gap-4 border-b pb-4">
                 <Button
                     variant="ghost"
                     size="icon"
@@ -84,17 +86,18 @@ const ApplicantFormView = ({
                 </div>
             </div>
 
+            {/* Applicant Details */}
             {applicant.is_walkin ? (
-                <div className="flex-1 flex flex-col items-center justify-center rounded-lg p-8 bg-gray-50 text-center mb-6 border">
-                    <h3 className="text-xl font-medium text-gray-700 mb-4">
+                <div className="mb-6 flex flex-1 flex-col items-center justify-center rounded-lg border bg-gray-50 p-8 text-center">
+                    <h3 className="mb-4 text-xl font-medium text-gray-700">
                         Walk-In Applicant Details
                     </h3>
 
-                    <p className="text-sm font-medium text-gray-600 mb-2">
+                    <p className="mb-2 text-sm font-medium text-gray-600">
                         Name: {applicant.name}
                     </p>
 
-                    <p className="text-sm font-medium text-gray-600 mb-2">
+                    <p className="mb-2 text-sm font-medium text-gray-600">
                         SID: {applicant.sid}
                     </p>
 
@@ -105,17 +108,76 @@ const ApplicantFormView = ({
                     )}
                 </div>
             ) : (
-                <div className="flex-1 flex flex-col items-center justify-center border-2 border-dashed rounded-lg p-8 bg-gray-50 text-center mb-6">
-                    <h3 className="text-xl font-medium text-gray-500 mb-2">
-                        Application Form
-                    </h3>
+                <div className="mb-6 flex-1 overflow-y-auto">
+                    <div className="rounded-lg border bg-gray-50 p-6">
+                        <h3 className="mb-6 text-xl font-semibold text-gray-900">
+                            Application
+                        </h3>
 
-                    <p className="text-sm text-gray-400">
-                        Placeholder for the main application form content.
-                    </p>
+                        {/* Basic Information */}
+                        <div className="mb-8 grid gap-6 sm:grid-cols-2">
+                            <div>
+                                <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                                    Name
+                                </p>
+
+                                <p className="mt-1 text-sm font-medium text-gray-900">
+                                    {applicant.name}
+                                </p>
+                            </div>
+
+                            <div>
+                                <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                                    SID
+                                </p>
+
+                                <p className="mt-1 text-sm font-medium text-gray-900">
+                                    {applicant.sid}
+                                </p>
+                            </div>
+
+                            <div>
+                                <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                                    Branch
+                                </p>
+
+                                <p className="mt-1 text-sm font-medium text-gray-900">
+                                    {applicant.branch || "Not provided"}
+                                </p>
+                            </div>
+                        </div>
+
+                        {/* Application Questions */}
+                        <div className="space-y-6">
+                            <ApplicationAnswer
+                                number="Q1"
+                                question="Why are you interested in robotics, and what motivates you to join this society?"
+                                answer={applicant.q1}
+                            />
+
+                            <ApplicationAnswer
+                                number="Q2"
+                                question="Have you participated in any robotics competition or events? If yes, please provide details."
+                                answer={applicant.q2}
+                            />
+
+                            <ApplicationAnswer
+                                number="Q3"
+                                question="If you would have the opportunity to make any robot of your choice, what would it be? Describe it."
+                                answer={applicant.q3}
+                            />
+
+                            <ApplicationAnswer
+                                number="Q4"
+                                question="What are your expectations from Robotics Society?"
+                                answer={applicant.q4}
+                            />
+                        </div>
+                    </div>
                 </div>
             )}
 
+            {/* Accept / Reject section */}
             <ApplicantDecision
                 applicantId={applicant.id}
                 currentStatus={currentStatus}
@@ -126,5 +188,35 @@ const ApplicantFormView = ({
         </div>
     );
 };
+
+interface ApplicationAnswerProps {
+    number: string;
+    question: string;
+    answer?: string;
+}
+
+function ApplicationAnswer({
+    number,
+    question,
+    answer,
+}: ApplicationAnswerProps) {
+    return (
+        <div>
+            <p className="text-sm font-semibold leading-6 text-gray-900">
+                <span className="mr-2 text-muted-foreground">
+                    {number}.
+                </span>
+
+                {question}
+            </p>
+
+            <div className="mt-2 rounded-md border bg-white p-4">
+                <p className="whitespace-pre-wrap text-sm leading-6 text-gray-700">
+                    {answer || "No answer provided."}
+                </p>
+            </div>
+        </div>
+    );
+}
 
 export default ApplicantFormView;
