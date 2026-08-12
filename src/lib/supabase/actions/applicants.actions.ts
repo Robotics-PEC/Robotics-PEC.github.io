@@ -14,7 +14,7 @@ export type CreateApplicantResult =
 export const fetchApplicants = async (): Promise<ApplicantType[]> => {
     const { data, error } = await client
         .from("applicants")
-        .select("*, applicant_response(branch, q1, q2, q3, q4)")
+        .select("*, applicant_response(branch, responses)")
         .order("createdAt", { ascending: false });
 
     if (error) {
@@ -28,10 +28,7 @@ export const fetchApplicants = async (): Promise<ApplicantType[]> => {
         return {
             ...item,
             branch: responseData?.branch,
-            q1: responseData?.q1,
-            q2: responseData?.q2,
-            q3: responseData?.q3,
-            q4: responseData?.q4,
+            responses: responseData?.responses,
         };
     }) as ApplicantType[];
 };
@@ -39,7 +36,7 @@ export const fetchApplicants = async (): Promise<ApplicantType[]> => {
 export const fetchApplicantWithResponses = async (id: string): Promise<ApplicantType | null> => {
     const { data, error } = await client
         .from("applicants")
-        .select("*, applicant_response(branch, q1, q2, q3, q4)")
+        .select("*, applicant_response(branch, responses)")
         .eq("id", id)
         .single();
 
@@ -54,10 +51,7 @@ export const fetchApplicantWithResponses = async (id: string): Promise<Applicant
     return {
         ...data,
         branch: responseData?.branch,
-        q1: responseData?.q1,
-        q2: responseData?.q2,
-        q3: responseData?.q3,
-        q4: responseData?.q4,
+        responses: responseData?.responses,
     } as ApplicantType;
 };
 
@@ -72,7 +66,7 @@ export const createWalkIn = async (
             {
                 name,
                 sid,
-                phone,
+                phone: phone || null,
                 isWalkin: true,
                 status: "pending",
             },
@@ -92,10 +86,7 @@ export const createApplicant = async (
     name: string,
     sid: string,
     branch: string,
-    q1: string,
-    q2: string,
-    q3: string,
-    q4: string
+    responses: Record<string, string>
 ): Promise<CreateApplicantResult> => {
     const { data: applicantData, error: applicantError } = await client
         .from("applicants")
@@ -139,10 +130,7 @@ export const createApplicant = async (
             {
                 applicantId: applicantData.id,
                 branch,
-                q1,
-                q2,
-                q3,
-                q4,
+                responses,
             },
         ]);
 
@@ -161,10 +149,7 @@ export const createApplicant = async (
         applicant: {
             ...applicantData,
             branch,
-            q1,
-            q2,
-            q3,
-            q4,
+            responses,
         } as ApplicantType,
     };
 };

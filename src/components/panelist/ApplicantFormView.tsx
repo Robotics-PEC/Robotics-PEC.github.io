@@ -8,6 +8,7 @@ import { ArrowLeft } from "lucide-react";
 import ApplicantDecision from "./ApplicantDecision";
 
 import { updateApplicantDecision } from "@/lib/supabase/actions/applicants.actions";
+import { APPLICATION_QUESTIONS } from "../ApplicationForm";
 
 export interface ApplicantFormViewProps {
     applicant: ApplicantType;
@@ -140,29 +141,14 @@ const ApplicantFormView = ({
 
                         {/* Application Questions */}
                         <div className="space-y-6">
-                            <ApplicationAnswer
-                                number="Q1"
-                                question="Why are you interested in robotics, and what motivates you to join this society?"
-                                answer={applicant.q1}
-                            />
-
-                            <ApplicationAnswer
-                                number="Q2"
-                                question="Have you participated in any robotics competition or events? If yes, please provide details."
-                                answer={applicant.q2}
-                            />
-
-                            <ApplicationAnswer
-                                number="Q3"
-                                question="If you would have the opportunity to make any robot of your choice, what would it be? Describe it."
-                                answer={applicant.q3}
-                            />
-
-                            <ApplicationAnswer
-                                number="Q4"
-                                question="What are your expectations from Robotics Society?"
-                                answer={applicant.q4}
-                            />
+                            {APPLICATION_QUESTIONS.map((q) => (
+                                <ApplicationAnswer
+                                    key={q.id}
+                                    number={q.id}
+                                    question={q.text}
+                                    answer={applicant.responses?.[q.id]}
+                                />
+                            ))}
                         </div>
                     </div>
                 </div>

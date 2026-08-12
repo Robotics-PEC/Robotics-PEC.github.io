@@ -30,8 +30,14 @@ const PanelSidebar = () => {
             setMyName("Admin");
             setMyPanelNumber(null);
         } else {
-            setMyName("Panelist");
-            setMyPanelNumber(1); // Default to Panel 1 for now if no custom mapping exists
+            setMyName(role.name || "Panelist");
+            // Map the logged-in user to their actual panel record by parsing their role name (e.g., "Panel 1")
+            const panelMatch = role.name?.match(/Panel\s*(\d+)/i);
+            if (panelMatch) {
+                setMyPanelNumber(parseInt(panelMatch[1], 10));
+            } else {
+                setMyPanelNumber(1); // Fallback
+            }
         }
     }, [role]);
 

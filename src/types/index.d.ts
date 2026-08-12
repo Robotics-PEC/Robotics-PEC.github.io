@@ -158,10 +158,7 @@ export interface ApplicantType {
 
     // Regular application fields
     branch?: string;
-    q1?: string;
-    q2?: string;
-    q3?: string;
-    q4?: string;
+    responses?: Record<string, string>;
 
     isWalkin: boolean;
     status: "pending" | "accepted" | "rejected";

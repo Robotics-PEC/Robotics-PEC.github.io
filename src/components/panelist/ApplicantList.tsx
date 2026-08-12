@@ -30,12 +30,12 @@ const ApplicantList = () => {
         const unsubscribe = subscribeToApplicantUpdates(
             (updatedApplicant) => {
                 setApplicants((current) =>
-                    current.map((app) => (app.id === updatedApplicant.id ? updatedApplicant : app))
+                    current.map((app) => (app.id === updatedApplicant.id ? { ...app, ...updatedApplicant } : app))
                 );
                 
                 setSelectedApplicant((current) => {
                     if (current && current.id === updatedApplicant.id) {
-                        return updatedApplicant;
+                        return { ...current, ...updatedApplicant };
                     }
                     return current;
                 });
@@ -69,7 +69,7 @@ const ApplicantList = () => {
     };
 
     const handleSelectApplicant = async (applicant: ApplicantType) => {
-        if (applicant.isWalkin || (applicant.branch && applicant.q1)) {
+        if (applicant.isWalkin || (applicant.branch && applicant.responses)) {
             setSelectedApplicant(applicant);
             return;
         }

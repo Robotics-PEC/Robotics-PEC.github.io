@@ -7,17 +7,11 @@ import { GitFork, Menu } from "lucide-react";
 import Link from "next/link";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 
-const Header = ({ isAdmin = false }: { isAdmin?: boolean }) => {
-    const [isPanelist, setIsPanelist] = useState(false);
+import { useAuthRole } from "@/lib/useAuthRole";
 
-    useEffect(() => {
-        if (typeof window !== 'undefined') {
-            const session = sessionStorage.getItem("panelist_session");
-            if (session) {
-                setIsPanelist(true);
-            }
-        }
-    }, []);
+const Header = ({ isAdmin = false }: { isAdmin?: boolean }) => {
+    const { role } = useAuthRole();
+    const isPanelist = role?.slug === "panelist" || role?.slug === "admin";
 
     const handleGithubClick = () => {
         window.open("https://github.com/Robotics-PEC", "_blank");

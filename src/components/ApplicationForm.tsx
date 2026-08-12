@@ -18,14 +18,33 @@ const branches = [
     "Bachelor of Design (B.Des)",
 ];
 
+export const APPLICATION_QUESTIONS = [
+    {
+        id: "Q1",
+        text: "Why are you interested in robotics, and what motivates you to join this society?",
+    },
+    {
+        id: "Q2",
+        text: "Have you participated in any robotics competition or events? If yes, please provide details.",
+    },
+    {
+        id: "Q3",
+        text: "If you would have the opportunity to make any robot of your choice, what would it be? Describe it.",
+    },
+    {
+        id: "Q4",
+        text: "What are your expectations from Robotics Society?",
+    },
+];
+
 const initialForm = {
     name: "",
     sid: "",
     branch: "",
-    q1: "",
-    q2: "",
-    q3: "",
-    q4: "",
+    responses: APPLICATION_QUESTIONS.reduce((acc, q) => {
+        acc[q.id] = "";
+        return acc;
+    }, {} as Record<string, string>),
 };
 
 export default function ApplicationForm() {
@@ -44,6 +63,16 @@ export default function ApplicationForm() {
         }));
     };
 
+    const updateResponse = (questionId: string, value: string) => {
+        setForm((current) => ({
+            ...current,
+            responses: {
+                ...current.responses,
+                [questionId]: value,
+            },
+        }));
+    };
+
     const handleSubmit = async (
         event: React.FormEvent<HTMLFormElement>
     ) => {
@@ -55,13 +84,19 @@ export default function ApplicationForm() {
         const name = form.name.trim();
         const sid = form.sid.trim();
         const branch = form.branch;
-        const q1 = form.q1.trim();
-        const q2 = form.q2.trim();
-        const q3 = form.q3.trim();
-        const q4 = form.q4.trim();
+        
+        // Ensure all required fields and questions are filled
+        if (!name || !sid || !branch) {
+            setError("Please fill in all the required personal fields.");
+            return;
+        }
 
-        if (!name || !sid || !branch || !q1 || !q2 || !q3 || !q4) {
-            setError("Please fill in all the required fields.");
+        const missingResponses = APPLICATION_QUESTIONS.some(
+            (q) => !form.responses[q.id].trim()
+        );
+
+        if (missingResponses) {
+            setError("Please answer all the application questions.");
             return;
         }
 
@@ -73,14 +108,17 @@ export default function ApplicationForm() {
         setSubmitting(true);
 
         try {
+            // Trim responses
+            const trimmedResponses = Object.keys(form.responses).reduce((acc, key) => {
+                acc[key] = form.responses[key].trim();
+                return acc;
+            }, {} as Record<string, string>);
+
             const result = await createApplicant(
                 name,
                 sid,
                 branch,
-                q1,
-                q2,
-                q3,
-                q4
+                trimmedResponses
             );
 
             if (!result.success) {
@@ -239,33 +277,15 @@ export default function ApplicationForm() {
                 </h2>
 
                 <div className="mt-6 space-y-7">
-                    <Question
-                        number="Q1"
-                        question="Why are you interested in robotics, and what motivates you to join this society?"
-                        value={form.q1}
-                        onChange={(value) => updateField("q1", value)}
-                    />
-
-                    <Question
-                        number="Q2"
-                        question="Have you participated in any robotics competition or events? If yes, please provide details."
-                        value={form.q2}
-                        onChange={(value) => updateField("q2", value)}
-                    />
-
-                    <Question
-                        number="Q3"
-                        question="If you would have the opportunity to make any robot of your choice, what would it be? Describe it."
-                        value={form.q3}
-                        onChange={(value) => updateField("q3", value)}
-                    />
-
-                    <Question
-                        number="Q4"
-                        question="What are your expectations from Robotics Society?"
-                        value={form.q4}
-                        onChange={(value) => updateField("q4", value)}
-                    />
+                    {APPLICATION_QUESTIONS.map((q) => (
+                        <Question
+                            key={q.id}
+                            number={q.id}
+                            question={q.text}
+                            value={form.responses[q.id]}
+                            onChange={(value) => updateResponse(q.id, value)}
+                        />
+                    ))}
                 </div>
             </div>
 
