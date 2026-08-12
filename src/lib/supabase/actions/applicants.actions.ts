@@ -15,7 +15,7 @@ export const fetchApplicants = async (): Promise<ApplicantType[]> => {
     const { data, error } = await client
         .from("applicants")
         .select("*, applicant_response(branch, responses)")
-        .order("createdAt", { ascending: false });
+        .order("created_at", { ascending: false });
 
     if (error) {
         console.error("Error fetching applicants:", error);
@@ -27,6 +27,8 @@ export const fetchApplicants = async (): Promise<ApplicantType[]> => {
         const responseData = Array.isArray(response) ? response[0] : response;
         return {
             ...item,
+            status: item.status?.toLowerCase(),
+            createdAt: item.createdAt || item.created_at,
             branch: responseData?.branch,
             responses: responseData?.responses,
         };
@@ -50,6 +52,8 @@ export const fetchApplicantWithResponses = async (id: string): Promise<Applicant
 
     return {
         ...data,
+        status: data.status?.toLowerCase(),
+        createdAt: data.createdAt || data.created_at,
         branch: responseData?.branch,
         responses: responseData?.responses,
     } as ApplicantType;
@@ -68,7 +72,7 @@ export const createWalkIn = async (
                 sid,
                 phone: phone || null,
                 isWalkin: true,
-                status: "pending",
+                status: "PENDING",
             },
         ])
         .select()
@@ -95,7 +99,7 @@ export const createApplicant = async (
                 name,
                 sid,
                 isWalkin: false,
-                status: "pending",
+                status: "PENDING",
             },
         ])
         .select()
@@ -148,6 +152,8 @@ export const createApplicant = async (
         success: true,
         applicant: {
             ...applicantData,
+            status: applicantData.status?.toLowerCase(),
+            createdAt: applicantData.createdAt || applicantData.created_at,
             branch,
             responses,
         } as ApplicantType,
@@ -163,7 +169,7 @@ export const updateApplicantDecision = async (
     const { error } = await client
         .from("applicants")
         .update({
-            status,
+            status: status.toUpperCase(),
             remarks,
             reviewedBy: reviewedBy,
             reviewedAt: new Date().toISOString(),
@@ -192,7 +198,12 @@ export const subscribeToApplicantUpdates = (
                 table: "applicants",
             },
             (payload) => {
-                onUpdate(payload.new as ApplicantType);
+                const item = payload.new as any;
+                onUpdate({
+                    ...item,
+                    status: item.status?.toLowerCase(),
+                    createdAt: item.createdAt || item.created_at,
+                } as ApplicantType);
             }
         )
         .on(
@@ -203,7 +214,12 @@ export const subscribeToApplicantUpdates = (
                 table: "applicants",
             },
             (payload) => {
-                onInsert(payload.new as ApplicantType);
+                const item = payload.new as any;
+                onInsert({
+                    ...item,
+                    status: item.status?.toLowerCase(),
+                    createdAt: item.createdAt || item.created_at,
+                } as ApplicantType);
             }
         )
         .subscribe();
