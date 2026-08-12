@@ -47,6 +47,8 @@ const PanelSidebar = () => {
 
         const matchedPanelists = panelists.filter(
             (panelist) =>
+                panelist.name &&
+                myName &&
                 panelist.name.trim().toLowerCase() === myName.trim().toLowerCase()
         );
 
