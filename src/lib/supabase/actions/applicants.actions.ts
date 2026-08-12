@@ -83,7 +83,11 @@ export const createWalkIn = async (
         return null;
     }
 
-    return data as ApplicantType;
+    return {
+        ...data,
+        status: data.status?.toLowerCase(),
+        createdAt: data.createdAt || data.created_at,
+    } as ApplicantType;
 };
 
 export const createApplicant = async (

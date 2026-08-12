@@ -31,15 +31,29 @@ const PanelSidebar = () => {
             setMyPanelNumber(null);
         } else {
             setMyName(role.name || "Panelist");
-            // Map the logged-in user to their actual panel record by parsing their role name (e.g., "Panel 1")
             const panelMatch = role.name?.match(/Panel\s*(\d+)/i);
             if (panelMatch) {
                 setMyPanelNumber(parseInt(panelMatch[1], 10));
             } else {
-                setMyPanelNumber(1); // Fallback
+                setMyPanelNumber(null);
             }
         }
     }, [role]);
+
+    useEffect(() => {
+        if (!role || role.slug === "admin" || myPanelNumber !== null) {
+            return;
+        }
+
+        const matchedPanelists = panelists.filter(
+            (panelist) =>
+                panelist.name.trim().toLowerCase() === myName.trim().toLowerCase()
+        );
+
+        if (matchedPanelists.length === 1) {
+            setMyPanelNumber(matchedPanelists[0].panelNumber);
+        }
+    }, [role, panelists, myPanelNumber, myName]);
 
     useEffect(() => {
         const loadPanelists = async () => {
@@ -171,7 +185,7 @@ const PanelSidebar = () => {
                     </>
                 ) : (
                     <p className="mt-6 text-sm text-red-500">
-                        Panel information unavailable
+                        Panel information unavailable. Contact admin.
                     </p>
                 )}
             </div>
