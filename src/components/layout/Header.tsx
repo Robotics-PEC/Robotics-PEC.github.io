@@ -11,7 +11,7 @@ import { useAuthRole } from "@/lib/useAuthRole";
 
 const Header = ({ isAdmin = false }: { isAdmin?: boolean }) => {
     const { role } = useAuthRole();
-    const isPanelist = role?.slug === "panelist" || role?.slug === "admin";
+    const isPanelist = role?.slug === "admin" || role?.slug?.includes("panel");
 
     const handleGithubClick = () => {
         window.open("https://github.com/Robotics-PEC", "_blank");
