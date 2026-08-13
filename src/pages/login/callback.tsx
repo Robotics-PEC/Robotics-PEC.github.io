@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { useMemo } from "react";
 import { useRouter } from "next/router";
 import { client } from "@/lib/supabase/supabase";
 import { toast } from "@/components/ui/use-toast";
@@ -8,7 +9,21 @@ const PEC_DOMAIN = "@pec.edu.in"; // ← replace with your actual college domain
 export default function AuthCallback() {
     const router = useRouter();
 
+    const redirectTarget = useMemo(() => {
+        if (!router.isReady) {
+            return "/";
+        }
+
+        const query = router.asPath.split("?")[1] ?? "";
+        const redirectValue = new URLSearchParams(query).get("redirect") ?? "/";
+        return redirectValue.startsWith("/") ? redirectValue : "/";
+    }, [router.asPath, router.isReady]);
+
     useEffect(() => {
+        if (!router.isReady) {
+            return;
+        }
+
         const { data: listener } = client.auth.onAuthStateChange(async (event, session) => {
 
             if (!session) {
@@ -36,13 +51,13 @@ export default function AuthCallback() {
                 return;
             }
 
-            router.replace("/");
+            router.replace(redirectTarget);
         });
 
         return () => {
             listener.subscription.unsubscribe();
         };
-    }, [router]);
+    }, [redirectTarget, router]);
 
     return <p>Signing you in...</p>;
 }

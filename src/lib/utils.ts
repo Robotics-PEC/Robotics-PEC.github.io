@@ -43,7 +43,6 @@ export const markdownToHTML = async (markdown: string) => {
 
 export const handleLogout = async () => {
     await client.auth.signOut();
-    localStorage.clear();
 };
 
 export const base64ToBlob = (base64Data: string, contentType = 'image/png') => {

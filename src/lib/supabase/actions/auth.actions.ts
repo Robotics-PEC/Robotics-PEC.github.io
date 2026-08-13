@@ -33,11 +33,12 @@ export const loginUser = async (email: string, password: string) => {
 
 }
 
-export const loginWithGoogle = async () => {
+export const loginWithGoogle = async (redirectPath = "/") => {
+  const safeRedirectPath = redirectPath.startsWith("/") ? redirectPath : "/";
   const { data, error } = await client.auth.signInWithOAuth({
     provider: "google",
     options: {
-      redirectTo: `${window.location.origin}/login/callback`,
+      redirectTo: `${window.location.origin}/login/callback?redirect=${encodeURIComponent(safeRedirectPath)}`,
       queryParams: {
         hd: "pec.edu.in",
       },
