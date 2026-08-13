@@ -1,0 +1,1 @@
+(self.webpackChunk_N_E=self.webpackChunk_N_E||[]).push([[2337],{144:(n,_,e)=>{(window.__NEXT_P=window.__NEXT_P||[]).push(["/events/components/EventCalendar",function(){return e(8516)}])}},n=>{n.O(0,[5626,2482,6991,8516,636,6593,8792],()=>n(n.s=144)),_N_E=n.O()}]);
