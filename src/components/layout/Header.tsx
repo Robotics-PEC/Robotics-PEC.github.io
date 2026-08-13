@@ -1,12 +1,17 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { GitFork, Menu } from "lucide-react";
 import Link from "next/link";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 
+import { useAuthRole } from "@/lib/useAuthRole";
+
 const Header = ({ isAdmin = false }: { isAdmin?: boolean }) => {
+    const { role } = useAuthRole();
+    const isPanelist = role?.slug === "panelist" || role?.slug === "admin";
 
     const handleGithubClick = () => {
         window.open("https://github.com/Robotics-PEC", "_blank");
@@ -17,6 +22,7 @@ const Header = ({ isAdmin = false }: { isAdmin?: boolean }) => {
         { name: "Projects", path: "/project" },
         { name: "Activities", path: "/activities" },
         { name: "Events", path: "/events" },
+        { name: "Apply", path: "/apply" },
         { name: "Contact", path: "/contact" },
         { name: "Resources", path: "/resources" }
     ];
@@ -49,6 +55,14 @@ const Header = ({ isAdmin = false }: { isAdmin?: boolean }) => {
                                     {item.name}
                                 </Link>
                             ))}
+                            {isPanelist && (
+                                <Link
+                                    href="/panelist/dashboard"
+                                    className="text-sm font-medium text-primary hover:text-foreground transition-colors"
+                                >
+                                    Interview
+                                </Link>
+                            )}
                             {
                                 isAdmin && (
                                     <>
@@ -93,6 +107,14 @@ const Header = ({ isAdmin = false }: { isAdmin?: boolean }) => {
                                             {item.name}
                                         </Link>
                                     ))}
+                                    {isPanelist && (
+                                        <Link
+                                            href="/panelist/dashboard"
+                                            className="text-lg font-medium px-4 py-2 hover:bg-accent rounded-md transition-colors text-primary"
+                                        >
+                                            Interview
+                                        </Link>
+                                    )}
                                 </div>
                             </SheetContent>
                         </Sheet>

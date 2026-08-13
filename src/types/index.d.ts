@@ -149,3 +149,36 @@ export interface TeamData {
     emptyArrays: number;
     [key: string]: any;
 };
+
+export interface ApplicantType {
+    id: string;
+    name: string;
+    sid: string;
+    phone?: string;
+
+    // Regular application fields
+    branch?: string;
+    responses?: Record<string, string>;
+
+    isWalkin: boolean;
+    status: "pending" | "accepted" | "rejected";
+    remarks?: string;
+    reviewedBy?: string;
+    reviewedAt?: string;
+    createdAt: string;
+}
+
+export interface PanelistType {
+    id: string;
+    name: string;
+    panelNumber: number;
+    isOccupied: boolean;
+    lastUpdated: string;
+}
+
+export interface PanelistAuthType {
+    id: string;
+    email: string;
+    name: string;
+    panel_number: number;
+}

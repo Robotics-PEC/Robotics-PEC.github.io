@@ -1,4 +1,4 @@
-import MarkdownEditor from "../pages/admin/components/MarkdownEditor";
+import MarkdownEditor from "../../pages/admin/components/MarkdownEditor";
 
 export default {
     title: "Components/MarkdownEditor",
