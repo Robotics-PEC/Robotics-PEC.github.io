@@ -1,6 +1,7 @@
 import { toast } from "@/components/ui/use-toast";
 import { client } from "../supabase";
 import crypto from "crypto";
+import { sanitizeRedirectPath } from "@/lib/utils";
 
 export const loginUser = async (email: string, password: string) => {
 
@@ -33,11 +34,12 @@ export const loginUser = async (email: string, password: string) => {
 
 }
 
-export const loginWithGoogle = async () => {
+export const loginWithGoogle = async (redirectPath = "/") => {
+  const safeRedirectPath = sanitizeRedirectPath(redirectPath);
   const { data, error } = await client.auth.signInWithOAuth({
     provider: "google",
     options: {
-      redirectTo: `${window.location.origin}/login/callback`,
+      redirectTo: `${window.location.origin}/login/callback?redirect=${encodeURIComponent(safeRedirectPath)}`,
       queryParams: {
         hd: "pec.edu.in",
       },

@@ -1,20 +1,59 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useMemo, useState } from "react";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
-import { GitFork, Menu } from "lucide-react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { GitFork, LogOut, Menu } from "lucide-react";
 import Link from "next/link";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { useRouter } from "next/router";
 
 import { useAuthRole } from "@/lib/useAuthRole";
+import { handleLogout, sanitizeRedirectPath } from "@/lib/utils";
+
+const getInitials = (value: string) => {
+    const tokens = value.trim().split(/\s+/).filter(Boolean);
+
+    if (tokens.length === 0) {
+        return "U";
+    }
+
+    if (tokens.length === 1) {
+        return tokens[0].slice(0, 2).toUpperCase();
+    }
+
+    return `${tokens[0][0]}${tokens[tokens.length - 1][0]}`.toUpperCase();
+};
 
 const Header = ({ isAdmin = false }: { isAdmin?: boolean }) => {
-    const { role } = useAuthRole();
+    const { role, user } = useAuthRole();
+    const router = useRouter();
+    const [profileOpen, setProfileOpen] = useState(false);
     const isPanelist = role?.slug === "admin" || role?.slug?.includes("panel");
+    const displayName = user?.user_metadata?.full_name ?? user?.user_metadata?.name ?? null;
+    const displayEmail = user?.email ?? null;
+    const avatarUrl =
+        user?.user_metadata?.avatar_url ??
+        user?.user_metadata?.picture ??
+        user?.user_metadata?.avatarUrl ??
+        null;
+    const fallbackInitials = useMemo(() => {
+        const baseLabel = displayName ?? displayEmail ?? "User";
+        return getInitials(baseLabel);
+    }, [displayEmail, displayName]);
 
     const handleGithubClick = () => {
         window.open("https://github.com/Robotics-PEC", "_blank");
+    };
+
+    const loginHref = `/login?redirect=${encodeURIComponent(sanitizeRedirectPath(router.asPath))}`;
+
+    const handleProfileLogout = async () => {
+        setProfileOpen(false);
+        await handleLogout();
+        router.replace("/login");
     };
 
     const navigation = [
@@ -69,9 +108,6 @@ const Header = ({ isAdmin = false }: { isAdmin?: boolean }) => {
                                         <Link href="/" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
                                             View Website
                                         </Link>
-                                        <Link href="/" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
-                                            Logout
-                                        </Link>
                                     </>
                                 )
                             }
@@ -79,7 +115,64 @@ const Header = ({ isAdmin = false }: { isAdmin?: boolean }) => {
                     </div>
 
                     {/* Buttons and Mobile Menu */}
-                    <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-2 sm:gap-4">
+                        {!user ? (
+                            <Button asChild variant="outline" className="border-border bg-background/80 hover:bg-accent">
+                                <Link href={loginHref}>Login</Link>
+                            </Button>
+                        ) : (
+                            <Popover open={profileOpen} onOpenChange={setProfileOpen}>
+                                <PopoverTrigger asChild>
+                                    <button
+                                        type="button"
+                                        aria-label="Open profile menu"
+                                        className="relative flex h-10 w-10 items-center justify-center overflow-hidden rounded-full border border-border bg-background shadow-sm ring-offset-background transition hover:scale-[1.02] focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+                                    >
+                                        <Avatar className="h-10 w-10">
+                                            <AvatarImage src={avatarUrl ?? undefined} alt={displayName ?? displayEmail ?? "User profile"} />
+                                            <AvatarFallback className="bg-slate-900 text-xs font-semibold text-white">
+                                                {fallbackInitials}
+                                            </AvatarFallback>
+                                        </Avatar>
+                                    </button>
+                                </PopoverTrigger>
+                                <PopoverContent align="end" sideOffset={12} className="w-72 rounded-2xl border border-border/60 bg-background p-3 shadow-xl">
+                                    <div className="space-y-3">
+                                        <div className="flex items-center gap-3 rounded-xl bg-muted/40 px-3 py-3">
+                                            <Avatar className="h-11 w-11">
+                                                <AvatarImage src={avatarUrl ?? undefined} alt={displayName ?? displayEmail ?? "User profile"} />
+                                                <AvatarFallback className="bg-slate-900 text-xs font-semibold text-white">
+                                                    {fallbackInitials}
+                                                </AvatarFallback>
+                                            </Avatar>
+                                            <div className="min-w-0 space-y-0.5">
+                                                {displayName && (
+                                                    <p className="truncate text-sm font-semibold text-foreground">
+                                                        {displayName}
+                                                    </p>
+                                                )}
+                                                {displayEmail && (
+                                                    <p className="truncate text-xs text-muted-foreground">
+                                                        {displayEmail}
+                                                    </p>
+                                                )}
+                                            </div>
+                                        </div>
+
+                                        <Button
+                                            type="button"
+                                            variant="outline"
+                                            className="w-full justify-start gap-2 border-destructive/20 bg-destructive/5 text-destructive hover:bg-destructive hover:text-destructive-foreground"
+                                            onClick={handleProfileLogout}
+                                        >
+                                            <LogOut className="h-4 w-4" />
+                                            Logout
+                                        </Button>
+                                    </div>
+                                </PopoverContent>
+                            </Popover>
+                        )}
+
                         <Button
                             variant="outline"
                             onClick={handleGithubClick}

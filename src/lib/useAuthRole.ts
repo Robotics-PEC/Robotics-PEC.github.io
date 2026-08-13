@@ -1,10 +1,12 @@
 import { useCallback, useEffect, useState } from "react";
+import type { User } from "@supabase/supabase-js";
 import { fetchMyRole, isAllowed, type Role } from "./roles";
 import { client } from "./supabase/supabase";
 
 export type AuthRoleState = {
   loading: boolean;
   userId: string | null;
+  user: User | null;
   role: Role | null;
   routes: string[];
   isAdmin: boolean;
@@ -19,6 +21,7 @@ export type AuthRoleState = {
 export function useAuthRole(): AuthRoleState {
   const [loading, setLoading] = useState(true);
   const [userId, setUserId] = useState<string | null>(null);
+  const [user, setUser] = useState<User | null>(null);
   const [role, setRole] = useState<Role | null>(null);
   const [routes, setRoutes] = useState<string[]>([]);
 
@@ -26,6 +29,7 @@ export function useAuthRole(): AuthRoleState {
     setLoading(true);
     try {
       const { data } = await client.auth.getUser();
+      setUser(data.user ?? null);
       setUserId(data.user?.id ?? null);
       if (!data.user) {
         setRole(null);  
@@ -53,6 +57,7 @@ export function useAuthRole(): AuthRoleState {
   return {
     loading,
     userId,
+    user,
     role,
     routes,
     isAdmin: role?.slug === "admin",

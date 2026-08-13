@@ -43,7 +43,20 @@ export const markdownToHTML = async (markdown: string) => {
 
 export const handleLogout = async () => {
     await client.auth.signOut();
-    localStorage.clear();
+};
+
+export const sanitizeRedirectPath = (value?: string | null) => {
+    if (!value || !value.startsWith("/") || value.startsWith("//")) {
+        return "/";
+    }
+
+    const pathname = value.split("?")[0].split("#")[0];
+
+    if (pathname === "/login" || pathname === "/login/callback") {
+        return "/";
+    }
+
+    return value;
 };
 
 export const base64ToBlob = (base64Data: string, contentType = 'image/png') => {

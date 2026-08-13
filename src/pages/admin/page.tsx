@@ -3,9 +3,11 @@ import PageHead from '@/components/layout/PageHead';
 import NotFound from '@/pages/404';
 import { client } from '@/lib/supabase/supabase';
 import React, { useEffect, useState } from 'react'
+import { useRouter } from 'next/router';
 
 const AdminPage = () => {
     const [validUser, setValidUser] = useState(false);
+    const router = useRouter();
 
     useEffect(() => {
         const checkSession = async () => {
@@ -17,13 +19,18 @@ const AdminPage = () => {
             }
             return;
         }
-        client.auth.onAuthStateChange((event, session) => {
+        const { data: subscription } = client.auth.onAuthStateChange((event, session) => {
             if (event === "SIGNED_OUT") {
-                localStorage.clear();
+                setValidUser(false);
+                router.replace("/login");
             }
-        })
+        });
         checkSession();
-    }, []);
+
+        return () => {
+            subscription.subscription.unsubscribe();
+        };
+    }, [router]);
 
     return (
         <>
