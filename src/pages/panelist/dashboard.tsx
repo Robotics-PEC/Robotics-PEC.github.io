@@ -24,7 +24,7 @@ const PanelistDashboard = () => {
         );
     }
 
-    if (!role || (role.slug !== "admin" && role.slug !== "panelist")) {
+    if (!role || (role.slug !== "admin" && !role.slug.includes("panel"))) {
         return <NotFound />;
     }
 
