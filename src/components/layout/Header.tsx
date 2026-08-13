@@ -11,7 +11,7 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { useRouter } from "next/router";
 
 import { useAuthRole } from "@/lib/useAuthRole";
-import { handleLogout } from "@/lib/utils";
+import { handleLogout, sanitizeRedirectPath } from "@/lib/utils";
 
 const getInitials = (value: string) => {
     const tokens = value.trim().split(/\s+/).filter(Boolean);
@@ -48,7 +48,7 @@ const Header = ({ isAdmin = false }: { isAdmin?: boolean }) => {
         window.open("https://github.com/Robotics-PEC", "_blank");
     };
 
-    const loginHref = `/login?redirect=${encodeURIComponent(router.asPath)}`;
+    const loginHref = `/login?redirect=${encodeURIComponent(sanitizeRedirectPath(router.asPath))}`;
 
     const handleProfileLogout = async () => {
         setProfileOpen(false);

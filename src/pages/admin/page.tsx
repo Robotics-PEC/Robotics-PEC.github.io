@@ -19,13 +19,17 @@ const AdminPage = () => {
             }
             return;
         }
-        client.auth.onAuthStateChange((event, session) => {
+        const { data: subscription } = client.auth.onAuthStateChange((event, session) => {
             if (event === "SIGNED_OUT") {
                 setValidUser(false);
                 router.replace("/login");
             }
-        })
+        });
         checkSession();
+
+        return () => {
+            subscription.subscription.unsubscribe();
+        };
     }, [router]);
 
     return (

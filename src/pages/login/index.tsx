@@ -8,6 +8,7 @@ import { loginWithGoogle } from "@/lib/supabase/actions/auth.actions";
 import { getImagesFromFolder } from "@/lib/supabase/actions/storage.actions";
 import { client } from "@/lib/supabase/supabase";
 import { useRouter } from "next/router";
+import { sanitizeRedirectPath } from "@/lib/utils";
 
 const Login: NextPage = () => {
   const [heroImages, setHeroImages] = useState<string[]>([]);
@@ -21,8 +22,8 @@ const Login: NextPage = () => {
     }
 
     const query = router.asPath.split("?")[1] ?? "";
-    const redirectValue = new URLSearchParams(query).get("redirect") ?? "/";
-    return redirectValue.startsWith("/") ? redirectValue : "/";
+    const redirectValue = new URLSearchParams(query).get("redirect");
+    return sanitizeRedirectPath(redirectValue);
   }, [router.asPath, router.isReady]);
 
   useEffect(() => {

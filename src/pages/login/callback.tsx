@@ -3,6 +3,7 @@ import { useMemo } from "react";
 import { useRouter } from "next/router";
 import { client } from "@/lib/supabase/supabase";
 import { toast } from "@/components/ui/use-toast";
+import { sanitizeRedirectPath } from "@/lib/utils";
 
 const PEC_DOMAIN = "@pec.edu.in"; // ← replace with your actual college domain
 
@@ -15,8 +16,8 @@ export default function AuthCallback() {
         }
 
         const query = router.asPath.split("?")[1] ?? "";
-        const redirectValue = new URLSearchParams(query).get("redirect") ?? "/";
-        return redirectValue.startsWith("/") ? redirectValue : "/";
+        const redirectValue = new URLSearchParams(query).get("redirect");
+        return sanitizeRedirectPath(redirectValue);
     }, [router.asPath, router.isReady]);
 
     useEffect(() => {
