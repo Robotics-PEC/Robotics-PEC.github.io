@@ -14,8 +14,6 @@ export default function App({ Component, pageProps }: AppProps) {
     const router = useRouter();
     const {role} = useAuthRole();
     const isAdmin = router.pathname === "/admin/page" || role?.slug === "admin";
-    console.log({isAdmin,role});
-
 
     return (
         <QueryClientProvider client={queryClient}>    

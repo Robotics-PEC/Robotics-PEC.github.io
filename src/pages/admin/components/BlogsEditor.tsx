@@ -47,7 +47,6 @@ const BlogsEditor = () => {
     });
 
     const onSubmit = async (data: BlogFormValues) => {
-        console.log({ data });
         setIsSubmitting(true);
 
         if (!data.email.includes("pec.edu.in")) {
