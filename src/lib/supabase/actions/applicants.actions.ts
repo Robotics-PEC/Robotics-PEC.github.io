@@ -204,6 +204,15 @@ export const createApplicant = async (
 /**
  * Update applicant details, application responses,
  * and remarks.
+ *
+ * IMPORTANT:
+ * This function does NOT update:
+ * - status
+ * - reviewedBy
+ * - reviewedAt
+ *
+ * Therefore an accepted/rejected applicant can be edited
+ * without changing their decision.
  */
 export const updateApplicant = async (
     applicantId: string,
@@ -218,19 +227,17 @@ export const updateApplicant = async (
 ): Promise<ApplicantType | null> => {
     /*
      * ---------------------------------------------------------
-     * Update applicants table
+     * Update main applicant record
      * ---------------------------------------------------------
      */
+
     const { error: applicantError } = await client
         .from("applicants")
         .update({
             name: data.name.trim(),
             sid: data.sid.trim(),
             phone: data.phone.trim() || null,
-
-            // Save remarks.
-            remarks:
-                data.remarks?.trim() || null,
+            remarks: data.remarks?.trim() || null,
         })
         .eq("id", applicantId);
 
@@ -245,16 +252,17 @@ export const updateApplicant = async (
 
     /*
      * ---------------------------------------------------------
-     * Walk-ins don't have applicant_response.
+     * Walk-ins don't normally have applicant_response.
+     *
+     * Only update/create applicant_response when
+     * branch or responses were supplied.
      * ---------------------------------------------------------
      */
+
     if (
         data.branch !== undefined ||
         data.responses !== undefined
     ) {
-        /*
-         * Find existing response.
-         */
         const {
             data: existingResponse,
             error: responseFetchError,
@@ -275,7 +283,7 @@ export const updateApplicant = async (
         }
 
         /*
-         * Update existing response.
+         * Existing application response
          */
         if (existingResponse) {
             const responseUpdate: {
@@ -298,7 +306,10 @@ export const updateApplicant = async (
             } = await client
                 .from("applicant_response")
                 .update(responseUpdate)
-                .eq("id", existingResponse.id);
+                .eq(
+                    "id",
+                    existingResponse.id
+                );
 
             if (responseUpdateError) {
                 console.error(
@@ -311,7 +322,10 @@ export const updateApplicant = async (
         }
 
         /*
-         * Create response if one doesn't exist.
+         * No response exists.
+         *
+         * This can happen if an applicant was created
+         * without an applicant_response row.
          */
         else {
             const {
@@ -340,8 +354,11 @@ export const updateApplicant = async (
     }
 
     /*
-     * Fetch final updated applicant.
+     * ---------------------------------------------------------
+     * Fetch the final updated applicant
+     * ---------------------------------------------------------
      */
+
     return await fetchApplicantWithResponses(
         applicantId
     );

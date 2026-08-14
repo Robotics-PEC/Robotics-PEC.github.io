@@ -13,7 +13,7 @@ import {
 
 import { APPLICATION_QUESTIONS } from "../ApplicationForm";
 
-export interface ApplicantEditFormProps {
+interface ApplicantEditFormProps {
     applicant: ApplicantType;
 
     onSave: (
@@ -44,9 +44,10 @@ const ApplicantEditForm = ({
         applicant.branch || ""
     );
 
-    const [remarks, setRemarks] = useState(
-        applicant.remarks || ""
-    );
+    const [remarks, setRemarks] =
+        useState(
+            applicant.remarks || ""
+        );
 
     const [responses, setResponses] =
         useState<Record<string, string>>(
@@ -57,48 +58,52 @@ const ApplicantEditForm = ({
         useState(false);
 
     /*
-     * Refresh form when applicant changes.
+     * Keep form synchronized with the selected
+     * applicant.
      */
     useEffect(() => {
         setName(applicant.name || "");
         setSid(applicant.sid || "");
         setPhone(applicant.phone || "");
         setBranch(applicant.branch || "");
-        setRemarks(applicant.remarks || "");
+
+        setRemarks(
+            applicant.remarks || ""
+        );
 
         setResponses(
             applicant.responses || {}
         );
     }, [applicant]);
 
-    /*
-     * Update an application response.
-     */
     const handleResponseChange = (
         questionId: string,
         value: string
     ) => {
-        setResponses((current) => ({
-            ...current,
-            [questionId]: value,
-        }));
+        setResponses(
+            (current) => ({
+                ...current,
+                [questionId]: value,
+            })
+        );
     };
 
-    /*
-     * Save.
-     */
     const handleSave = async () => {
         if (isSaving) {
             return;
         }
 
         if (!name.trim()) {
-            alert("Name cannot be empty.");
+            alert(
+                "Name cannot be empty."
+            );
             return;
         }
 
         if (!sid.trim()) {
-            alert("SID cannot be empty.");
+            alert(
+                "SID cannot be empty."
+            );
             return;
         }
 
@@ -106,47 +111,50 @@ const ApplicantEditForm = ({
             !applicant.isWalkin &&
             !branch.trim()
         ) {
-            alert("Branch cannot be empty.");
+            alert(
+                "Branch cannot be empty."
+            );
             return;
         }
 
         setIsSaving(true);
 
         try {
-            const updatedApplicant:
-                ApplicantType = {
-                ...applicant,
+            const updatedApplicant: ApplicantType =
+                {
+                    ...applicant,
 
-                name: name.trim(),
+                    name: name.trim(),
 
-                sid: sid.trim(),
+                    sid: sid.trim(),
 
-                phone: phone.trim(),
+                    phone: phone.trim(),
 
-                remarks:
-                    remarks.trim(),
+                    /*
+                     * This works for BOTH:
+                     * - pending
+                     * - accepted
+                     * - rejected
+                     *
+                     * and both:
+                     * - normal applicants
+                     * - walk-ins
+                     */
+                    remarks:
+                        remarks.trim(),
 
-                ...(applicant.isWalkin
-                    ? {}
-                    : {
-                          branch:
-                              branch.trim(),
+                    ...(applicant.isWalkin
+                        ? {}
+                        : {
+                              branch:
+                                  branch.trim(),
 
-                          responses,
-                      }),
-            };
+                              responses,
+                          }),
+                };
 
             await onSave(
                 updatedApplicant
-            );
-        } catch (error) {
-            console.error(
-                "Error saving applicant:",
-                error
-            );
-
-            alert(
-                "Failed to save applicant changes."
             );
         } finally {
             setIsSaving(false);
@@ -156,114 +164,89 @@ const ApplicantEditForm = ({
     return (
         <div className="flex flex-1 flex-col overflow-hidden">
 
-            {/* Scrollable form */}
             <div className="flex-1 overflow-y-auto">
 
                 <div className="rounded-lg border bg-gray-50 p-6">
 
-                    <h3 className="mb-6 text-xl font-semibold text-gray-900">
+                    <h3 className="mb-6 text-xl font-semibold">
                         Edit Applicant
                     </h3>
 
-                    {/* Basic information */}
+                    {/* Basic details */}
                     <div className="mb-8 grid gap-6 sm:grid-cols-2">
 
-                        {/* Name */}
                         <div>
-                            <label
-                                htmlFor="applicant-name"
-                                className="mb-2 block text-sm font-medium text-gray-700"
-                            >
+                            <label className="mb-2 block text-sm font-medium">
                                 Name
                             </label>
 
                             <Input
-                                id="applicant-name"
                                 value={name}
                                 onChange={(e) =>
                                     setName(
                                         e.target.value
                                     )
                                 }
-                                placeholder="Applicant name"
                             />
                         </div>
 
-                        {/* SID */}
                         <div>
-                            <label
-                                htmlFor="applicant-sid"
-                                className="mb-2 block text-sm font-medium text-gray-700"
-                            >
+                            <label className="mb-2 block text-sm font-medium">
                                 SID
                             </label>
 
                             <Input
-                                id="applicant-sid"
                                 value={sid}
                                 onChange={(e) =>
                                     setSid(
                                         e.target.value
                                     )
                                 }
-                                placeholder="Student ID"
                             />
                         </div>
 
-                        {/* Phone */}
                         <div>
-                            <label
-                                htmlFor="applicant-phone"
-                                className="mb-2 block text-sm font-medium text-gray-700"
-                            >
+                            <label className="mb-2 block text-sm font-medium">
                                 Phone
                             </label>
 
                             <Input
-                                id="applicant-phone"
                                 value={phone}
                                 onChange={(e) =>
                                     setPhone(
                                         e.target.value
                                     )
                                 }
-                                placeholder="Phone number"
                             />
                         </div>
 
-                        {/* Branch */}
                         {!applicant.isWalkin && (
                             <div>
-                                <label
-                                    htmlFor="applicant-branch"
-                                    className="mb-2 block text-sm font-medium text-gray-700"
-                                >
+                                <label className="mb-2 block text-sm font-medium">
                                     Branch
                                 </label>
 
                                 <Input
-                                    id="applicant-branch"
                                     value={branch}
                                     onChange={(e) =>
                                         setBranch(
                                             e.target.value
                                         )
                                     }
-                                    placeholder="Branch"
                                 />
                             </div>
                         )}
 
                     </div>
 
-                    {/* ------------------------------------------------
-                        Remarks
-                        ------------------------------------------------ */}
+                    {/* =========================================
+                        REMARKS
+                        ========================================= */}
                     <div className="mb-8">
 
                         <label
                             htmlFor="applicant-remarks"
-                            className="mb-2 block text-sm font-medium text-gray-700"
+                            className="mb-2 block text-sm font-medium"
                         >
                             Remarks
                         </label>
@@ -277,25 +260,22 @@ const ApplicantEditForm = ({
                                 )
                             }
                             placeholder="Enter or edit remarks..."
-                            rows={4}
-                            className="bg-white"
+                            rows={5}
                         />
 
-                        <p className="mt-1 text-xs text-muted-foreground">
+                        <p className="mt-2 text-xs text-muted-foreground">
                             Editing remarks does not
                             change the applicant's
-                            Accept/Reject status.
+                            accepted/rejected status.
                         </p>
 
                     </div>
 
-                    {/* ------------------------------------------------
-                        Application responses
-                        ------------------------------------------------ */}
+                    {/* Application responses */}
                     {!applicant.isWalkin && (
                         <div>
 
-                            <h4 className="mb-6 text-lg font-semibold text-gray-900">
+                            <h4 className="mb-6 text-lg font-semibold">
                                 Application Responses
                             </h4>
 
@@ -316,24 +296,13 @@ const ApplicantEditForm = ({
                                                 className="rounded-lg border bg-white p-4"
                                             >
 
-                                                <label
-                                                    htmlFor={`question-${questionId}`}
-                                                    className="block text-sm font-semibold leading-6 text-gray-900"
-                                                >
-                                                    <span className="mr-2 text-muted-foreground">
-                                                        {
-                                                            question.id
-                                                        }
-                                                        .
-                                                    </span>
-
+                                                <label className="block text-sm font-semibold">
                                                     {
                                                         question.text
                                                     }
                                                 </label>
 
                                                 <Textarea
-                                                    id={`question-${questionId}`}
                                                     value={
                                                         responses[
                                                             questionId
@@ -345,15 +314,11 @@ const ApplicantEditForm = ({
                                                     ) =>
                                                         handleResponseChange(
                                                             questionId,
-                                                            e
-                                                                .target
+                                                            e.target
                                                                 .value
                                                         )
                                                     }
-                                                    placeholder="Enter applicant's answer..."
-                                                    rows={
-                                                        5
-                                                    }
+                                                    rows={5}
                                                     className="mt-3"
                                                 />
 
@@ -379,10 +344,8 @@ const ApplicantEditForm = ({
                     variant="outline"
                     onClick={onCancel}
                     disabled={isSaving}
-                    className="flex items-center gap-2"
                 >
-                    <X className="h-4 w-4" />
-
+                    <X className="mr-2 h-4 w-4" />
                     Cancel
                 </Button>
 
@@ -390,9 +353,8 @@ const ApplicantEditForm = ({
                     type="button"
                     onClick={handleSave}
                     disabled={isSaving}
-                    className="flex items-center gap-2"
                 >
-                    <Save className="h-4 w-4" />
+                    <Save className="mr-2 h-4 w-4" />
 
                     {isSaving
                         ? "Saving..."
