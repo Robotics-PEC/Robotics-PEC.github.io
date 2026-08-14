@@ -9,6 +9,7 @@ import { getTeamMembersByCategory } from "@/lib/supabase/actions/team.actions";
 import { Loader } from "@/components/layout/Loader";
 import { ProjectSection } from "@/pages/project/index";
 import { teamCategoryOptions } from "@/lib/utils";
+import { useAuthRole } from "@/lib/useAuthRole";
 
 const Index = () => {
     const defaultData: TeamData = {
@@ -24,7 +25,9 @@ const Index = () => {
     const [teamMembers, setTeamMembers] = useState<TeamData>(defaultData);
     const [projects, setProjects] = useState<ProjectType[]>([]);
     const [loading, setLoading] = useState(true);
+    const {role} = useAuthRole();
 
+    const isAdmin = role?.slug === "admin";
 
     const handleClick = () => {
         document.getElementById("projects")?.scrollIntoView({ behavior: "smooth" });
