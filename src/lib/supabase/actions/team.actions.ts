@@ -3,6 +3,20 @@ import { client } from "../supabase";
 import { deleteImage, uploadImage } from "./storage.actions";
 import { urlToBase64 } from "@/lib/utils";
 
+
+export const getTeamImages = async () => {
+  const { data, error } = await client
+    .from("team")
+    .select("name, image");
+
+  if (error) {
+    console.error("Failed to fetch team images:", error);
+    return [];
+  }
+
+  return data as { name: string; image: string }[];
+};
+
 export const getTeamMembers = async () => {
     const { data, error } = await client.from("team").select("*");
     if (error) console.log(error);
