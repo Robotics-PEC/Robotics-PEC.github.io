@@ -15,45 +15,71 @@ export const fetchApplicants = async (): Promise<ApplicantType[]> => {
     const { data, error } = await client
         .from("applicants")
         .select("*, applicant_response(branch, responses)")
-        .order("created_at", { ascending: false });
+        .order("created_at", {
+            ascending: false,
+        });
 
     if (error) {
-        console.error("Error fetching applicants:", error);
+        console.error(
+            "Error fetching applicants:",
+            error
+        );
+
         return [];
     }
 
     return (data as any[]).map((item) => {
         const response = item.applicant_response;
-        const responseData = Array.isArray(response) ? response[0] : response;
+
+        const responseData = Array.isArray(response)
+            ? response[0]
+            : response;
+
         return {
             ...item,
             status: item.status?.toLowerCase(),
-            createdAt: item.createdAt || item.created_at,
+            createdAt:
+                item.createdAt ||
+                item.created_at,
             branch: responseData?.branch,
             responses: responseData?.responses,
         };
     }) as ApplicantType[];
 };
 
-export const fetchApplicantWithResponses = async (id: string): Promise<ApplicantType | null> => {
+export const fetchApplicantWithResponses = async (
+    id: string
+): Promise<ApplicantType | null> => {
     const { data, error } = await client
         .from("applicants")
-        .select("*, applicant_response(branch, responses)")
+        .select(
+            "*, applicant_response(branch, responses)"
+        )
         .eq("id", id)
         .single();
 
     if (error) {
-        console.error("Error fetching applicant with responses:", error);
+        console.error(
+            "Error fetching applicant with responses:",
+            error
+        );
+
         return null;
     }
 
-    const response = (data as any).applicant_response;
-    const responseData = Array.isArray(response) ? response[0] : response;
+    const response =
+        (data as any).applicant_response;
+
+    const responseData = Array.isArray(response)
+        ? response[0]
+        : response;
 
     return {
         ...data,
         status: data.status?.toLowerCase(),
-        createdAt: data.createdAt || data.created_at,
+        createdAt:
+            data.createdAt ||
+            data.created_at,
         branch: responseData?.branch,
         responses: responseData?.responses,
     } as ApplicantType;
@@ -79,14 +105,20 @@ export const createWalkIn = async (
         .single();
 
     if (error) {
-        console.error("Error creating walk-in:", error);
+        console.error(
+            "Error creating walk-in:",
+            error
+        );
+
         return null;
     }
 
     return {
         ...data,
         status: data.status?.toLowerCase(),
-        createdAt: data.createdAt || data.created_at,
+        createdAt:
+            data.createdAt ||
+            data.created_at,
     } as ApplicantType;
 };
 
@@ -96,7 +128,16 @@ export const createApplicant = async (
     branch: string,
     responses: Record<string, string>
 ): Promise<CreateApplicantResult> => {
-    const { data: applicantData, error: applicantError } = await client
+    /*
+     * ---------------------------------------------------------
+     * 1. Create applicant in Supabase
+     * ---------------------------------------------------------
+     */
+
+    const {
+        data: applicantData,
+        error: applicantError,
+    } = await client
         .from("applicants")
         .insert([
             {
@@ -111,14 +152,22 @@ export const createApplicant = async (
 
     if (applicantError) {
         if (applicantError.code === "23505") {
-            console.error("Duplicate application:", applicantError);
+            console.error(
+                "Duplicate application:",
+                applicantError
+            );
+
             return {
                 success: false,
                 reason: "duplicate",
             };
         }
 
-        console.error("Error creating applicant:", applicantError);
+        console.error(
+            "Error creating applicant:",
+            applicantError
+        );
+
         console.error("Error details:", {
             message: applicantError.message,
             details: applicantError.details,
@@ -132,6 +181,12 @@ export const createApplicant = async (
         };
     }
 
+    /*
+     * ---------------------------------------------------------
+     * 2. Store responses in Supabase
+     * ---------------------------------------------------------
+     */
+
     const { error: responseError } = await client
         .from("applicant_response")
         .insert([
@@ -143,21 +198,92 @@ export const createApplicant = async (
         ]);
 
     if (responseError) {
-        console.error("Error creating applicant response:", responseError);
-        await client.from("applicants").delete().eq("id", applicantData.id);
-        
+        console.error(
+            "Error creating applicant response:",
+            responseError
+        );
+
+        /*
+         * Roll back applicant if its responses could not
+         * be stored.
+         */
+        await client
+            .from("applicants")
+            .delete()
+            .eq("id", applicantData.id);
+
         return {
             success: false,
             reason: "error",
         };
     }
 
+    /*
+     * ---------------------------------------------------------
+     * 3. Sync application to Google Sheets
+     * ---------------------------------------------------------
+     *
+     * Supabase remains the source of truth.
+     * A Google Sheets failure does NOT invalidate the
+     * application.
+     */
+
+    const {
+        data: sheetsData,
+        error: sheetsError,
+    } = await client.functions.invoke(
+        "sync-application-to-sheets",
+        {
+            body: {
+                operation: "application",
+
+                applicationId: applicantData.id,
+
+                name,
+                sid,
+                branch,
+
+                q1: responses.Q1 || "",
+                q2: responses.Q2 || "",
+                q3: responses.Q3 || "",
+                q4: responses.Q4 || "",
+            },
+        }
+    );
+
+    if (sheetsError) {
+        console.error(
+            "Application saved to Supabase, but Google Sheets synchronization failed:",
+            sheetsError
+        );
+    } else if (
+        sheetsData?.success === false
+    ) {
+        console.error(
+            "Google Sheets synchronization failed:",
+            sheetsData
+        );
+    }
+
+    /*
+     * ---------------------------------------------------------
+     * 4. Return successful application
+     * ---------------------------------------------------------
+     */
+
     return {
         success: true,
+
         applicant: {
             ...applicantData,
-            status: applicantData.status?.toLowerCase(),
-            createdAt: applicantData.createdAt || applicantData.created_at,
+
+            status:
+                applicantData.status?.toLowerCase(),
+
+            createdAt:
+                applicantData.createdAt ||
+                applicantData.created_at,
+
             branch,
             responses,
         } as ApplicantType,
@@ -170,27 +296,97 @@ export const updateApplicantDecision = async (
     remarks: string,
     reviewedBy: string
 ): Promise<boolean> => {
+    /*
+     * Use one timestamp for both Supabase and Google Sheets.
+     */
+    const reviewedAt = new Date().toISOString();
+
+    /*
+     * ---------------------------------------------------------
+     * 1. Update the existing applicant record
+     * ---------------------------------------------------------
+     */
+
     const { error } = await client
         .from("applicants")
         .update({
             status: status.toUpperCase(),
             remarks,
-            reviewedBy: reviewedBy,
-            reviewedAt: new Date().toISOString(),
+            reviewedBy,
+            reviewedAt,
         })
         .eq("id", applicantId);
 
     if (error) {
-        console.error("Error updating applicant decision:", error);
+        console.error(
+            "Error updating applicant decision:",
+            error
+        );
+
         return false;
+    }
+
+    /*
+     * ---------------------------------------------------------
+     * 2. Sync decision to Results Google Sheet
+     * ---------------------------------------------------------
+     *
+     * We send only data already present in the
+     * existing application architecture.
+     *
+     * The Edge Function uses applicantId to obtain
+     * the applicant's name, SID and branch.
+     */
+
+    const {
+        data: sheetsData,
+        error: sheetsError,
+    } = await client.functions.invoke(
+        "sync-application-to-sheets",
+        {
+            body: {
+                operation: "result",
+
+                applicationId: applicantId,
+
+                status,
+                remarks,
+                reviewedBy,
+                reviewedAt,
+            },
+        }
+    );
+
+    /*
+     * Supabase remains the source of truth.
+     * Do NOT undo a valid decision because Sheets
+     * synchronization failed.
+     */
+
+    if (sheetsError) {
+        console.error(
+            "Decision saved to Supabase, but Results Sheet synchronization failed:",
+            sheetsError
+        );
+    } else if (
+        sheetsData?.success === false
+    ) {
+        console.error(
+            "Results Sheet synchronization failed:",
+            sheetsData
+        );
     }
 
     return true;
 };
 
 export const subscribeToApplicantUpdates = (
-    onUpdate: (applicant: ApplicantType) => void,
-    onInsert: (applicant: ApplicantType) => void
+    onUpdate: (
+        applicant: ApplicantType
+    ) => void,
+    onInsert: (
+        applicant: ApplicantType
+    ) => void
 ) => {
     const channel = client
         .channel("applicants-status")
@@ -202,11 +398,16 @@ export const subscribeToApplicantUpdates = (
                 table: "applicants",
             },
             (payload) => {
-                const item = payload.new as any;
+                const item =
+                    payload.new as any;
+
                 onUpdate({
                     ...item,
-                    status: item.status?.toLowerCase(),
-                    createdAt: item.createdAt || item.created_at,
+                    status:
+                        item.status?.toLowerCase(),
+                    createdAt:
+                        item.createdAt ||
+                        item.created_at,
                 } as ApplicantType);
             }
         )
@@ -218,11 +419,16 @@ export const subscribeToApplicantUpdates = (
                 table: "applicants",
             },
             (payload) => {
-                const item = payload.new as any;
+                const item =
+                    payload.new as any;
+
                 onInsert({
                     ...item,
-                    status: item.status?.toLowerCase(),
-                    createdAt: item.createdAt || item.created_at,
+                    status:
+                        item.status?.toLowerCase(),
+                    createdAt:
+                        item.createdAt ||
+                        item.created_at,
                 } as ApplicantType);
             }
         )
