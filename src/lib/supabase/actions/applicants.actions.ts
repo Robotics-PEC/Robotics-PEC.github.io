@@ -11,6 +11,9 @@ export type CreateApplicantResult =
           reason: "duplicate" | "error";
       };
 
+/**
+ * Fetch all applicants with their application responses.
+ */
 export const fetchApplicants = async (): Promise<ApplicantType[]> => {
     const { data, error } = await client
         .from("applicants")
@@ -24,7 +27,11 @@ export const fetchApplicants = async (): Promise<ApplicantType[]> => {
 
     return (data as any[]).map((item) => {
         const response = item.applicant_response;
-        const responseData = Array.isArray(response) ? response[0] : response;
+
+        const responseData = Array.isArray(response)
+            ? response[0]
+            : response;
+
         return {
             ...item,
             status: item.status?.toLowerCase(),
@@ -35,7 +42,12 @@ export const fetchApplicants = async (): Promise<ApplicantType[]> => {
     }) as ApplicantType[];
 };
 
-export const fetchApplicantWithResponses = async (id: string): Promise<ApplicantType | null> => {
+/**
+ * Fetch one applicant with complete application responses.
+ */
+export const fetchApplicantWithResponses = async (
+    id: string
+): Promise<ApplicantType | null> => {
     const { data, error } = await client
         .from("applicants")
         .select("*, applicant_response(branch, responses)")
@@ -43,12 +55,19 @@ export const fetchApplicantWithResponses = async (id: string): Promise<Applicant
         .single();
 
     if (error) {
-        console.error("Error fetching applicant with responses:", error);
+        console.error(
+            "Error fetching applicant with responses:",
+            error
+        );
+
         return null;
     }
 
     const response = (data as any).applicant_response;
-    const responseData = Array.isArray(response) ? response[0] : response;
+
+    const responseData = Array.isArray(response)
+        ? response[0]
+        : response;
 
     return {
         ...data,
@@ -59,6 +78,9 @@ export const fetchApplicantWithResponses = async (id: string): Promise<Applicant
     } as ApplicantType;
 };
 
+/**
+ * Create a walk-in applicant.
+ */
 export const createWalkIn = async (
     name: string,
     sid: string,
@@ -90,41 +112,46 @@ export const createWalkIn = async (
     } as ApplicantType;
 };
 
+/**
+ * Create a normal application.
+ */
 export const createApplicant = async (
     name: string,
     sid: string,
     branch: string,
     responses: Record<string, string>
 ): Promise<CreateApplicantResult> => {
-    const { data: applicantData, error: applicantError } = await client
-        .from("applicants")
-        .insert([
-            {
-                name,
-                sid,
-                isWalkin: false,
-                status: "PENDING",
-            },
-        ])
-        .select()
-        .single();
+    const { data: applicantData, error: applicantError } =
+        await client
+            .from("applicants")
+            .insert([
+                {
+                    name,
+                    sid,
+                    isWalkin: false,
+                    status: "PENDING",
+                },
+            ])
+            .select()
+            .single();
 
     if (applicantError) {
         if (applicantError.code === "23505") {
-            console.error("Duplicate application:", applicantError);
+            console.error(
+                "Duplicate application:",
+                applicantError
+            );
+
             return {
                 success: false,
                 reason: "duplicate",
             };
         }
 
-        console.error("Error creating applicant:", applicantError);
-        console.error("Error details:", {
-            message: applicantError.message,
-            details: applicantError.details,
-            hint: applicantError.hint,
-            code: applicantError.code,
-        });
+        console.error(
+            "Error creating applicant:",
+            applicantError
+        );
 
         return {
             success: false,
@@ -143,9 +170,16 @@ export const createApplicant = async (
         ]);
 
     if (responseError) {
-        console.error("Error creating applicant response:", responseError);
-        await client.from("applicants").delete().eq("id", applicantData.id);
-        
+        console.error(
+            "Error creating applicant response:",
+            responseError
+        );
+
+        await client
+            .from("applicants")
+            .delete()
+            .eq("id", applicantData.id);
+
         return {
             success: false,
             reason: "error",
@@ -154,16 +188,168 @@ export const createApplicant = async (
 
     return {
         success: true,
+
         applicant: {
             ...applicantData,
             status: applicantData.status?.toLowerCase(),
-            createdAt: applicantData.createdAt || applicantData.created_at,
+            createdAt:
+                applicantData.createdAt ||
+                applicantData.created_at,
             branch,
             responses,
         } as ApplicantType,
     };
 };
 
+/**
+ * Update applicant details, application responses,
+ * and remarks.
+ */
+export const updateApplicant = async (
+    applicantId: string,
+    data: {
+        name: string;
+        sid: string;
+        phone: string;
+        remarks?: string;
+        branch?: string;
+        responses?: Record<string, string>;
+    }
+): Promise<ApplicantType | null> => {
+    /*
+     * ---------------------------------------------------------
+     * Update applicants table
+     * ---------------------------------------------------------
+     */
+    const { error: applicantError } = await client
+        .from("applicants")
+        .update({
+            name: data.name.trim(),
+            sid: data.sid.trim(),
+            phone: data.phone.trim() || null,
+
+            // Save remarks.
+            remarks:
+                data.remarks?.trim() || null,
+        })
+        .eq("id", applicantId);
+
+    if (applicantError) {
+        console.error(
+            "Error updating applicant:",
+            applicantError
+        );
+
+        return null;
+    }
+
+    /*
+     * ---------------------------------------------------------
+     * Walk-ins don't have applicant_response.
+     * ---------------------------------------------------------
+     */
+    if (
+        data.branch !== undefined ||
+        data.responses !== undefined
+    ) {
+        /*
+         * Find existing response.
+         */
+        const {
+            data: existingResponse,
+            error: responseFetchError,
+        } = await client
+            .from("applicant_response")
+            .select("id")
+            .eq("applicantId", applicantId)
+            .limit(1)
+            .maybeSingle();
+
+        if (responseFetchError) {
+            console.error(
+                "Error checking applicant response:",
+                responseFetchError
+            );
+
+            return null;
+        }
+
+        /*
+         * Update existing response.
+         */
+        if (existingResponse) {
+            const responseUpdate: {
+                branch?: string;
+                responses?: Record<string, string>;
+            } = {};
+
+            if (data.branch !== undefined) {
+                responseUpdate.branch =
+                    data.branch.trim();
+            }
+
+            if (data.responses !== undefined) {
+                responseUpdate.responses =
+                    data.responses;
+            }
+
+            const {
+                error: responseUpdateError,
+            } = await client
+                .from("applicant_response")
+                .update(responseUpdate)
+                .eq("id", existingResponse.id);
+
+            if (responseUpdateError) {
+                console.error(
+                    "Error updating applicant response:",
+                    responseUpdateError
+                );
+
+                return null;
+            }
+        }
+
+        /*
+         * Create response if one doesn't exist.
+         */
+        else {
+            const {
+                error: responseInsertError,
+            } = await client
+                .from("applicant_response")
+                .insert([
+                    {
+                        applicantId,
+                        branch:
+                            data.branch?.trim() || "",
+                        responses:
+                            data.responses || {},
+                    },
+                ]);
+
+            if (responseInsertError) {
+                console.error(
+                    "Error creating applicant response:",
+                    responseInsertError
+                );
+
+                return null;
+            }
+        }
+    }
+
+    /*
+     * Fetch final updated applicant.
+     */
+    return await fetchApplicantWithResponses(
+        applicantId
+    );
+};
+
+/**
+ * Accept or reject an applicant.
+ */
 export const updateApplicantDecision = async (
     applicantId: string,
     status: "accepted" | "rejected",
@@ -175,19 +361,55 @@ export const updateApplicantDecision = async (
         .update({
             status: status.toUpperCase(),
             remarks,
-            reviewedBy: reviewedBy,
-            reviewedAt: new Date().toISOString(),
+            reviewedBy,
+            reviewedAt:
+                new Date().toISOString(),
         })
         .eq("id", applicantId);
 
     if (error) {
-        console.error("Error updating applicant decision:", error);
+        console.error(
+            "Error updating applicant decision:",
+            error
+        );
+
         return false;
     }
 
     return true;
 };
 
+/**
+ * Reset an applicant back to PENDING.
+ */
+export const resetApplicantDecision = async (
+    applicantId: string
+): Promise<boolean> => {
+    const { error } = await client
+        .from("applicants")
+        .update({
+            status: "PENDING",
+            remarks: null,
+            reviewedBy: null,
+            reviewedAt: null,
+        })
+        .eq("id", applicantId);
+
+    if (error) {
+        console.error(
+            "Error resetting applicant decision:",
+            error
+        );
+
+        return false;
+    }
+
+    return true;
+};
+
+/**
+ * Subscribe to applicant changes in realtime.
+ */
 export const subscribeToApplicantUpdates = (
     onUpdate: (applicant: ApplicantType) => void,
     onInsert: (applicant: ApplicantType) => void
@@ -203,10 +425,14 @@ export const subscribeToApplicantUpdates = (
             },
             (payload) => {
                 const item = payload.new as any;
+
                 onUpdate({
                     ...item,
-                    status: item.status?.toLowerCase(),
-                    createdAt: item.createdAt || item.created_at,
+                    status:
+                        item.status?.toLowerCase(),
+                    createdAt:
+                        item.createdAt ||
+                        item.created_at,
                 } as ApplicantType);
             }
         )
@@ -219,10 +445,14 @@ export const subscribeToApplicantUpdates = (
             },
             (payload) => {
                 const item = payload.new as any;
+
                 onInsert({
                     ...item,
-                    status: item.status?.toLowerCase(),
-                    createdAt: item.createdAt || item.created_at,
+                    status:
+                        item.status?.toLowerCase(),
+                    createdAt:
+                        item.createdAt ||
+                        item.created_at,
                 } as ApplicantType);
             }
         )
