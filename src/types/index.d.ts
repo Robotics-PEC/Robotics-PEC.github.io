@@ -152,6 +152,8 @@ export interface TeamData {
 
 export interface ApplicantType {
     id: string;
+    userId?: string;
+
     name: string;
     sid: string;
     phone?: string;

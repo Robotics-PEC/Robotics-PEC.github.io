@@ -1,5 +1,15 @@
-import { useState } from "react";
-import { createApplicant } from "@/lib/supabase/actions/applicants.actions";
+import {
+    useEffect,
+    useState,
+} from "react";
+
+import {
+    createApplicant,
+    fetchMyApplication,
+    updateApplicantPersonalInfo,
+} from "@/lib/supabase/actions/applicants.actions";
+
+import type { ApplicantType } from "@/types";
 
 const branches = [
     "Aerospace Engineering",
@@ -37,21 +47,54 @@ export const APPLICATION_QUESTIONS = [
     },
 ];
 
+const createEmptyResponses = () =>
+    APPLICATION_QUESTIONS.reduce(
+        (acc, question) => {
+            acc[question.id] = "";
+            return acc;
+        },
+        {} as Record<string, string>
+    );
+
 const initialForm = {
     name: "",
+    phone: "",
     sid: "",
     branch: "",
-    responses: APPLICATION_QUESTIONS.reduce((acc, q) => {
-        acc[q.id] = "";
-        return acc;
-    }, {} as Record<string, string>),
+    responses:
+        createEmptyResponses(),
 };
 
 export default function ApplicationForm() {
-    const [form, setForm] = useState(initialForm);
-    const [error, setError] = useState("");
-    const [success, setSuccess] = useState(false);
-    const [submitting, setSubmitting] = useState(false);
+    const [form, setForm] =
+        useState(initialForm);
+
+    const [application, setApplication] =
+        useState<ApplicantType | null>(
+            null
+        );
+
+    const [
+        checkingApplication,
+        setCheckingApplication,
+    ] = useState(true);
+
+    const [error, setError] =
+        useState("");
+
+    const [submitting, setSubmitting] =
+        useState(false);
+
+    const [
+        savingPersonalInfo,
+        setSavingPersonalInfo,
+    ] = useState(false);
+
+    /*
+     * ---------------------------------------------------------
+     * Field helpers
+     * ---------------------------------------------------------
+     */
 
     const updateField = (
         field: keyof typeof initialForm,
@@ -63,7 +106,10 @@ export default function ApplicationForm() {
         }));
     };
 
-    const updateResponse = (questionId: string, value: string) => {
+    const updateResponse = (
+        questionId: string,
+        value: string
+    ) => {
         setForm((current) => ({
             ...current,
             responses: {
@@ -73,58 +119,173 @@ export default function ApplicationForm() {
         }));
     };
 
+    /*
+     * ---------------------------------------------------------
+     * Load existing application
+     * ---------------------------------------------------------
+     */
+
+    useEffect(() => {
+        let active = true;
+
+        const loadApplication =
+            async () => {
+                const existing =
+                    await fetchMyApplication();
+
+                if (!active) {
+                    return;
+                }
+
+                if (existing) {
+                    setApplication(
+                        existing
+                    );
+
+                    setForm({
+                        name:
+                            existing.name ||
+                            "",
+                        phone:
+                            existing.phone ||
+                            "",
+                        sid:
+                            existing.sid ||
+                            "",
+                        branch:
+                            existing.branch ||
+                            "",
+                        responses:
+                            existing.responses ||
+                            createEmptyResponses(),
+                    });
+                }
+
+                setCheckingApplication(
+                    false
+                );
+            };
+
+        void loadApplication();
+
+        return () => {
+            active = false;
+        };
+    }, []);
+
+    /*
+     * ---------------------------------------------------------
+     * Create new application
+     * ---------------------------------------------------------
+     */
+
     const handleSubmit = async (
         event: React.FormEvent<HTMLFormElement>
     ) => {
         event.preventDefault();
 
         setError("");
-        setSuccess(false);
 
-        const name = form.name.trim();
-        const sid = form.sid.trim();
-        const branch = form.branch;
-        
-        // Ensure all required fields and questions are filled
-        if (!name || !sid || !branch) {
-            setError("Please fill in all the required personal fields.");
+        const name =
+            form.name.trim();
+
+        const phone =
+            form.phone.trim();
+
+        const sid =
+            form.sid.trim();
+
+        const branch =
+            form.branch;
+
+        if (
+            !name ||
+            !phone ||
+            !sid ||
+            !branch
+        ) {
+            setError(
+                "Please fill in all the required personal fields."
+            );
+
             return;
         }
 
-        const missingResponses = APPLICATION_QUESTIONS.some(
-            (q) => !form.responses[q.id].trim()
-        );
+        if (
+            !/^[6-9]\d{9}$/.test(
+                phone
+            )
+        ) {
+            setError(
+                "Please enter a valid 10-digit phone number."
+            );
+
+            return;
+        }
+
+        if (
+            !/^\d{8}$/.test(sid)
+        ) {
+            setError(
+                "SID must be exactly 8 digits."
+            );
+
+            return;
+        }
+
+        const missingResponses =
+            APPLICATION_QUESTIONS.some(
+                (question) =>
+                    !form.responses[
+                        question.id
+                    ].trim()
+            );
 
         if (missingResponses) {
-            setError("Please answer all the application questions.");
+            setError(
+                "Please answer all the application questions."
+            );
+
             return;
         }
 
-        if (!/^\d{8}$/.test(sid)) {
-            setError("SID must be exactly 8 digits.");
-            return;
-        }
+        const trimmedResponses =
+            Object.keys(
+                form.responses
+            ).reduce(
+                (acc, key) => {
+                    acc[key] =
+                        form.responses[
+                            key
+                        ].trim();
+
+                    return acc;
+                },
+                {} as Record<
+                    string,
+                    string
+                >
+            );
 
         setSubmitting(true);
 
         try {
-            // Trim responses
-            const trimmedResponses = Object.keys(form.responses).reduce((acc, key) => {
-                acc[key] = form.responses[key].trim();
-                return acc;
-            }, {} as Record<string, string>);
-
-            const result = await createApplicant(
-                name,
-                sid,
-                branch,
-                trimmedResponses
-            );
+            const result =
+                await createApplicant(
+                    name,
+                    sid,
+                    phone,
+                    branch,
+                    trimmedResponses
+                );
 
             if (!result.success) {
-                if (result.reason === "duplicate") {
+                if (
+                    result.reason ===
+                    "duplicate"
+                ) {
                     setError(
-                        "An application with this SID has already been submitted."
+                        "You have already submitted an application."
                     );
                 } else {
                     setError(
@@ -135,10 +296,33 @@ export default function ApplicationForm() {
                 return;
             }
 
-            setSuccess(true);
-            setForm(initialForm);
-        } catch (error) {
-            console.error("Unexpected application submission error:", error);
+            setApplication(
+                result.applicant
+            );
+
+            setForm({
+                name:
+                    result.applicant.name ||
+                    "",
+                phone:
+                    result.applicant.phone ||
+                    "",
+                sid:
+                    result.applicant.sid ||
+                    "",
+                branch:
+                    result.applicant.branch ||
+                    "",
+                responses:
+                    result.applicant
+                        .responses ||
+                    createEmptyResponses(),
+            });
+        } catch (submissionError) {
+            console.error(
+                "Unexpected application submission error:",
+                submissionError
+            );
 
             setError(
                 "We could not submit your application. Please try again."
@@ -148,29 +332,442 @@ export default function ApplicationForm() {
         }
     };
 
-    if (success) {
+    /*
+     * ---------------------------------------------------------
+     * Save personal information
+     * ---------------------------------------------------------
+     */
+
+    const handleSavePersonalInfo =
+        async () => {
+            if (!application) {
+                return;
+            }
+
+            setError("");
+
+            const name =
+                form.name.trim();
+
+            const phone =
+                form.phone.trim();
+
+            const sid =
+                form.sid.trim();
+
+            const branch =
+                form.branch;
+
+            if (
+                !name ||
+                !phone ||
+                !sid ||
+                !branch
+            ) {
+                setError(
+                    "Please fill in all the personal information."
+                );
+
+                return;
+            }
+
+            if (
+                !/^[6-9]\d{9}$/.test(
+                    phone
+                )
+            ) {
+                setError(
+                    "Please enter a valid 10-digit phone number."
+                );
+
+                return;
+            }
+
+            if (
+                !/^\d{8}$/.test(sid)
+            ) {
+                setError(
+                    "SID must be exactly 8 digits."
+                );
+
+                return;
+            }
+
+            setSavingPersonalInfo(
+                true
+            );
+
+            try {
+                const result =
+                    await updateApplicantPersonalInfo(
+                        application.id,
+                        name,
+                        phone,
+                        sid,
+                        branch
+                    );
+
+                if (!result.success) {
+                    setError(
+                        result.reason ===
+                            "not_found"
+                            ? "Your application could not be found or can no longer be edited."
+                            : "Could not update your personal information. Please try again."
+                    );
+
+                    return;
+                }
+
+                setApplication(
+                    result.applicant
+                );
+
+                setForm(
+                    (current) => ({
+                        ...current,
+                        name:
+                            result.applicant
+                                .name,
+                        phone:
+                            result.applicant
+                                .phone ||
+                            "",
+                        sid:
+                            result.applicant
+                                .sid,
+                        branch:
+                            result.applicant
+                                .branch ||
+                            "",
+                    })
+                );
+            } catch (updateError) {
+                console.error(
+                    "Error updating personal information:",
+                    updateError
+                );
+
+                setError(
+                    "Could not update your personal information. Please try again."
+                );
+            } finally {
+                setSavingPersonalInfo(
+                    false
+                );
+            }
+        };
+
+    /*
+     * ---------------------------------------------------------
+     * Loading state
+     * ---------------------------------------------------------
+     */
+
+    if (checkingApplication) {
         return (
             <div className="mx-auto max-w-3xl rounded-xl border bg-white p-8 text-center shadow-sm">
-                <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-green-100 text-green-700">
-                    ✓
-                </div>
-
-                <h2 className="text-2xl font-semibold">
-                    Application Submitted
-                </h2>
-
-                <p className="mt-3 text-muted-foreground">
-                    Your application has been successfully submitted
-                    to the Robotics Society.
-                </p>
-
-                <p className="mt-2 text-sm text-muted-foreground">
-                    Please wait for further communication regarding
-                    the selection process.
+                <p className="text-sm text-muted-foreground">
+                    Checking your application...
                 </p>
             </div>
         );
     }
+
+    /*
+     * ---------------------------------------------------------
+     * Existing application
+     * ---------------------------------------------------------
+     */
+
+    if (application) {
+        const canEdit =
+            application.status ===
+            "pending";
+
+        return (
+            <div className="mx-auto max-w-3xl space-y-8">
+                {/* Personal Information */}
+                <div className="rounded-xl border bg-white p-6 shadow-sm">
+                    <div className="flex items-start justify-between gap-4">
+                        <div>
+                            <h2 className="text-xl font-semibold">
+                                Personal Information
+                            </h2>
+
+                            <p className="mt-1 text-sm text-muted-foreground">
+                                {canEdit
+                                    ? "You can update your personal information while your application is pending."
+                                    : "Your personal information is locked because your application has been reviewed."}
+                            </p>
+                        </div>
+
+                        <span
+                            className={`rounded-full px-3 py-1 text-xs font-medium ${
+                                application.status ===
+                                "accepted"
+                                    ? "bg-green-100 text-green-700"
+                                    : application.status ===
+                                        "rejected"
+                                      ? "bg-red-100 text-red-700"
+                                      : "bg-yellow-100 text-yellow-700"
+                            }`}
+                        >
+                            {application.status
+                                .charAt(
+                                    0
+                                )
+                                .toUpperCase() +
+                                application.status.slice(
+                                    1
+                                )}
+                        </span>
+                    </div>
+
+                    <div className="mt-6 space-y-6">
+                        {/* Name + Phone */}
+                        <div className="grid gap-6 md:grid-cols-2">
+                            <div className="space-y-2">
+                                <label
+                                    htmlFor="existing-name"
+                                    className="text-sm font-medium"
+                                >
+                                    Name
+                                </label>
+
+                                <input
+                                    id="existing-name"
+                                    type="text"
+                                    value={
+                                        form.name
+                                    }
+                                    disabled={
+                                        !canEdit
+                                    }
+                                    onChange={(
+                                        event
+                                    ) =>
+                                        updateField(
+                                            "name",
+                                            event
+                                                .target
+                                                .value
+                                        )
+                                    }
+                                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm outline-none disabled:cursor-not-allowed disabled:opacity-60"
+                                />
+                            </div>
+
+                            <div className="space-y-2">
+                                <label
+                                    htmlFor="existing-phone"
+                                    className="text-sm font-medium"
+                                >
+                                    Phone Number
+                                </label>
+
+                                <input
+                                    id="existing-phone"
+                                    type="tel"
+                                    inputMode="numeric"
+                                    maxLength={
+                                        10
+                                    }
+                                    value={
+                                        form.phone
+                                    }
+                                    disabled={
+                                        !canEdit
+                                    }
+                                    onChange={(
+                                        event
+                                    ) =>
+                                        updateField(
+                                            "phone",
+                                            event.target.value.replace(
+                                                /\D/g,
+                                                ""
+                                            )
+                                        )
+                                    }
+                                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm outline-none disabled:cursor-not-allowed disabled:opacity-60"
+                                />
+                            </div>
+                        </div>
+
+                        {/* SID + Branch */}
+                        <div className="grid gap-6 md:grid-cols-2">
+                            <div className="space-y-2">
+                                <label
+                                    htmlFor="existing-sid"
+                                    className="text-sm font-medium"
+                                >
+                                    SID
+                                </label>
+
+                                <input
+                                    id="existing-sid"
+                                    type="text"
+                                    inputMode="numeric"
+                                    maxLength={
+                                        8
+                                    }
+                                    value={
+                                        form.sid
+                                    }
+                                    disabled={
+                                        !canEdit
+                                    }
+                                    onChange={(
+                                        event
+                                    ) =>
+                                        updateField(
+                                            "sid",
+                                            event.target.value.replace(
+                                                /\D/g,
+                                                ""
+                                            )
+                                        )
+                                    }
+                                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm outline-none disabled:cursor-not-allowed disabled:opacity-60"
+                                />
+                            </div>
+
+                            <div className="space-y-2">
+                                <label
+                                    htmlFor="existing-branch"
+                                    className="text-sm font-medium"
+                                >
+                                    Branch
+                                </label>
+
+                                <select
+                                    id="existing-branch"
+                                    value={
+                                        form.branch
+                                    }
+                                    disabled={
+                                        !canEdit
+                                    }
+                                    onChange={(
+                                        event
+                                    ) =>
+                                        updateField(
+                                            "branch",
+                                            event
+                                                .target
+                                                .value
+                                        )
+                                    }
+                                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm outline-none disabled:cursor-not-allowed disabled:opacity-60"
+                                >
+                                    <option value="">
+                                        Select your branch
+                                    </option>
+
+                                    {branches.map(
+                                        (
+                                            branch
+                                        ) => (
+                                            <option
+                                                key={
+                                                    branch
+                                                }
+                                                value={
+                                                    branch
+                                                }
+                                            >
+                                                {
+                                                    branch
+                                                }
+                                            </option>
+                                        )
+                                    )}
+                                </select>
+                            </div>
+                        </div>
+
+                        {canEdit && (
+                            <button
+                                type="button"
+                                onClick={
+                                    handleSavePersonalInfo
+                                }
+                                disabled={
+                                    savingPersonalInfo
+                                }
+                                className="rounded-md bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
+                            >
+                                {savingPersonalInfo
+                                    ? "Saving..."
+                                    : "Save Personal Information"}
+                            </button>
+                        )}
+                    </div>
+                </div>
+
+                {/* Read-only answers */}
+                <div className="rounded-xl border bg-white p-6 shadow-sm">
+                    <h2 className="text-xl font-semibold">
+                        Submitted Application
+                    </h2>
+
+                    <p className="mt-1 text-sm text-muted-foreground">
+                        Your submitted answers
+                        cannot be changed.
+                    </p>
+
+                    <div className="mt-6 space-y-7">
+                        {APPLICATION_QUESTIONS.map(
+                            (
+                                question
+                            ) => (
+                                <div
+                                    key={
+                                        question.id
+                                    }
+                                    className="space-y-3"
+                                >
+                                    <p className="text-sm font-medium leading-6">
+                                        <span className="mr-2 text-muted-foreground">
+                                            {
+                                                question.id
+                                            }.
+                                        </span>
+
+                                        {
+                                            question.text
+                                        }
+                                    </p>
+
+                                    <div className="rounded-md border bg-gray-50 p-4">
+                                        <p className="whitespace-pre-wrap text-sm leading-6 text-gray-700">
+                                            {application
+                                                .responses?.[
+                                                question.id
+                                            ] ||
+                                                "No answer provided."}
+                                        </p>
+                                    </div>
+                                </div>
+                            )
+                        )}
+                    </div>
+                </div>
+
+                {error && (
+                    <div className="rounded-md border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+                        {error}
+                    </div>
+                )}
+            </div>
+        );
+    }
+
+    /*
+     * ---------------------------------------------------------
+     * New application form
+     * ---------------------------------------------------------
+     */
 
     return (
         <form
@@ -188,25 +785,70 @@ export default function ApplicationForm() {
                 </p>
 
                 <div className="mt-6 space-y-6">
-                    {/* Name */}
-                    <div className="space-y-2">
-                        <label
-                            htmlFor="name"
-                            className="text-sm font-medium"
-                        >
-                            Name
-                        </label>
+                    {/* Name + Phone */}
+                    <div className="grid gap-6 md:grid-cols-2">
+                        <div className="space-y-2">
+                            <label
+                                htmlFor="name"
+                                className="text-sm font-medium"
+                            >
+                                Name
+                            </label>
 
-                        <input
-                            id="name"
-                            type="text"
-                            value={form.name}
-                            onChange={(e) =>
-                                updateField("name", e.target.value)
-                            }
-                            placeholder="Enter your full name"
-                            className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm outline-none placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-ring"
-                        />
+                            <input
+                                id="name"
+                                type="text"
+                                value={
+                                    form.name
+                                }
+                                onChange={(
+                                    event
+                                ) =>
+                                    updateField(
+                                        "name",
+                                        event
+                                            .target
+                                            .value
+                                    )
+                                }
+                                placeholder="Enter your full name"
+                                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm outline-none"
+                            />
+                        </div>
+
+                        <div className="space-y-2">
+                            <label
+                                htmlFor="phone"
+                                className="text-sm font-medium"
+                            >
+                                Phone Number
+                            </label>
+
+                            <input
+                                id="phone"
+                                type="tel"
+                                inputMode="numeric"
+                                maxLength={
+                                    10
+                                }
+                                value={
+                                    form.phone
+                                }
+                                onChange={(
+                                    event
+                                ) =>
+                                    updateField(
+                                        "phone",
+                                        event.target.value.replace(
+                                            /\D/g,
+                                            ""
+                                        )
+                                    )
+                                }
+                                placeholder="10-digit phone number"
+                                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm outline-none"
+                            />
+                        </div>
                     </div>
 
                     {/* SID + Branch */}
@@ -223,16 +865,25 @@ export default function ApplicationForm() {
                                 id="sid"
                                 type="text"
                                 inputMode="numeric"
-                                maxLength={8}
-                                value={form.sid}
-                                onChange={(e) =>
+                                maxLength={
+                                    8
+                                }
+                                value={
+                                    form.sid
+                                }
+                                onChange={(
+                                    event
+                                ) =>
                                     updateField(
                                         "sid",
-                                        e.target.value.replace(/\D/g, "")
+                                        event.target.value.replace(
+                                            /\D/g,
+                                            ""
+                                        )
                                     )
                                 }
                                 placeholder="8-digit SID"
-                                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm outline-none placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-ring"
+                                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm outline-none"
                             />
                         </div>
 
@@ -246,24 +897,43 @@ export default function ApplicationForm() {
 
                             <select
                                 id="branch"
-                                value={form.branch}
-                                onChange={(e) =>
-                                    updateField("branch", e.target.value)
+                                value={
+                                    form.branch
                                 }
-                                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                                onChange={(
+                                    event
+                                ) =>
+                                    updateField(
+                                        "branch",
+                                        event
+                                            .target
+                                            .value
+                                    )
+                                }
+                                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm outline-none"
                             >
                                 <option value="">
                                     Select your branch
                                 </option>
 
-                                {branches.map((branch) => (
-                                    <option
-                                        key={branch}
-                                        value={branch}
-                                    >
-                                        {branch}
-                                    </option>
-                                ))}
+                                {branches.map(
+                                    (
+                                        branch
+                                    ) => (
+                                        <option
+                                            key={
+                                                branch
+                                            }
+                                            value={
+                                                branch
+                                            }
+                                        >
+                                            {
+                                                branch
+                                            }
+                                        </option>
+                                    )
+                                )}
                             </select>
                         </div>
                     </div>
@@ -277,15 +947,37 @@ export default function ApplicationForm() {
                 </h2>
 
                 <div className="mt-6 space-y-7">
-                    {APPLICATION_QUESTIONS.map((q) => (
-                        <Question
-                            key={q.id}
-                            number={q.id}
-                            question={q.text}
-                            value={form.responses[q.id]}
-                            onChange={(value) => updateResponse(q.id, value)}
-                        />
-                    ))}
+                    {APPLICATION_QUESTIONS.map(
+                        (
+                            question
+                        ) => (
+                            <Question
+                                key={
+                                    question.id
+                                }
+                                number={
+                                    question.id
+                                }
+                                question={
+                                    question.text
+                                }
+                                value={
+                                    form
+                                        .responses[
+                                        question.id
+                                    ]
+                                }
+                                onChange={(
+                                    value
+                                ) =>
+                                    updateResponse(
+                                        question.id,
+                                        value
+                                    )
+                                }
+                            />
+                        )
+                    )}
                 </div>
             </div>
 
@@ -312,7 +1004,9 @@ interface QuestionProps {
     number: string;
     question: string;
     value: string;
-    onChange: (value: string) => void;
+    onChange: (
+        value: string
+    ) => void;
 }
 
 function Question({
@@ -337,10 +1031,14 @@ function Question({
             <textarea
                 id={number}
                 value={value}
-                onChange={(e) => onChange(e.target.value)}
+                onChange={(event) =>
+                    onChange(
+                        event.target.value
+                    )
+                }
                 rows={5}
                 placeholder="Write your answer here..."
-                className="flex min-h-[120px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm outline-none placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-ring"
+                className="flex min-h-[120px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm outline-none"
             />
         </div>
     );
