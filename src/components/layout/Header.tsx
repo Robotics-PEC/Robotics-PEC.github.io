@@ -111,6 +111,15 @@ const Header = ({ isAdmin = false }: { isAdmin?: boolean }) => {
                                     </>
                                 )
                             }
+                            {
+                                isAdmin && (
+                                    <>
+                                        <Link href="/admin/page" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
+                                            Admin
+                                        </Link>
+                                    </>
+                                )
+                            }
                         </nav>
                     </div>
 

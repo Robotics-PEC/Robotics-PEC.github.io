@@ -18,10 +18,16 @@ export const fetchApplicants = async (): Promise<ApplicantType[]> => {
     const { data, error } = await client
         .from("applicants")
         .select("*, applicant_response(branch, responses)")
-        .order("created_at", { ascending: false });
+        .order("created_at", {
+            ascending: false,
+        });
 
     if (error) {
-        console.error("Error fetching applicants:", error);
+        console.error(
+            "Error fetching applicants:",
+            error
+        );
+
         return [];
     }
 
@@ -35,7 +41,9 @@ export const fetchApplicants = async (): Promise<ApplicantType[]> => {
         return {
             ...item,
             status: item.status?.toLowerCase(),
-            createdAt: item.createdAt || item.created_at,
+            createdAt:
+                item.createdAt ||
+                item.created_at,
             branch: responseData?.branch,
             responses: responseData?.responses,
         };
@@ -50,7 +58,9 @@ export const fetchApplicantWithResponses = async (
 ): Promise<ApplicantType | null> => {
     const { data, error } = await client
         .from("applicants")
-        .select("*, applicant_response(branch, responses)")
+        .select(
+            "*, applicant_response(branch, responses)"
+        )
         .eq("id", id)
         .single();
 
@@ -63,7 +73,8 @@ export const fetchApplicantWithResponses = async (
         return null;
     }
 
-    const response = (data as any).applicant_response;
+    const response =
+        (data as any).applicant_response;
 
     const responseData = Array.isArray(response)
         ? response[0]
@@ -72,7 +83,9 @@ export const fetchApplicantWithResponses = async (
     return {
         ...data,
         status: data.status?.toLowerCase(),
-        createdAt: data.createdAt || data.created_at,
+        createdAt:
+            data.createdAt ||
+            data.created_at,
         branch: responseData?.branch,
         responses: responseData?.responses,
     } as ApplicantType;
@@ -101,14 +114,20 @@ export const createWalkIn = async (
         .single();
 
     if (error) {
-        console.error("Error creating walk-in:", error);
+        console.error(
+            "Error creating walk-in:",
+            error
+        );
+
         return null;
     }
 
     return {
         ...data,
         status: data.status?.toLowerCase(),
-        createdAt: data.createdAt || data.created_at,
+        createdAt:
+            data.createdAt ||
+            data.created_at,
     } as ApplicantType;
 };
 
@@ -121,19 +140,27 @@ export const createApplicant = async (
     branch: string,
     responses: Record<string, string>
 ): Promise<CreateApplicantResult> => {
-    const { data: applicantData, error: applicantError } =
-        await client
-            .from("applicants")
-            .insert([
-                {
-                    name,
-                    sid,
-                    isWalkin: false,
-                    status: "PENDING",
-                },
-            ])
-            .select()
-            .single();
+    /*
+     * ---------------------------------------------------------
+     * 1. Create applicant in Supabase
+     * ---------------------------------------------------------
+     */
+
+    const {
+        data: applicantData,
+        error: applicantError,
+    } = await client
+        .from("applicants")
+        .insert([
+            {
+                name,
+                sid,
+                isWalkin: false,
+                status: "PENDING",
+            },
+        ])
+        .select()
+        .single();
 
     if (applicantError) {
         if (applicantError.code === "23505") {
@@ -153,11 +180,24 @@ export const createApplicant = async (
             applicantError
         );
 
+        console.error("Error details:", {
+            message: applicantError.message,
+            details: applicantError.details,
+            hint: applicantError.hint,
+            code: applicantError.code,
+        });
+
         return {
             success: false,
             reason: "error",
         };
     }
+
+    /*
+     * ---------------------------------------------------------
+     * 2. Store responses in Supabase
+     * ---------------------------------------------------------
+     */
 
     const { error: responseError } = await client
         .from("applicant_response")
@@ -175,6 +215,10 @@ export const createApplicant = async (
             responseError
         );
 
+        /*
+         * Roll back applicant if its responses could not
+         * be stored.
+         */
         await client
             .from("applicants")
             .delete()
@@ -186,15 +230,72 @@ export const createApplicant = async (
         };
     }
 
+    /*
+     * ---------------------------------------------------------
+     * 3. Sync application to Google Sheets
+     * ---------------------------------------------------------
+     *
+     * Supabase remains the source of truth.
+     * A Google Sheets failure does NOT invalidate the
+     * application.
+     */
+
+    const {
+        data: sheetsData,
+        error: sheetsError,
+    } = await client.functions.invoke(
+        "sync-application-to-sheets",
+        {
+            body: {
+                operation: "application",
+
+                applicationId: applicantData.id,
+
+                name,
+                sid,
+                branch,
+
+                q1: responses.Q1 || "",
+                q2: responses.Q2 || "",
+                q3: responses.Q3 || "",
+                q4: responses.Q4 || "",
+            },
+        }
+    );
+
+    if (sheetsError) {
+        console.error(
+            "Application saved to Supabase, but Google Sheets synchronization failed:",
+            sheetsError
+        );
+    } else if (
+        sheetsData?.success === false
+    ) {
+        console.error(
+            "Google Sheets synchronization failed:",
+            sheetsData
+        );
+    }
+
+    /*
+     * ---------------------------------------------------------
+     * 4. Return successful application
+     * ---------------------------------------------------------
+     */
+
     return {
         success: true,
 
         applicant: {
             ...applicantData,
-            status: applicantData.status?.toLowerCase(),
+
+            status:
+                applicantData.status?.toLowerCase(),
+
             createdAt:
                 applicantData.createdAt ||
                 applicantData.created_at,
+
             branch,
             responses,
         } as ApplicantType,
@@ -373,14 +474,24 @@ export const updateApplicantDecision = async (
     remarks: string,
     reviewedBy: string
 ): Promise<boolean> => {
+    /*
+     * Use one timestamp for both Supabase and Google Sheets.
+     */
+    const reviewedAt = new Date().toISOString();
+
+    /*
+     * ---------------------------------------------------------
+     * 1. Update the existing applicant record
+     * ---------------------------------------------------------
+     */
+
     const { error } = await client
         .from("applicants")
         .update({
             status: status.toUpperCase(),
             remarks,
             reviewedBy,
-            reviewedAt:
-                new Date().toISOString(),
+            reviewedAt,
         })
         .eq("id", applicantId);
 
@@ -391,6 +502,57 @@ export const updateApplicantDecision = async (
         );
 
         return false;
+    }
+
+    /*
+     * ---------------------------------------------------------
+     * 2. Sync decision to Results Google Sheet
+     * ---------------------------------------------------------
+     *
+     * We send only data already present in the
+     * existing application architecture.
+     *
+     * The Edge Function uses applicantId to obtain
+     * the applicant's name, SID and branch.
+     */
+
+    const {
+        data: sheetsData,
+        error: sheetsError,
+    } = await client.functions.invoke(
+        "sync-application-to-sheets",
+        {
+            body: {
+                operation: "result",
+
+                applicationId: applicantId,
+
+                status,
+                remarks,
+                reviewedBy,
+                reviewedAt,
+            },
+        }
+    );
+
+    /*
+     * Supabase remains the source of truth.
+     * Do NOT undo a valid decision because Sheets
+     * synchronization failed.
+     */
+
+    if (sheetsError) {
+        console.error(
+            "Decision saved to Supabase, but Results Sheet synchronization failed:",
+            sheetsError
+        );
+    } else if (
+        sheetsData?.success === false
+    ) {
+        console.error(
+            "Results Sheet synchronization failed:",
+            sheetsData
+        );
     }
 
     return true;
@@ -428,8 +590,12 @@ export const resetApplicantDecision = async (
  * Subscribe to applicant changes in realtime.
  */
 export const subscribeToApplicantUpdates = (
-    onUpdate: (applicant: ApplicantType) => void,
-    onInsert: (applicant: ApplicantType) => void
+    onUpdate: (
+        applicant: ApplicantType
+    ) => void,
+    onInsert: (
+        applicant: ApplicantType
+    ) => void
 ) => {
     const channel = client
         .channel("applicants-status")
@@ -440,8 +606,9 @@ export const subscribeToApplicantUpdates = (
                 schema: "public",
                 table: "applicants",
             },
-            (payload) => {
-                const item = payload.new as any;
+            (payload:any) => {
+                const item =
+                    payload.new as any;
 
                 onUpdate({
                     ...item,
@@ -460,8 +627,9 @@ export const subscribeToApplicantUpdates = (
                 schema: "public",
                 table: "applicants",
             },
-            (payload) => {
-                const item = payload.new as any;
+            (payload: any) => {
+                const item =
+                    payload.new as any;
 
                 onInsert({
                     ...item,

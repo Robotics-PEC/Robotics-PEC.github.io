@@ -18,7 +18,6 @@ const ResourceCard = ({ resource }: CenterCardProps) => {
 
     const handleRedirect = (url: string) => {
         if (!url) return;
-        console.log(window.location.href);
         if (url.startsWith("https://")) {
             window.location.href = url;
         }
