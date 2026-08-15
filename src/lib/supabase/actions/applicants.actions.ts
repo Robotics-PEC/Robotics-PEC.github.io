@@ -11,6 +11,9 @@ export type CreateApplicantResult =
           reason: "duplicate" | "error";
       };
 
+/**
+ * Fetch all applicants with their application responses.
+ */
 export const fetchApplicants = async (): Promise<ApplicantType[]> => {
     const { data, error } = await client
         .from("applicants")
@@ -47,6 +50,9 @@ export const fetchApplicants = async (): Promise<ApplicantType[]> => {
     }) as ApplicantType[];
 };
 
+/**
+ * Fetch one applicant with complete application responses.
+ */
 export const fetchApplicantWithResponses = async (
     id: string
 ): Promise<ApplicantType | null> => {
@@ -85,6 +91,9 @@ export const fetchApplicantWithResponses = async (
     } as ApplicantType;
 };
 
+/**
+ * Create a walk-in applicant.
+ */
 export const createWalkIn = async (
     name: string,
     sid: string,
@@ -122,6 +131,9 @@ export const createWalkIn = async (
     } as ApplicantType;
 };
 
+/**
+ * Create a normal application.
+ */
 export const createApplicant = async (
     name: string,
     sid: string,
@@ -290,6 +302,172 @@ export const createApplicant = async (
     };
 };
 
+/**
+ * Update applicant details, application responses,
+ * and remarks.
+ *
+ * IMPORTANT:
+ * This function does NOT update:
+ * - status
+ * - reviewedBy
+ * - reviewedAt
+ *
+ * Therefore an accepted/rejected applicant can be edited
+ * without changing their decision.
+ */
+export const updateApplicant = async (
+    applicantId: string,
+    data: {
+        name: string;
+        sid: string;
+        phone: string;
+        remarks?: string;
+        branch?: string;
+        responses?: Record<string, string>;
+    }
+): Promise<ApplicantType | null> => {
+    /*
+     * ---------------------------------------------------------
+     * Update main applicant record
+     * ---------------------------------------------------------
+     */
+
+    const { error: applicantError } = await client
+        .from("applicants")
+        .update({
+            name: data.name.trim(),
+            sid: data.sid.trim(),
+            phone: data.phone.trim() || null,
+            remarks: data.remarks?.trim() || null,
+        })
+        .eq("id", applicantId);
+
+    if (applicantError) {
+        console.error(
+            "Error updating applicant:",
+            applicantError
+        );
+
+        return null;
+    }
+
+    /*
+     * ---------------------------------------------------------
+     * Walk-ins don't normally have applicant_response.
+     *
+     * Only update/create applicant_response when
+     * branch or responses were supplied.
+     * ---------------------------------------------------------
+     */
+
+    if (
+        data.branch !== undefined ||
+        data.responses !== undefined
+    ) {
+        const {
+            data: existingResponse,
+            error: responseFetchError,
+        } = await client
+            .from("applicant_response")
+            .select("id")
+            .eq("applicantId", applicantId)
+            .limit(1)
+            .maybeSingle();
+
+        if (responseFetchError) {
+            console.error(
+                "Error checking applicant response:",
+                responseFetchError
+            );
+
+            return null;
+        }
+
+        /*
+         * Existing application response
+         */
+        if (existingResponse) {
+            const responseUpdate: {
+                branch?: string;
+                responses?: Record<string, string>;
+            } = {};
+
+            if (data.branch !== undefined) {
+                responseUpdate.branch =
+                    data.branch.trim();
+            }
+
+            if (data.responses !== undefined) {
+                responseUpdate.responses =
+                    data.responses;
+            }
+
+            const {
+                error: responseUpdateError,
+            } = await client
+                .from("applicant_response")
+                .update(responseUpdate)
+                .eq(
+                    "id",
+                    existingResponse.id
+                );
+
+            if (responseUpdateError) {
+                console.error(
+                    "Error updating applicant response:",
+                    responseUpdateError
+                );
+
+                return null;
+            }
+        }
+
+        /*
+         * No response exists.
+         *
+         * This can happen if an applicant was created
+         * without an applicant_response row.
+         */
+        else {
+            const {
+                error: responseInsertError,
+            } = await client
+                .from("applicant_response")
+                .insert([
+                    {
+                        applicantId,
+                        branch:
+                            data.branch?.trim() || "",
+                        responses:
+                            data.responses || {},
+                    },
+                ]);
+
+            if (responseInsertError) {
+                console.error(
+                    "Error creating applicant response:",
+                    responseInsertError
+                );
+
+                return null;
+            }
+        }
+    }
+
+    /*
+     * ---------------------------------------------------------
+     * Fetch the final updated applicant
+     * ---------------------------------------------------------
+     */
+
+    return await fetchApplicantWithResponses(
+        applicantId
+    );
+};
+
+/**
+ * Accept or reject an applicant.
+ */
 export const updateApplicantDecision = async (
     applicantId: string,
     status: "accepted" | "rejected",
@@ -380,6 +558,37 @@ export const updateApplicantDecision = async (
     return true;
 };
 
+/**
+ * Reset an applicant back to PENDING.
+ */
+export const resetApplicantDecision = async (
+    applicantId: string
+): Promise<boolean> => {
+    const { error } = await client
+        .from("applicants")
+        .update({
+            status: "PENDING",
+            remarks: null,
+            reviewedBy: null,
+            reviewedAt: null,
+        })
+        .eq("id", applicantId);
+
+    if (error) {
+        console.error(
+            "Error resetting applicant decision:",
+            error
+        );
+
+        return false;
+    }
+
+    return true;
+};
+
+/**
+ * Subscribe to applicant changes in realtime.
+ */
 export const subscribeToApplicantUpdates = (
     onUpdate: (
         applicant: ApplicantType
@@ -397,7 +606,7 @@ export const subscribeToApplicantUpdates = (
                 schema: "public",
                 table: "applicants",
             },
-            (payload) => {
+            (payload:any) => {
                 const item =
                     payload.new as any;
 
@@ -418,7 +627,7 @@ export const subscribeToApplicantUpdates = (
                 schema: "public",
                 table: "applicants",
             },
-            (payload) => {
+            (payload: any) => {
                 const item =
                     payload.new as any;
 

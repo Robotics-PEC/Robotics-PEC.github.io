@@ -1,19 +1,34 @@
 import { useState } from "react";
+
 import { useAuthRole } from "@/lib/useAuthRole";
+
 import { ApplicantType } from "@/types";
 
 import { Button } from "@/components/ui/button";
-import { ArrowLeft } from "lucide-react";
+
+import {
+    ArrowLeft,
+    Pencil,
+} from "lucide-react";
 
 import ApplicantDecision from "./ApplicantDecision";
+import ApplicantEditForm from "./ApplicantEditForm";
 
-import { updateApplicantDecision } from "@/lib/supabase/actions/applicants.actions";
+import {
+    updateApplicant,
+    updateApplicantDecision,
+} from "@/lib/supabase/actions/applicants.actions";
+
 import { APPLICATION_QUESTIONS } from "../ApplicationForm";
 
 export interface ApplicantFormViewProps {
     applicant: ApplicantType;
+
     onBack: () => void;
-    onStatusUpdate: (updatedApplicant: ApplicantType) => void;
+
+    onStatusUpdate: (
+        updatedApplicant: ApplicantType
+    ) => void;
 }
 
 const ApplicantFormView = ({
@@ -22,42 +37,208 @@ const ApplicantFormView = ({
     onStatusUpdate,
 }: ApplicantFormViewProps) => {
     const { role } = useAuthRole();
-    const [currentStatus, setCurrentStatus] = useState<
-        "pending" | "accepted" | "rejected"
-    >(applicant.status);
 
-    const handleSubmitDecision = async (
-        status: "accepted" | "rejected",
-        remarks: string
-    ) => {
-        const reviewedBy = role?.slug === "admin" ? "Admin" : "Panelist";
-
-        const success = await updateApplicantDecision(
-            applicant.id,
-            status,
-            remarks,
-            reviewedBy
+    const [currentApplicant, setCurrentApplicant] =
+        useState<ApplicantType>(
+            applicant
         );
 
-        if (!success) {
-            throw new Error("Failed to update applicant decision");
+    const [currentStatus, setCurrentStatus] =
+        useState<
+            "pending" | "accepted" | "rejected"
+        >(applicant.status);
+
+    const [isEditing, setIsEditing] =
+        useState(false);
+
+    /*
+     * ---------------------------------------------------------
+     * SAVE EDITED APPLICANT
+     * ---------------------------------------------------------
+     *
+     * This does NOT change status.
+     */
+    const handleSaveApplicant = async (
+        editedApplicant: ApplicantType
+    ) => {
+        const updatedApplicant =
+            await updateApplicant(
+                editedApplicant.id,
+                {
+                    name:
+                        editedApplicant.name,
+
+                    sid:
+                        editedApplicant.sid,
+
+                    phone:
+                        editedApplicant.phone ||
+                        "",
+
+                    remarks:
+                        editedApplicant.remarks ||
+                        "",
+
+                    branch:
+                        editedApplicant.branch,
+
+                    responses:
+                        editedApplicant.responses ||
+                        {},
+                }
+            );
+
+        if (!updatedApplicant) {
+            throw new Error(
+                "Failed to update applicant."
+            );
         }
+
+        /*
+         * Preserve the existing decision.
+         */
+        setCurrentApplicant(
+            updatedApplicant
+        );
+
+        setCurrentStatus(
+            updatedApplicant.status
+        );
+
+        setIsEditing(false);
+
+        /*
+         * Update parent list immediately.
+         */
+        onStatusUpdate(
+            updatedApplicant
+        );
+    };
+
+    /*
+     * ---------------------------------------------------------
+     * ACCEPT / REJECT
+     * ---------------------------------------------------------
+     */
+    const handleSubmitDecision = async (
+        status:
+            | "accepted"
+            | "rejected",
+        remarks: string
+    ) => {
+        const reviewedBy =
+            role?.slug === "admin"
+                ? "Admin"
+                : "Panelist";
+
+        const success =
+            await updateApplicantDecision(
+                currentApplicant.id,
+                status,
+                remarks,
+                reviewedBy
+            );
+
+        if (!success) {
+            throw new Error(
+                "Failed to update applicant decision."
+            );
+        }
+
+        const updatedApplicant: ApplicantType =
+            {
+                ...currentApplicant,
+
+                status,
+
+                remarks,
+
+                reviewedBy,
+
+                reviewedAt:
+                    new Date().toISOString(),
+            };
+
+        setCurrentApplicant(
+            updatedApplicant
+        );
 
         setCurrentStatus(status);
 
-        onStatusUpdate({
-            ...applicant,
-            status,
-            remarks,
-            reviewedBy: reviewedBy,
-            reviewedAt: new Date().toISOString(),
-        });
+        onStatusUpdate(
+            updatedApplicant
+        );
     };
 
+    /*
+     * ---------------------------------------------------------
+     * EDIT MODE
+     * ---------------------------------------------------------
+     */
+    if (isEditing) {
+        return (
+            <div className="flex h-full flex-col rounded-lg border bg-white p-6">
+
+                {/* Header */}
+                <div className="mb-6 flex items-center gap-4 border-b pb-4">
+
+                    <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() =>
+                            setIsEditing(false)
+                        }
+                    >
+                        <ArrowLeft className="h-5 w-5" />
+                    </Button>
+
+                    <div>
+                        <h2 className="text-2xl font-bold">
+                            Edit Applicant
+                        </h2>
+
+                        <p className="text-muted-foreground">
+                            {
+                                currentApplicant.name
+                            }
+
+                            {" • "}
+
+                            {
+                                currentApplicant.sid
+                            }
+                        </p>
+                    </div>
+
+                </div>
+
+                <ApplicantEditForm
+                    applicant={
+                        currentApplicant
+                    }
+                    onSave={
+                        handleSaveApplicant
+                    }
+                    onCancel={() =>
+                        setIsEditing(false)
+                    }
+                />
+
+            </div>
+        );
+    }
+
+    /*
+     * ---------------------------------------------------------
+     * NORMAL VIEW
+     * ---------------------------------------------------------
+     */
     return (
         <div className="flex h-full flex-col rounded-lg border bg-white p-6">
+
             {/* Header */}
             <div className="mb-6 flex items-center gap-4 border-b pb-4">
+
                 <Button
                     variant="ghost"
                     size="icon"
@@ -66,55 +247,118 @@ const ApplicantFormView = ({
                     <ArrowLeft className="h-5 w-5" />
                 </Button>
 
-                <div>
+                <div className="flex-1">
+
                     <h2 className="text-2xl font-bold">
-                        {applicant.name}
+                        {currentApplicant.name}
                     </h2>
 
                     <p className="text-muted-foreground">
-                        SID: {applicant.sid}{" "}
-                        {applicant.isWalkin ? "(Walk-In)" : ""}
+                        SID:{" "}
+                        {currentApplicant.sid}
+
+                        {" "}
+
+                        {currentApplicant.isWalkin
+                            ? "(Walk-In)"
+                            : ""}
                     </p>
+
                 </div>
+
+                {/* =============================================
+                    EDIT BUTTON
+                    =============================================
+
+                    IMPORTANT:
+                    There is NO status check here.
+
+                    Therefore it appears for:
+                    PENDING
+                    ACCEPTED
+                    REJECTED
+                */}
+                <Button
+                    variant="outline"
+                    onClick={() =>
+                        setIsEditing(true)
+                    }
+                    className="flex items-center gap-2"
+                >
+                    <Pencil className="h-4 w-4" />
+
+                    Edit
+                </Button>
+
             </div>
 
-            {/* Applicant Details */}
-            {applicant.isWalkin ? (
+            {/* Applicant details */}
+            {currentApplicant.isWalkin ? (
+
                 <div className="mb-6 flex flex-1 flex-col items-center justify-center rounded-lg border bg-gray-50 p-8 text-center">
-                    <h3 className="mb-4 text-xl font-medium text-gray-700">
-                        Walk-In Applicant Details
+
+                    <h3 className="mb-4 text-xl font-medium">
+                        Walk-In Applicant
                     </h3>
 
-                    <p className="mb-2 text-sm font-medium text-gray-600">
-                        Name: {applicant.name}
+                    <p className="mb-2 text-sm">
+                        Name:{" "}
+                        {currentApplicant.name}
                     </p>
 
-                    <p className="mb-2 text-sm font-medium text-gray-600">
-                        SID: {applicant.sid}
+                    <p className="mb-2 text-sm">
+                        SID:{" "}
+                        {currentApplicant.sid}
                     </p>
 
-                    {applicant.phone && (
-                        <p className="text-sm font-medium text-gray-600">
-                            Phone: {applicant.phone}
+                    {currentApplicant.phone && (
+                        <p className="text-sm">
+                            Phone:{" "}
+                            {
+                                currentApplicant.phone
+                            }
                         </p>
                     )}
+
+                    {currentApplicant.remarks && (
+                        <div className="mt-5 max-w-md rounded-md border bg-white p-4 text-left">
+
+                            <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                                Remarks
+                            </p>
+
+                            <p className="mt-1 whitespace-pre-wrap text-sm">
+                                {
+                                    currentApplicant.remarks
+                                }
+                            </p>
+
+                        </div>
+                    )}
+
                 </div>
+
             ) : (
+
                 <div className="mb-6 flex-1 overflow-y-auto">
+
                     <div className="rounded-lg border bg-gray-50 p-6">
-                        <h3 className="mb-6 text-xl font-semibold text-gray-900">
+
+                        <h3 className="mb-6 text-xl font-semibold">
                             Application
                         </h3>
 
-                        {/* Basic Information */}
                         <div className="mb-8 grid gap-6 sm:grid-cols-2">
+
                             <div>
                                 <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
                                     Name
                                 </p>
 
-                                <p className="mt-1 text-sm font-medium text-gray-900">
-                                    {applicant.name}
+                                <p className="mt-1 text-sm font-medium">
+                                    {
+                                        currentApplicant.name
+                                    }
                                 </p>
                             </div>
 
@@ -123,8 +367,23 @@ const ApplicantFormView = ({
                                     SID
                                 </p>
 
-                                <p className="mt-1 text-sm font-medium text-gray-900">
-                                    {applicant.sid}
+                                <p className="mt-1 text-sm font-medium">
+                                    {
+                                        currentApplicant.sid
+                                    }
+                                </p>
+                            </div>
+
+                            <div>
+                                <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                                    Phone
+                                </p>
+
+                                <p className="mt-1 text-sm font-medium">
+                                    {
+                                        currentApplicant.phone ||
+                                        "Not provided"
+                                    }
                                 </p>
                             </div>
 
@@ -133,67 +392,104 @@ const ApplicantFormView = ({
                                     Branch
                                 </p>
 
-                                <p className="mt-1 text-sm font-medium text-gray-900">
-                                    {applicant.branch || "Not provided"}
+                                <p className="mt-1 text-sm font-medium">
+                                    {
+                                        currentApplicant.branch ||
+                                        "Not provided"
+                                    }
                                 </p>
                             </div>
+
                         </div>
 
-                        {/* Application Questions */}
+                        {/* Remarks */}
+                        {currentApplicant.remarks && (
+                            <div className="mb-8 rounded-lg border bg-white p-4">
+
+                                <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                                    Remarks
+                                </p>
+
+                                <p className="mt-1 whitespace-pre-wrap text-sm">
+                                    {
+                                        currentApplicant.remarks
+                                    }
+                                </p>
+
+                            </div>
+                        )}
+
+                        {/* Application questions */}
                         <div className="space-y-6">
-                            {APPLICATION_QUESTIONS.map((q) => (
-                                <ApplicationAnswer
-                                    key={q.id}
-                                    number={q.id}
-                                    question={q.text}
-                                    answer={applicant.responses?.[q.id]}
-                                />
-                            ))}
+
+                            {APPLICATION_QUESTIONS.map(
+                                (question) => {
+
+                                    const questionId =
+                                        String(
+                                            question.id
+                                        );
+
+                                    return (
+                                        <div
+                                            key={
+                                                questionId
+                                            }
+                                        >
+
+                                            <p className="text-sm font-semibold">
+                                                {
+                                                    question.text
+                                                }
+                                            </p>
+
+                                            <div className="mt-2 rounded-md border bg-white p-4">
+
+                                                <p className="whitespace-pre-wrap text-sm">
+                                                    {
+                                                        currentApplicant
+                                                            .responses?.[
+                                                            questionId
+                                                        ] ||
+                                                        "No answer provided."
+                                                    }
+                                                </p>
+
+                                            </div>
+
+                                        </div>
+                                    );
+                                }
+                            )}
+
                         </div>
+
                     </div>
+
                 </div>
             )}
 
-            {/* Accept / Reject section */}
+            {/* Decision section */}
             <ApplicantDecision
-                applicantId={applicant.id}
-                currentStatus={currentStatus}
-                remarks={applicant.remarks}
-                reviewedBy={applicant.reviewedBy}
-                onSubmitDecision={handleSubmitDecision}
+                applicantId={
+                    currentApplicant.id
+                }
+                currentStatus={
+                    currentStatus
+                }
+                remarks={
+                    currentApplicant.remarks
+                }
+                reviewedBy={
+                    currentApplicant.reviewedBy
+                }
+                onSubmitDecision={
+                    handleSubmitDecision
+                }
             />
+
         </div>
     );
 };
-
-interface ApplicationAnswerProps {
-    number: string;
-    question: string;
-    answer?: string;
-}
-
-function ApplicationAnswer({
-    number,
-    question,
-    answer,
-}: ApplicationAnswerProps) {
-    return (
-        <div>
-            <p className="text-sm font-semibold leading-6 text-gray-900">
-                <span className="mr-2 text-muted-foreground">
-                    {number}.
-                </span>
-
-                {question}
-            </p>
-
-            <div className="mt-2 rounded-md border bg-white p-4">
-                <p className="whitespace-pre-wrap text-sm leading-6 text-gray-700">
-                    {answer || "No answer provided."}
-                </p>
-            </div>
-        </div>
-    );
-}
 
 export default ApplicantFormView;
