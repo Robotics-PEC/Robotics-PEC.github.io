@@ -11,6 +11,12 @@ export type CreateApplicantResult =
           reason: "duplicate" | "error";
       };
 
+/*
+ * ---------------------------------------------------------
+ * Shared applicant mapper
+ * ---------------------------------------------------------
+ */
+
 const mapApplicant = (item: any): ApplicantType => {
     const response = item.applicant_response;
 
@@ -29,6 +35,12 @@ const mapApplicant = (item: any): ApplicantType => {
         responses: responseData?.responses,
     } as ApplicantType;
 };
+
+/*
+ * ---------------------------------------------------------
+ * Fetch all applicants
+ * ---------------------------------------------------------
+ */
 
 export const fetchApplicants = async (): Promise<
     ApplicantType[]
@@ -54,32 +66,39 @@ export const fetchApplicants = async (): Promise<
     return (data as any[]).map(mapApplicant);
 };
 
-export const fetchApplicantWithResponses = async (
-    id: string
-): Promise<ApplicantType | null> => {
-    const { data, error } = await client
-        .from("applicants")
-        .select(
-            "*, applicant_response(branch, responses)"
-        )
-        .eq("id", id)
-        .single();
+/*
+ * ---------------------------------------------------------
+ * Fetch one applicant with complete responses
+ * ---------------------------------------------------------
+ */
 
-    if (error) {
-        console.error(
-            "Error fetching applicant with responses:",
-            error
-        );
+export const fetchApplicantWithResponses =
+    async (
+        id: string
+    ): Promise<ApplicantType | null> => {
+        const { data, error } = await client
+            .from("applicants")
+            .select(
+                "*, applicant_response(branch, responses)"
+            )
+            .eq("id", id)
+            .single();
 
-        return null;
-    }
+        if (error) {
+            console.error(
+                "Error fetching applicant with responses:",
+                error
+            );
 
-    return mapApplicant(data);
-};
+            return null;
+        }
+
+        return mapApplicant(data);
+    };
 
 /*
  * ---------------------------------------------------------
- * Fetch the currently logged-in user's application.
+ * Fetch currently logged-in user's application
  * ---------------------------------------------------------
  */
 
@@ -118,16 +137,19 @@ export const fetchMyApplication =
         return mapApplicant(data);
     };
 
+/*
+ * ---------------------------------------------------------
+ * Create a walk-in applicant
+ * ---------------------------------------------------------
+ *
+ * Walk-ins are not associated with a logged-in user.
+ */
+
 export const createWalkIn = async (
     name: string,
     sid: string,
     phone: string
 ): Promise<ApplicantType | null> => {
-    /*
-     * Walk-ins are still created exactly as before.
-     * They are not tied to a user account.
-     */
-
     const { data, error } = await client
         .from("applicants")
         .insert([
@@ -161,6 +183,17 @@ export const createWalkIn = async (
     } as ApplicantType;
 };
 
+/*
+ * ---------------------------------------------------------
+ * Create a normal application
+ * ---------------------------------------------------------
+ *
+ * One authenticated account can have only one application.
+ *
+ * This is enforced by the unique userId constraint in
+ * Supabase. The pre-check below is only for a better UX.
+ */
+
 export const createApplicant = async (
     name: string,
     sid: string,
@@ -169,9 +202,7 @@ export const createApplicant = async (
     responses: Record<string, string>
 ): Promise<CreateApplicantResult> => {
     /*
-     * ---------------------------------------------------------
      * 1. Get authenticated user
-     * ---------------------------------------------------------
      */
 
     const {
@@ -192,14 +223,7 @@ export const createApplicant = async (
     }
 
     /*
-     * ---------------------------------------------------------
      * 2. Friendly existing-application check
-     * ---------------------------------------------------------
-     *
-     * The UNIQUE constraint on userId in Supabase is the
-     * actual protection against duplicate applications.
-     *
-     * This query is only for giving a clean UI response.
      */
 
     const {
@@ -231,9 +255,7 @@ export const createApplicant = async (
     }
 
     /*
-     * ---------------------------------------------------------
      * 3. Create applicant
-     * ---------------------------------------------------------
      */
 
     const {
@@ -277,16 +299,19 @@ export const createApplicant = async (
             applicantError
         );
 
-        console.error("Error details:", {
-            message:
-                applicantError.message,
-            details:
-                applicantError.details,
-            hint:
-                applicantError.hint,
-            code:
-                applicantError.code,
-        });
+        console.error(
+            "Error details:",
+            {
+                message:
+                    applicantError.message,
+                details:
+                    applicantError.details,
+                hint:
+                    applicantError.hint,
+                code:
+                    applicantError.code,
+            }
+        );
 
         return {
             success: false,
@@ -295,9 +320,7 @@ export const createApplicant = async (
     }
 
     /*
-     * ---------------------------------------------------------
      * 4. Store application responses
-     * ---------------------------------------------------------
      */
 
     const {
@@ -334,9 +357,7 @@ export const createApplicant = async (
     }
 
     /*
-     * ---------------------------------------------------------
      * 5. Sync application to Google Sheets
-     * ---------------------------------------------------------
      */
 
     const {
@@ -367,6 +388,11 @@ export const createApplicant = async (
             },
         }
     );
+
+    /*
+     * Supabase is the source of truth.
+     * Sheets failure does not invalidate the application.
+     */
 
     if (sheetsError) {
         console.error(
@@ -401,19 +427,19 @@ export const createApplicant = async (
 
 /*
  * ---------------------------------------------------------
- * Update applicant personal information
+ * Update personal information for the logged-in applicant
+ * ---------------------------------------------------------
  *
  * Editable:
- *   name
- *   phone
- *   sid
- *   branch
+ * - name
+ * - phone
+ * - sid
+ * - branch
  *
- * Never editable:
- *   application responses
+ * Never editable here:
+ * - application responses
  *
- * Only PENDING applications can be edited.
- * ---------------------------------------------------------
+ * Only PENDING applications can use this function.
  */
 
 export const updateApplicantPersonalInfo =
@@ -448,10 +474,11 @@ export const updateApplicantPersonalInfo =
         }
 
         /*
-         * Update only the personal fields.
+         * Main applicant fields.
          *
-         * userId + id + PENDING ensures the user can only
-         * modify their own still-pending application.
+         * userId + applicantId + PENDING means the
+         * authenticated user can only update their own
+         * still-pending application.
          */
         const {
             data,
@@ -514,7 +541,7 @@ export const updateApplicantPersonalInfo =
 
         /*
          * Sync the updated personal information
-         * to the existing application row in Sheets.
+         * to the same application row in Google Sheets.
          */
         const {
             data: sheetsData,
@@ -552,7 +579,7 @@ export const updateApplicantPersonalInfo =
         }
 
         /*
-         * Return the complete updated application.
+         * Return complete updated applicant.
          */
         const {
             data: completeApplicant,
@@ -587,7 +614,191 @@ export const updateApplicantPersonalInfo =
 
 /*
  * ---------------------------------------------------------
- * Panelist / Admin decision
+ * Existing generic applicant update
+ * ---------------------------------------------------------
+ *
+ * This function is preserved from master.
+ *
+ * It is intentionally separate from
+ * updateApplicantPersonalInfo().
+ *
+ * This allows existing panelist/admin functionality to
+ * continue working without changing its behavior.
+ */
+
+export const updateApplicant = async (
+    applicantId: string,
+    data: {
+        name: string;
+        sid: string;
+        phone: string;
+        remarks?: string;
+        branch?: string;
+        responses?: Record<string, string>;
+    }
+): Promise<ApplicantType | null> => {
+    /*
+     * Update main applicant record.
+     */
+
+    const {
+        error: applicantError,
+    } = await client
+        .from("applicants")
+        .update({
+            name: data.name.trim(),
+            sid: data.sid.trim(),
+            phone:
+                data.phone.trim() ||
+                null,
+            remarks:
+                data.remarks?.trim() ||
+                null,
+        })
+        .eq(
+            "id",
+            applicantId
+        );
+
+    if (applicantError) {
+        console.error(
+            "Error updating applicant:",
+            applicantError
+        );
+
+        return null;
+    }
+
+    /*
+     * Walk-ins do not normally have applicant_response.
+     *
+     * Only update/create applicant_response when
+     * branch or responses were supplied.
+     */
+    if (
+        data.branch !== undefined ||
+        data.responses !== undefined
+    ) {
+        const {
+            data: existingResponse,
+            error: responseFetchError,
+        } = await client
+            .from("applicant_response")
+            .select("id")
+            .eq(
+                "applicantId",
+                applicantId
+            )
+            .limit(1)
+            .maybeSingle();
+
+        if (responseFetchError) {
+            console.error(
+                "Error checking applicant response:",
+                responseFetchError
+            );
+
+            return null;
+        }
+
+        /*
+         * Existing response.
+         */
+        if (existingResponse) {
+            const responseUpdate: {
+                branch?: string;
+                responses?: Record<
+                    string,
+                    string
+                >;
+            } = {};
+
+            if (
+                data.branch !==
+                undefined
+            ) {
+                responseUpdate.branch =
+                    data.branch.trim();
+            }
+
+            if (
+                data.responses !==
+                undefined
+            ) {
+                responseUpdate.responses =
+                    data.responses;
+            }
+
+            const {
+                error:
+                    responseUpdateError,
+            } = await client
+                .from("applicant_response")
+                .update(
+                    responseUpdate
+                )
+                .eq(
+                    "id",
+                    existingResponse.id
+                );
+
+            if (
+                responseUpdateError
+            ) {
+                console.error(
+                    "Error updating applicant response:",
+                    responseUpdateError
+                );
+
+                return null;
+            }
+        } else {
+            /*
+             * No response exists.
+             */
+            const {
+                error:
+                    responseInsertError,
+            } = await client
+                .from(
+                    "applicant_response"
+                )
+                .insert([
+                    {
+                        applicantId,
+                        branch:
+                            data.branch?.trim() ||
+                            "",
+                        responses:
+                            data.responses ||
+                            {},
+                    },
+                ]);
+
+            if (
+                responseInsertError
+            ) {
+                console.error(
+                    "Error creating applicant response:",
+                    responseInsertError
+                );
+
+                return null;
+            }
+        }
+    }
+
+    /*
+     * Return the final updated applicant.
+     */
+    return await fetchApplicantWithResponses(
+        applicantId
+    );
+};
+
+/*
+ * ---------------------------------------------------------
+ * Accept or reject an applicant
  * ---------------------------------------------------------
  */
 
@@ -600,6 +811,10 @@ export const updateApplicantDecision =
         remarks: string,
         reviewedBy: string
     ): Promise<boolean> => {
+        /*
+         * Use one timestamp for both Supabase
+         * and Google Sheets.
+         */
         const reviewedAt =
             new Date().toISOString();
 
@@ -649,6 +864,9 @@ export const updateApplicantDecision =
             }
         );
 
+        /*
+         * Supabase remains the source of truth.
+         */
         if (sheetsError) {
             console.error(
                 "Decision saved to Supabase, but Results Sheet synchronization failed:",
@@ -665,6 +883,47 @@ export const updateApplicantDecision =
 
         return true;
     };
+
+/*
+ * ---------------------------------------------------------
+ * Reset applicant decision
+ * ---------------------------------------------------------
+ */
+
+export const resetApplicantDecision =
+    async (
+        applicantId: string
+    ): Promise<boolean> => {
+        const { error } = await client
+            .from("applicants")
+            .update({
+                status: "PENDING",
+                remarks: null,
+                reviewedBy: null,
+                reviewedAt: null,
+            })
+            .eq(
+                "id",
+                applicantId
+            );
+
+        if (error) {
+            console.error(
+                "Error resetting applicant decision:",
+                error
+            );
+
+            return false;
+        }
+
+        return true;
+    };
+
+/*
+ * ---------------------------------------------------------
+ * Subscribe to applicant changes in realtime
+ * ---------------------------------------------------------
+ */
 
 export const subscribeToApplicantUpdates = (
     onUpdate: (
@@ -683,7 +942,7 @@ export const subscribeToApplicantUpdates = (
                 schema: "public",
                 table: "applicants",
             },
-            (payload) => {
+            (payload: any) => {
                 const item =
                     payload.new as any;
 
@@ -704,7 +963,7 @@ export const subscribeToApplicantUpdates = (
                 schema: "public",
                 table: "applicants",
             },
-            (payload) => {
+            (payload: any) => {
                 const item =
                     payload.new as any;
 
@@ -721,6 +980,8 @@ export const subscribeToApplicantUpdates = (
         .subscribe();
 
     return () => {
-        client.removeChannel(channel);
+        client.removeChannel(
+            channel
+        );
     };
 };
