@@ -38,7 +38,7 @@ export const subscribeToPanelistUpdates = (
     onUpdate: (panelist: PanelistType) => void
 ) => {
     const channel = client
-        .channel("panelists-status")
+        .channel(`panelists-status-${Date.now()}`)
         .on(
             "postgres_changes",
             {

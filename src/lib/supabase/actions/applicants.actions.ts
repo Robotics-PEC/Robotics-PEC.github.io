@@ -934,7 +934,7 @@ export const subscribeToApplicantUpdates = (
     ) => void
 ) => {
     const channel = client
-        .channel("applicants-status")
+        .channel(`applicants-status-${Date.now()}`)
         .on(
             "postgres_changes",
             {

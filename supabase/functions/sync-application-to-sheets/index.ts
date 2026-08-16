@@ -44,21 +44,19 @@ type RequestData =
     | UpdateApplicationOperation
     | ResultOperation;
 
-
 /*
  * ---------------------------------------------------------
- * Get the authenticated user's display name
+ * Get authenticated user's display name
  * ---------------------------------------------------------
  *
  * The frontend currently sends "Admin" / "Panelist" as
- * reviewedBy. We do NOT trust that value here.
+ * reviewedBy. We do not trust that value.
  *
- * Instead, we use the authenticated Supabase user's ID
- * to find their profile and obtain the actual full name.
+ * Instead, use the authenticated Supabase user's ID to
+ * find the corresponding profile and obtain fullName.
  *
- * Fallback:
- * If profiles.fullName is unavailable, use the name stored
- * in the authenticated user's metadata.
+ * If the profile name is unavailable, fall back to the
+ * name stored in the authenticated user's metadata.
  */
 
 async function getReviewerName(
@@ -79,9 +77,7 @@ async function getReviewerName(
         profile?.fullName &&
         String(profile.fullName).trim() !== ""
     ) {
-        return String(
-            profile.fullName
-        ).trim();
+        return String(profile.fullName).trim();
     }
 
     if (profileError) {
@@ -104,20 +100,11 @@ async function getReviewerName(
         metadataName &&
         String(metadataName).trim() !== ""
     ) {
-        return String(
-            metadataName
-        ).trim();
+        return String(metadataName).trim();
     }
 
-    /*
-     * Last-resort fallback.
-     *
-     * This should normally never be reached if the
-     * user's profile or Google metadata contains a name.
-     */
     return "Unknown Reviewer";
 }
-
 
 Deno.serve(async (req: Request) => {
     /*
@@ -142,8 +129,7 @@ Deno.serve(async (req: Request) => {
                 status: 405,
                 headers: {
                     ...corsHeaders,
-                    "Content-Type":
-                        "application/json",
+                    "Content-Type": "application/json",
                 },
             }
         );
@@ -157,83 +143,64 @@ Deno.serve(async (req: Request) => {
          */
 
         const authorization =
-            req.headers.get(
-                "Authorization"
-            );
+            req.headers.get("Authorization");
 
         if (!authorization) {
             return new Response(
                 JSON.stringify({
                     success: false,
-                    error:
-                        "Authentication required",
+                    error: "Authentication required",
                 }),
                 {
                     status: 401,
                     headers: {
                         ...corsHeaders,
-                        "Content-Type":
-                            "application/json",
+                        "Content-Type": "application/json",
                     },
                 }
             );
         }
 
         const supabaseUrl =
-            Deno.env.get(
-                "SUPABASE_URL"
-            );
+            Deno.env.get("SUPABASE_URL");
 
         const supabaseAnonKey =
-            Deno.env.get(
-                "SUPABASE_ANON_KEY"
-            );
+            Deno.env.get("SUPABASE_ANON_KEY");
 
-        if (
-            !supabaseUrl ||
-            !supabaseAnonKey
-        ) {
+        if (!supabaseUrl || !supabaseAnonKey) {
             throw new Error(
                 "Supabase environment variables are missing"
             );
         }
 
-        const supabase =
-            createClient(
-                supabaseUrl,
-                supabaseAnonKey,
-                {
-                    global: {
-                        headers: {
-                            Authorization:
-                                authorization,
-                        },
+        const supabase = createClient(
+            supabaseUrl,
+            supabaseAnonKey,
+            {
+                global: {
+                    headers: {
+                        Authorization: authorization,
                     },
-                }
-            );
+                },
+            }
+        );
 
         const {
             data: { user },
             error: userError,
-        } =
-            await supabase.auth.getUser();
+        } = await supabase.auth.getUser();
 
-        if (
-            userError ||
-            !user
-        ) {
+        if (userError || !user) {
             return new Response(
                 JSON.stringify({
                     success: false,
-                    error:
-                        "Invalid or expired Supabase session",
+                    error: "Invalid or expired Supabase session",
                 }),
                 {
                     status: 401,
                     headers: {
                         ...corsHeaders,
-                        "Content-Type":
-                            "application/json",
+                        "Content-Type": "application/json",
                     },
                 }
             );
@@ -252,15 +219,13 @@ Deno.serve(async (req: Request) => {
             return new Response(
                 JSON.stringify({
                     success: false,
-                    error:
-                        "Missing operation",
+                    error: "Missing operation",
                 }),
                 {
                     status: 400,
                     headers: {
                         ...corsHeaders,
-                        "Content-Type":
-                            "application/json",
+                        "Content-Type": "application/json",
                     },
                 }
             );
@@ -297,10 +262,7 @@ Deno.serve(async (req: Request) => {
          * ---------------------------------------------------------
          */
 
-        if (
-            data.operation ===
-            "application"
-        ) {
+        if (data.operation === "application") {
             const application =
                 data as ApplicationOperation;
 
@@ -316,20 +278,11 @@ Deno.serve(async (req: Request) => {
                 "q4",
             ] as const;
 
-            for (
-                const field of
-                requiredFields
-            ) {
+            for (const field of requiredFields) {
                 if (
-                    application[
-                        field
-                    ] === undefined ||
-                    application[
-                        field
-                    ] === null ||
-                    String(
-                        application[field]
-                    ).trim() === ""
+                    application[field] === undefined ||
+                    application[field] === null ||
+                    String(application[field]).trim() === ""
                 ) {
                     return new Response(
                         JSON.stringify({
@@ -359,8 +312,7 @@ Deno.serve(async (req: Request) => {
                                 "application/json",
                         },
                         body: JSON.stringify({
-                            operation:
-                                "application",
+                            operation: "application",
 
                             applicationId:
                                 application.applicationId,
@@ -426,11 +378,9 @@ Deno.serve(async (req: Request) => {
             return new Response(
                 JSON.stringify({
                     success: true,
-                    operation:
-                        "application",
+                    operation: "application",
                     duplicate:
-                        googleResult.duplicate ??
-                        false,
+                        googleResult.duplicate ?? false,
                 }),
                 {
                     status: 200,
@@ -512,18 +462,11 @@ Deno.serve(async (req: Request) => {
                 "branch",
             ] as const;
 
-            for (
-                const field of
-                requiredFields
-            ) {
+            for (const field of requiredFields) {
                 if (
-                    update[field] ===
-                        undefined ||
-                    update[field] ===
-                        null ||
-                    String(
-                        update[field]
-                    ).trim() === ""
+                    update[field] === undefined ||
+                    update[field] === null ||
+                    String(update[field]).trim() === ""
                 ) {
                     return new Response(
                         JSON.stringify({
@@ -631,13 +574,10 @@ Deno.serve(async (req: Request) => {
          *
          * We intentionally do NOT use result.reviewedBy here.
          * The frontend may send "Panelist", but the Edge Function
-         * replaces it with the authenticated user's real name.
+         * replaces it with the authenticated user's actual name.
          */
 
-        if (
-            data.operation ===
-            "result"
-        ) {
+        if (data.operation === "result") {
             const result =
                 data as ResultOperation;
 
@@ -686,8 +626,7 @@ Deno.serve(async (req: Request) => {
                     : response;
 
             const branch =
-                responseData?.branch ||
-                "";
+                responseData?.branch || "";
 
             /*
              * -----------------------------------------------------
@@ -705,8 +644,7 @@ Deno.serve(async (req: Request) => {
                                 "application/json",
                         },
                         body: JSON.stringify({
-                            operation:
-                                "result",
+                            operation: "result",
 
                             applicationId:
                                 result.applicationId,
@@ -715,8 +653,7 @@ Deno.serve(async (req: Request) => {
                                 applicant.name,
 
                             phone:
-                                applicant.phone ||
-                                "",
+                                applicant.phone || "",
 
                             sid:
                                 applicant.sid,
@@ -727,15 +664,8 @@ Deno.serve(async (req: Request) => {
                                 result.status,
 
                             remarks:
-                                result.remarks ||
-                                "",
+                                result.remarks || "",
 
-                            /*
-                             * IMPORTANT:
-                             * Use the verified server-side
-                             * reviewer name instead of the
-                             * frontend's "Panelist" value.
-                             */
                             reviewedBy:
                                 reviewerName,
 
@@ -778,8 +708,7 @@ Deno.serve(async (req: Request) => {
             return new Response(
                 JSON.stringify({
                     success: true,
-                    operation:
-                        "result",
+                    operation: "result",
                     reviewedBy:
                         reviewerName,
                 }),
@@ -803,8 +732,7 @@ Deno.serve(async (req: Request) => {
         return new Response(
             JSON.stringify({
                 success: false,
-                error:
-                    "Unsupported operation",
+                error: "Unsupported operation",
             }),
             {
                 status: 400,
