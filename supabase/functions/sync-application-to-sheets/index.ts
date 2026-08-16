@@ -44,7 +44,88 @@ type RequestData =
     | UpdateApplicationOperation
     | ResultOperation;
 
+
+/*
+ * ---------------------------------------------------------
+ * Get the authenticated user's display name
+ * ---------------------------------------------------------
+ *
+ * The frontend currently sends "Admin" / "Panelist" as
+ * reviewedBy. We do NOT trust that value here.
+ *
+ * Instead, we use the authenticated Supabase user's ID
+ * to find their profile and obtain the actual full name.
+ *
+ * Fallback:
+ * If profiles.fullName is unavailable, use the name stored
+ * in the authenticated user's metadata.
+ */
+
+async function getReviewerName(
+    supabase: ReturnType<typeof createClient>,
+    user: any
+): Promise<string> {
+    const {
+        data: profile,
+        error: profileError,
+    } = await supabase
+        .from("profiles")
+        .select("fullName")
+        .eq("userId", user.id)
+        .maybeSingle();
+
+    if (
+        !profileError &&
+        profile?.fullName &&
+        String(profile.fullName).trim() !== ""
+    ) {
+        return String(
+            profile.fullName
+        ).trim();
+    }
+
+    if (profileError) {
+        console.error(
+            "Could not fetch reviewer profile:",
+            profileError
+        );
+    }
+
+    /*
+     * Fallback to the authenticated user's
+     * Google/Supabase metadata.
+     */
+    const metadataName =
+        user.user_metadata?.full_name ||
+        user.user_metadata?.name ||
+        user.user_metadata?.fullName;
+
+    if (
+        metadataName &&
+        String(metadataName).trim() !== ""
+    ) {
+        return String(
+            metadataName
+        ).trim();
+    }
+
+    /*
+     * Last-resort fallback.
+     *
+     * This should normally never be reached if the
+     * user's profile or Google metadata contains a name.
+     */
+    return "Unknown Reviewer";
+}
+
+
 Deno.serve(async (req: Request) => {
+    /*
+     * ---------------------------------------------------------
+     * CORS
+     * ---------------------------------------------------------
+     */
+
     if (req.method === "OPTIONS") {
         return new Response("ok", {
             headers: corsHeaders,
@@ -69,6 +150,12 @@ Deno.serve(async (req: Request) => {
     }
 
     try {
+        /*
+         * ---------------------------------------------------------
+         * 1. Authenticate Supabase user
+         * ---------------------------------------------------------
+         */
+
         const authorization =
             req.headers.get(
                 "Authorization"
@@ -152,6 +239,12 @@ Deno.serve(async (req: Request) => {
             );
         }
 
+        /*
+         * ---------------------------------------------------------
+         * 2. Parse request
+         * ---------------------------------------------------------
+         */
+
         const data =
             (await req.json()) as RequestData;
 
@@ -172,6 +265,12 @@ Deno.serve(async (req: Request) => {
                 }
             );
         }
+
+        /*
+         * ---------------------------------------------------------
+         * 3. Google Apps Script configuration
+         * ---------------------------------------------------------
+         */
 
         const googleScriptUrl =
             Deno.env.get(
@@ -349,7 +448,9 @@ Deno.serve(async (req: Request) => {
          * UPDATE APPLICATION
          * ---------------------------------------------------------
          *
-         * Updates only Name / Phone / SID / Branch.
+         * Updates only:
+         * Name / Phone / SID / Branch
+         *
          * Submitted answers are never changed.
          */
 
@@ -524,6 +625,13 @@ Deno.serve(async (req: Request) => {
          * ---------------------------------------------------------
          * RESULT
          * ---------------------------------------------------------
+         *
+         * The reviewer name is determined server-side from the
+         * authenticated Supabase user.
+         *
+         * We intentionally do NOT use result.reviewedBy here.
+         * The frontend may send "Panelist", but the Edge Function
+         * replaces it with the authenticated user's real name.
          */
 
         if (
@@ -556,6 +664,18 @@ Deno.serve(async (req: Request) => {
                 );
             }
 
+            /*
+             * -----------------------------------------------------
+             * Get actual reviewer name
+             * -----------------------------------------------------
+             */
+
+            const reviewerName =
+                await getReviewerName(
+                    supabase,
+                    user
+                );
+
             const response =
                 (applicant as any)
                     .applicant_response;
@@ -568,6 +688,12 @@ Deno.serve(async (req: Request) => {
             const branch =
                 responseData?.branch ||
                 "";
+
+            /*
+             * -----------------------------------------------------
+             * Send result to Google Apps Script
+             * -----------------------------------------------------
+             */
 
             const googleResponse =
                 await fetch(
@@ -604,8 +730,14 @@ Deno.serve(async (req: Request) => {
                                 result.remarks ||
                                 "",
 
+                            /*
+                             * IMPORTANT:
+                             * Use the verified server-side
+                             * reviewer name instead of the
+                             * frontend's "Panelist" value.
+                             */
                             reviewedBy:
-                                result.reviewedBy,
+                                reviewerName,
 
                             reviewedAt:
                                 result.reviewedAt,
@@ -648,6 +780,8 @@ Deno.serve(async (req: Request) => {
                     success: true,
                     operation:
                         "result",
+                    reviewedBy:
+                        reviewerName,
                 }),
                 {
                     status: 200,
@@ -659,6 +793,12 @@ Deno.serve(async (req: Request) => {
                 }
             );
         }
+
+        /*
+         * ---------------------------------------------------------
+         * Unsupported operation
+         * ---------------------------------------------------------
+         */
 
         return new Response(
             JSON.stringify({
