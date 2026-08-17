@@ -22,6 +22,27 @@ const nextConfig: NextConfig = {
     eslint: {
         ignoreDuringBuilds: true,
     },
+    async rewrites() {
+        return [
+            {
+                source: "/Docify",
+                destination: "https://robotics-pec.github.io/Docify/",
+            },
+            {
+                source: "/Docify/:path*",
+                destination: "https://robotics-pec.github.io/Docify/:path*",
+            },
+
+            {
+                source: "/Cha-Ching",
+                destination: "https://robotics-pec.github.io/Cha-Ching/",
+            },
+            {
+                source: "/Cha-Ching/:path*",
+                destination: "https://robotics-pec.github.io/Cha-Ching/:path*",
+            },
+        ];
+    },
 };
 
 export default nextConfig;
