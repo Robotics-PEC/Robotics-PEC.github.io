@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { createContext, useContext, useCallback, useEffect, useState, ReactNode } from "react";
 import type { User } from "@supabase/supabase-js";
 import { fetchMyRole, isAllowed, type Role } from "./roles";
 import { client } from "./supabase/supabase";
@@ -14,11 +14,20 @@ export type AuthRoleState = {
   refresh: () => Promise<void>;
 };
 
-/**
- * Current user's role + allowed pages. Falls back to the default role
- * (Member) when the user has no row yet.
- */
-export function useAuthRole(): AuthRoleState {
+const defaultAuthRoleState: AuthRoleState = {
+  loading: true,
+  userId: null,
+  user: null,
+  role: null,
+  routes: [],
+  isAdmin: false,
+  can: () => false,
+  refresh: async () => {},
+};
+
+const AuthRoleContext = createContext<AuthRoleState>(defaultAuthRoleState);
+
+export function AuthRoleProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
   const [userId, setUserId] = useState<string | null>(null);
   const [user, setUser] = useState<User | null>(null);
@@ -54,7 +63,7 @@ export function useAuthRole(): AuthRoleState {
     return () => sub.subscription.unsubscribe();
   }, [load]);
 
-  return {
+  const value: AuthRoleState = {
     loading,
     userId,
     user,
@@ -64,6 +73,20 @@ export function useAuthRole(): AuthRoleState {
     can: (path: string) => isAllowed(routes, path),
     refresh: load,
   };
+
+  return (
+    <AuthRoleContext.Provider value={value}>
+      {children}
+    </AuthRoleContext.Provider>
+  );
+}
+
+/**
+ * Current user's role + allowed pages. Falls back to the default role
+ * (Member) when the user has no row yet.
+ */
+export function useAuthRole(): AuthRoleState {
+  return useContext(AuthRoleContext);
 }
 
 /**
