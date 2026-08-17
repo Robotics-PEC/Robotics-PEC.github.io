@@ -15,19 +15,18 @@ import type {
 
 const branches = [
     "Aerospace Engineering",
-    "Chemical Engineering",
+    "Bachelor of Design (B.Des)",
     "Civil Engineering",
     "Computer Science & Engineering",
-    "Electrical Engineering",
-    "Electronics & Communication Engineering",
-    "Mechanical Engineering",
-    "Production & Industrial Engineering",
     "Computer Science & Engineering (AI)",
     "Computer Science & Engineering (DS)",
+    "Electrical Engineering",
+    "Electronics & Communication Engineering",
     "Electronics Engineering (VLSI)",
     "Materials and Metallurgical Engineering",
     "Mathematics and Computing",
-    "Bachelor of Design (B.Des)",
+    "Mechanical Engineering",
+    "Production & Industrial Engineering",
 ];
 
 export const APPLICATION_QUESTIONS = [

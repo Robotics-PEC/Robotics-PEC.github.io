@@ -13,6 +13,46 @@ export type CreateApplicantResult =
 
 /*
  * ---------------------------------------------------------
+ * Refresh interview schedule
+ * ---------------------------------------------------------
+ *
+ * The scheduler always rebuilds the schedule from the
+ * current PENDING applicant pool in Supabase.
+ *
+ * IMPORTANT:
+ * A failure here must never make an otherwise successful
+ * application/update/decision operation fail.
+ */
+
+const requestInterviewSchedule =
+    async (): Promise<void> => {
+        try {
+            const {
+                error,
+            } =
+                await client.functions.invoke(
+                    "schedule-interviews",
+                    {
+                        body: {},
+                    }
+                );
+
+            if (error) {
+                console.error(
+                    "Interview schedule refresh failed:",
+                    error
+                );
+            }
+        } catch (error) {
+            console.error(
+                "Interview schedule refresh failed:",
+                error
+            );
+        }
+    };
+
+/*
+ * ---------------------------------------------------------
  * Map database applicant to ApplicantType
  * ---------------------------------------------------------
  */
@@ -31,11 +71,8 @@ const mapApplicant = (
     return {
         ...item,
 
-        /*
-         * Keep your existing DB column:
-         * userId
-         */
-        userId: item.userId,
+        userId:
+            item.userId,
 
         status:
             item.status?.toLowerCase(),
@@ -44,23 +81,12 @@ const mapApplicant = (
             item.createdAt ||
             item.created_at,
 
-        /*
-         * Personal information
-         */
         gender:
             item.gender ?? null,
 
-        /*
-         * IMPORTANT:
-         * DB column = "isHostellers"
-         * DB type = boolean
-         */
         isHostellers:
             item.isHostellers ?? null,
 
-        /*
-         * applicant_response fields
-         */
         branch:
             responseData?.branch,
 
@@ -95,6 +121,11 @@ export const fetchApplicants =
             );
 
         if (error) {
+            console.error(
+                "Error fetching applicants:",
+                error
+            );
+
             return [];
         }
 
@@ -123,10 +154,16 @@ export const fetchApplicantWithResponses =
             .select(
                 "*, applicant_response(branch, responses)"
             )
-            .eq("id", id)
+            .eq(
+                "id",
+                id
+            )
             .single();
 
-        if (error || !data) {
+        if (
+            error ||
+            !data
+        ) {
             return null;
         }
 
@@ -172,7 +209,10 @@ export const fetchMyApplication =
             )
             .maybeSingle();
 
-        if (error || !data) {
+        if (
+            error ||
+            !data
+        ) {
             return null;
         }
 
@@ -201,21 +241,22 @@ export const createWalkIn =
             .insert([
                 {
                     name,
-
                     sid,
-
                     phone:
                         phone || null,
-
-                    isWalkin: true,
-
-                    status: "PENDING",
+                    isWalkin:
+                        true,
+                    status:
+                        "PENDING",
                 },
             ])
             .select()
             .single();
 
-        if (error || !data) {
+        if (
+            error ||
+            !data
+        ) {
             return null;
         }
 
@@ -248,7 +289,7 @@ export const createApplicant =
         CreateApplicantResult
     > => {
         /*
-         * Get logged-in user
+         * Get logged-in user.
          */
 
         const {
@@ -263,6 +304,11 @@ export const createApplicant =
             userError ||
             !user
         ) {
+            console.error(
+                "Cannot create application without an authenticated user:",
+                userError
+            );
+
             return {
                 success: false,
                 reason: "error",
@@ -270,7 +316,8 @@ export const createApplicant =
         }
 
         /*
-         * Check duplicate application
+         * Check whether this account has already
+         * submitted an application.
          */
 
         const {
@@ -290,6 +337,11 @@ export const createApplicant =
         if (
             existingApplicantError
         ) {
+            console.error(
+                "Error checking existing application:",
+                existingApplicantError
+            );
+
             return {
                 success: false,
                 reason: "error",
@@ -306,13 +358,7 @@ export const createApplicant =
         }
 
         /*
-         * Create applicant
-         *
-         * IMPORTANT:
-         *
-         * userId       → existing DB column
-         * gender       → existing/new column
-         * isHostellers → boolean column
+         * Create applicant.
          */
 
         const {
@@ -338,7 +384,8 @@ export const createApplicant =
 
                     isHostellers,
 
-                    isWalkin: false,
+                    isWalkin:
+                        false,
 
                     status:
                         "PENDING",
@@ -351,6 +398,10 @@ export const createApplicant =
             applicantError ||
             !applicantData
         ) {
+            /*
+             * Unique userId constraint means this is
+             * already a submitted account.
+             */
             if (
                 applicantError?.code ===
                 "23505"
@@ -361,6 +412,11 @@ export const createApplicant =
                 };
             }
 
+            console.error(
+                "Error creating applicant:",
+                applicantError
+            );
+
             return {
                 success: false,
                 reason: "error",
@@ -368,7 +424,7 @@ export const createApplicant =
         }
 
         /*
-         * Store branch + answers
+         * Store branch + answers.
          */
 
         const {
@@ -392,10 +448,15 @@ export const createApplicant =
         if (
             responseError
         ) {
-            /*
-             * Roll back applicant
-             */
+            console.error(
+                "Error creating applicant response:",
+                responseError
+            );
 
+            /*
+             * Roll back applicant if the response
+             * record could not be created.
+             */
             await client
                 .from(
                     "applicants"
@@ -413,55 +474,84 @@ export const createApplicant =
         }
 
         /*
-         * Google Sheets sync
+         * Sync application to Google Sheets.
          *
-         * Keep isHostellers here as well.
+         * Supabase remains the source of truth, so a
+         * Google Sheets failure does not invalidate the
+         * successful application.
          */
 
-        await client.functions.invoke(
-            "sync-application-to-sheets",
-            {
-                body: {
-                    operation:
-                        "application",
+        try {
+            const {
+                error:
+                    sheetsError,
+            } =
+                await client.functions.invoke(
+                    "sync-application-to-sheets",
+                    {
+                        body: {
+                            operation:
+                                "application",
 
-                    applicationId:
-                        applicantData.id,
+                            applicationId:
+                                applicantData.id,
 
-                    name,
+                            name,
 
-                    phone,
+                            phone,
 
-                    sid,
+                            sid,
 
-                    branch,
+                            branch,
 
-                    gender,
+                            gender,
 
-                    isHostellers,
+                            isHostellers,
 
-                    q1:
-                        responses.Q1 ||
-                        "",
+                            q1:
+                                responses.Q1 ||
+                                "",
 
-                    q2:
-                        responses.Q2 ||
-                        "",
+                            q2:
+                                responses.Q2 ||
+                                "",
 
-                    q3:
-                        responses.Q3 ||
-                        "",
+                            q3:
+                                responses.Q3 ||
+                                "",
 
-                    q4:
-                        responses.Q4 ||
-                        "",
-                },
+                            q4:
+                                responses.Q4 ||
+                                "",
+                        },
+                    }
+                );
+
+            if (
+                sheetsError
+            ) {
+                console.error(
+                    "Application saved to Supabase, but Google Sheets synchronization failed:",
+                    sheetsError
+                );
             }
-        );
+        } catch (error) {
+            console.error(
+                "Application saved to Supabase, but Google Sheets synchronization failed:",
+                error
+            );
+        }
 
         /*
-         * Return applicant
+         * Refresh interview schedule.
+         *
+         * The new applicant is now part of the PENDING
+         * pool and may change:
+         * - panel count
+         * - day count
+         * - priority ordering
          */
+        await requestInterviewSchedule();
 
         return {
             success: true,
@@ -492,8 +582,19 @@ export const createApplicant =
 
 /*
  * ---------------------------------------------------------
- * Update personal information
+ * Update applicant personal information
  * ---------------------------------------------------------
+ *
+ * Editable while PENDING:
+ *
+ * - Name
+ * - Phone
+ * - SID
+ * - Branch
+ * - Gender
+ * - Hosteller / Day Scholar
+ *
+ * Application answers remain untouched.
  */
 
 export const updateApplicantPersonalInfo =
@@ -519,10 +620,6 @@ export const updateApplicantPersonalInfo =
                   | "not_found";
           }
     > => {
-        /*
-         * Get current user
-         */
-
         const {
             data: {
                 user,
@@ -542,7 +639,8 @@ export const updateApplicantPersonalInfo =
         }
 
         /*
-         * Update applicant
+         * Update only the authenticated user's own
+         * still-pending application.
          */
 
         const {
@@ -581,6 +679,11 @@ export const updateApplicantPersonalInfo =
             error ||
             !data
         ) {
+            console.error(
+                "Error updating applicant:",
+                error
+            );
+
             return {
                 success: false,
                 reason:
@@ -592,7 +695,8 @@ export const updateApplicantPersonalInfo =
         }
 
         /*
-         * Update branch
+         * Update branch separately because branch
+         * lives in applicant_response.
          */
 
         const {
@@ -613,6 +717,11 @@ export const updateApplicantPersonalInfo =
         if (
             branchError
         ) {
+            console.error(
+                "Error updating branch:",
+                branchError
+            );
+
             return {
                 success: false,
                 reason: "error",
@@ -620,36 +729,67 @@ export const updateApplicantPersonalInfo =
         }
 
         /*
-         * Google Sheets update
+         * Update the existing application row
+         * in Google Sheets.
          */
 
-        await client.functions.invoke(
-            "sync-application-to-sheets",
-            {
-                body: {
-                    operation:
-                        "update_application",
+        try {
+            const {
+                error:
+                    sheetsError,
+            } =
+                await client.functions.invoke(
+                    "sync-application-to-sheets",
+                    {
+                        body: {
+                            operation:
+                                "update_application",
 
-                    applicationId:
-                        applicantId,
+                            applicationId:
+                                applicantId,
 
-                    name,
+                            name,
 
-                    phone,
+                            phone,
 
-                    sid,
+                            sid,
 
-                    branch,
+                            branch,
 
-                    gender,
+                            gender,
 
-                    isHostellers,
-                },
+                            isHostellers,
+                        },
+                    }
+                );
+
+            if (
+                sheetsError
+            ) {
+                console.error(
+                    "Personal information saved to Supabase, but Google Sheets synchronization failed:",
+                    sheetsError
+                );
             }
-        );
+        } catch (error) {
+            console.error(
+                "Personal information saved to Supabase, but Google Sheets synchronization failed:",
+                error
+            );
+        }
 
         /*
-         * Fetch complete updated applicant
+         * Rebuild schedule because:
+         *
+         * - name can change in the shared sheet
+         * - SID can change in the shared sheet
+         * - gender can change priority
+         * - hosteller/day-scholar can change priority
+         */
+        await requestInterviewSchedule();
+
+        /*
+         * Fetch complete updated applicant.
          */
 
         const {
@@ -696,6 +836,8 @@ export const updateApplicantPersonalInfo =
  * ---------------------------------------------------------
  * Generic applicant update
  * ---------------------------------------------------------
+ *
+ * Existing admin/panelist functionality is preserved.
  */
 
 export const updateApplicant =
@@ -719,10 +861,6 @@ export const updateApplicant =
     ): Promise<
         ApplicantType | null
     > => {
-        /*
-         * Update main applicant
-         */
-
         const {
             error:
                 applicantError,
@@ -767,11 +905,16 @@ export const updateApplicant =
         if (
             applicantError
         ) {
+            console.error(
+                "Error updating applicant:",
+                applicantError
+            );
+
             return null;
         }
 
         /*
-         * Update response if necessary
+         * Update applicant response if required.
          */
 
         if (
@@ -800,6 +943,11 @@ export const updateApplicant =
             if (
                 responseFetchError
             ) {
+                console.error(
+                    "Error finding applicant response:",
+                    responseFetchError
+                );
+
                 return null;
             }
 
@@ -848,6 +996,11 @@ export const updateApplicant =
                 if (
                     responseUpdateError
                 ) {
+                    console.error(
+                        "Error updating applicant response:",
+                        responseUpdateError
+                    );
+
                     return null;
                 }
             } else {
@@ -875,10 +1028,24 @@ export const updateApplicant =
                 if (
                     responseInsertError
                 ) {
+                    console.error(
+                        "Error creating applicant response:",
+                        responseInsertError
+                    );
+
                     return null;
                 }
             }
         }
+
+        /*
+         * Keep the shared interview schedule synchronized
+         * with admin/panelist edits as well.
+         *
+         * If this applicant is not PENDING, the scheduler will
+         * simply exclude them.
+         */
+        await requestInterviewSchedule();
 
         return await fetchApplicantWithResponses(
             applicantId
@@ -887,8 +1054,11 @@ export const updateApplicant =
 
 /*
  * ---------------------------------------------------------
- * Accept / Reject applicant
+ * Accept / reject applicant
  * ---------------------------------------------------------
+ *
+ * PENDING -> ACCEPTED/REJECTED removes the applicant
+ * from the interview schedule.
  */
 
 export const updateApplicantDecision =
@@ -922,30 +1092,67 @@ export const updateApplicantDecision =
                 applicantId
             );
 
-        if (error) {
+        if (
+            error
+        ) {
+            console.error(
+                "Error updating applicant decision:",
+                error
+            );
+
             return false;
         }
 
-        await client.functions.invoke(
-            "sync-application-to-sheets",
-            {
-                body: {
-                    operation:
-                        "result",
+        /*
+         * Keep Results sheet synchronized.
+         */
 
-                    applicationId:
-                        applicantId,
+        try {
+            const {
+                error:
+                    sheetsError,
+            } =
+                await client.functions.invoke(
+                    "sync-application-to-sheets",
+                    {
+                        body: {
+                            operation:
+                                "result",
 
-                    status,
+                            applicationId:
+                                applicantId,
 
-                    remarks,
+                            status,
 
-                    reviewedBy,
+                            remarks,
 
-                    reviewedAt,
-                },
+                            reviewedBy,
+
+                            reviewedAt,
+                        },
+                    }
+                );
+
+            if (
+                sheetsError
+            ) {
+                console.error(
+                    "Decision saved to Supabase, but Results Sheet synchronization failed:",
+                    sheetsError
+                );
             }
-        );
+        } catch (error) {
+            console.error(
+                "Decision saved to Supabase, but Results Sheet synchronization failed:",
+                error
+            );
+        }
+
+        /*
+         * Remove the applicant from the shared interview
+         * schedule because they are no longer PENDING.
+         */
+        await requestInterviewSchedule();
 
         return true;
     };
@@ -954,6 +1161,9 @@ export const updateApplicantDecision =
  * ---------------------------------------------------------
  * Reset applicant decision
  * ---------------------------------------------------------
+ *
+ * PENDING again means the applicant needs an interview
+ * and therefore must re-enter the shared schedule.
  */
 
 export const resetApplicantDecision =
@@ -979,16 +1189,28 @@ export const resetApplicantDecision =
                 applicantId
             );
 
-        if (error) {
+        if (
+            error
+        ) {
+            console.error(
+                "Error resetting applicant decision:",
+                error
+            );
+
             return false;
         }
+
+        /*
+         * Re-add the applicant to the schedule.
+         */
+        await requestInterviewSchedule();
 
         return true;
     };
 
 /*
  * ---------------------------------------------------------
- * Realtime updates
+ * Realtime applicant updates
  * ---------------------------------------------------------
  */
 
@@ -1012,8 +1234,10 @@ export const subscribeToApplicantUpdates =
                     {
                         event:
                             "UPDATE",
+
                         schema:
                             "public",
+
                         table:
                             "applicants",
                     },
@@ -1032,8 +1256,10 @@ export const subscribeToApplicantUpdates =
                     {
                         event:
                             "INSERT",
+
                         schema:
                             "public",
+
                         table:
                             "applicants",
                     },
