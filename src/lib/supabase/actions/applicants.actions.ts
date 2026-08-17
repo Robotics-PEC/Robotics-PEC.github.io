@@ -27,7 +27,8 @@ const mapApplicant = (item: any): ApplicantType => {
     return {
         ...item,
 
-        userId: item.userId,
+        // Convert database user_id to application userId
+        userId: item.user_id,
 
         status: item.status?.toLowerCase(),
 
@@ -65,7 +66,7 @@ export const fetchApplicants = async (): Promise<
 
     if (error) {
         console.error(
-            "❌ Error fetching applicants:",
+            "Error fetching applicants:",
             error
         );
 
@@ -95,7 +96,7 @@ export const fetchApplicantWithResponses =
 
         if (error) {
             console.error(
-                "❌ Error fetching applicant with responses:",
+                "Error fetching applicant with responses:",
                 error
             );
 
@@ -119,11 +120,6 @@ export const fetchMyApplication =
         } = await client.auth.getUser();
 
         if (userError || !user) {
-            console.error(
-                "❌ Could not get authenticated user:",
-                userError
-            );
-
             return null;
         }
 
@@ -132,12 +128,12 @@ export const fetchMyApplication =
             .select(
                 "*, applicant_response(branch, responses)"
             )
-            .eq("userId", user.id)
+            .eq("user_id", user.id)
             .maybeSingle();
 
         if (error) {
             console.error(
-                "❌ Error fetching current user's application:",
+                "Error fetching current user's application:",
                 error
             );
 
@@ -155,6 +151,8 @@ export const fetchMyApplication =
  * ---------------------------------------------------------
  * Create a walk-in applicant
  * ---------------------------------------------------------
+ *
+ * Walk-ins are not associated with a logged-in user.
  */
 
 export const createWalkIn = async (
@@ -178,7 +176,7 @@ export const createWalkIn = async (
 
     if (error) {
         console.error(
-            "❌ Error creating walk-in:",
+            "Error creating walk-in:",
             error
         );
 
@@ -187,6 +185,8 @@ export const createWalkIn = async (
 
     return {
         ...data,
+
+        userId: data.user_id,
 
         status:
             data.status?.toLowerCase(),
@@ -201,6 +201,11 @@ export const createWalkIn = async (
  * ---------------------------------------------------------
  * Create a normal application
  * ---------------------------------------------------------
+ *
+ * One authenticated account can have only one application.
+ *
+ * This is enforced by the unique user_id constraint in
+ * Supabase. The pre-check below is only for a better UX.
  */
 
 export const createApplicant = async (
@@ -225,7 +230,7 @@ export const createApplicant = async (
 
     if (userError || !user) {
         console.error(
-            "❌ Cannot create application - no authenticated user:",
+            "Cannot create application without an authenticated user:",
             userError
         );
 
@@ -235,14 +240,9 @@ export const createApplicant = async (
         };
     }
 
-    console.log(
-        "✅ Authenticated user:",
-        user.id
-    );
-
     /*
      * -----------------------------------------------------
-     * 2. Check whether application already exists
+     * 2. Friendly existing-application check
      * -----------------------------------------------------
      */
 
@@ -252,32 +252,13 @@ export const createApplicant = async (
     } = await client
         .from("applicants")
         .select("id")
-        .eq("userId", user.id)
+        .eq("user_id", user.id)
         .maybeSingle();
 
     if (existingApplicantError) {
         console.error(
-            "❌ Error checking existing application:"
-        );
-
-        console.error(
-            "Message:",
-            existingApplicantError.message
-        );
-
-        console.error(
-            "Details:",
-            existingApplicantError.details
-        );
-
-        console.error(
-            "Hint:",
-            existingApplicantError.hint
-        );
-
-        console.error(
-            "Code:",
-            existingApplicantError.code
+            "Error checking existing application:",
+            existingApplicantError
         );
 
         return {
@@ -287,11 +268,6 @@ export const createApplicant = async (
     }
 
     if (existingApplicant) {
-        console.log(
-            "⚠️ Application already exists:",
-            existingApplicant.id
-        );
-
         return {
             success: false,
             reason: "duplicate",
@@ -303,42 +279,9 @@ export const createApplicant = async (
      * 3. Create applicant
      * -----------------------------------------------------
      *
-     * gender and hosteller are stored in applicants.
+     * gender and hosteller are stored in the
+     * main applicants table.
      */
-
-    const applicantInsertData = {
-        userId: user.id,
-        name,
-        sid,
-        phone: phone || null,
-
-        gender,
-        hosteller,
-
-        isWalkin: false,
-        status: "PENDING",
-    };
-
-    /*
-     * DEBUG LOG
-     */
-
-    console.log(
-        "=========================================="
-    );
-
-    console.log(
-        "🟡 INSERTING APPLICANT"
-    );
-
-    console.log(
-        "Applicant data:",
-        applicantInsertData
-    );
-
-    console.log(
-        "=========================================="
-    );
 
     const {
         data: applicantData,
@@ -346,59 +289,23 @@ export const createApplicant = async (
     } = await client
         .from("applicants")
         .insert([
-            applicantInsertData,
+            {
+                user_id: user.id,
+                name,
+                sid,
+                phone: phone || null,
+
+                gender,
+                hosteller,
+
+                isWalkin: false,
+                status: "PENDING",
+            },
         ])
         .select()
         .single();
 
-    /*
-     * IMPORTANT:
-     * Log the actual Supabase error.
-     */
-
     if (applicantError) {
-        console.error(
-            "=========================================="
-        );
-
-        console.error(
-            "❌ APPLICANT INSERT FAILED"
-        );
-
-        console.error(
-            "Message:",
-            applicantError.message
-        );
-
-        console.error(
-            "Details:",
-            applicantError.details
-        );
-
-        console.error(
-            "Hint:",
-            applicantError.hint
-        );
-
-        console.error(
-            "Code:",
-            applicantError.code
-        );
-
-        console.error(
-            "Full error:",
-            applicantError
-        );
-
-        console.error(
-            "Data attempted:",
-            applicantInsertData
-        );
-
-        console.error(
-            "=========================================="
-        );
-
         /*
          * PostgreSQL unique constraint violation.
          */
@@ -413,15 +320,9 @@ export const createApplicant = async (
             };
         }
 
-        return {
-            success: false,
-            reason: "error",
-        };
-    }
-
-    if (!applicantData) {
         console.error(
-            "❌ Applicant insert returned no data."
+            "Error creating applicant:",
+            applicantError
         );
 
         return {
@@ -429,11 +330,6 @@ export const createApplicant = async (
             reason: "error",
         };
     }
-
-    console.log(
-        "✅ Applicant created successfully:",
-        applicantData
-    );
 
     /*
      * -----------------------------------------------------
@@ -444,78 +340,23 @@ export const createApplicant = async (
      * applicant_response.
      */
 
-    const responseInsertData = {
-        applicantId: applicantData.id,
-        branch,
-        responses,
-    };
-
-    console.log(
-        "=========================================="
-    );
-
-    console.log(
-        "🟡 INSERTING APPLICANT RESPONSE"
-    );
-
-    console.log(
-        "Response data:",
-        responseInsertData
-    );
-
-    console.log(
-        "=========================================="
-    );
-
     const {
         error: responseError,
     } = await client
         .from("applicant_response")
         .insert([
-            responseInsertData,
+            {
+                applicantId:
+                    applicantData.id,
+                branch,
+                responses,
+            },
         ]);
 
     if (responseError) {
         console.error(
-            "=========================================="
-        );
-
-        console.error(
-            "❌ APPLICANT RESPONSE INSERT FAILED"
-        );
-
-        console.error(
-            "Message:",
-            responseError.message
-        );
-
-        console.error(
-            "Details:",
-            responseError.details
-        );
-
-        console.error(
-            "Hint:",
-            responseError.hint
-        );
-
-        console.error(
-            "Code:",
-            responseError.code
-        );
-
-        console.error(
-            "Full error:",
+            "Error creating applicant response:",
             responseError
-        );
-
-        console.error(
-            "Data attempted:",
-            responseInsertData
-        );
-
-        console.error(
-            "=========================================="
         );
 
         /*
@@ -523,9 +364,7 @@ export const createApplicant = async (
          * creation fails.
          */
 
-        const {
-            error: rollbackError,
-        } = await client
+        await client
             .from("applicants")
             .delete()
             .eq(
@@ -533,32 +372,17 @@ export const createApplicant = async (
                 applicantData.id
             );
 
-        if (rollbackError) {
-            console.error(
-                "❌ Rollback also failed:",
-                rollbackError
-            );
-        }
-
         return {
             success: false,
             reason: "error",
         };
     }
 
-    console.log(
-        "✅ Applicant response created successfully."
-    );
-
     /*
      * -----------------------------------------------------
      * 5. Sync application to Google Sheets
      * -----------------------------------------------------
      */
-
-    console.log(
-        "🟡 Syncing application to Google Sheets..."
-    );
 
     const {
         data: sheetsData,
@@ -597,27 +421,20 @@ export const createApplicant = async (
 
     /*
      * Supabase is the source of truth.
-     * Sheets failure does NOT invalidate application.
+     * Sheets failure does not invalidate the application.
      */
 
     if (sheetsError) {
         console.error(
-            "⚠️ Application saved to Supabase, but Google Sheets synchronization failed:"
-        );
-
-        console.error(
+            "Application saved to Supabase, but Google Sheets synchronization failed:",
             sheetsError
         );
     } else if (
         sheetsData?.success === false
     ) {
         console.error(
-            "⚠️ Google Sheets synchronization failed:",
+            "Google Sheets synchronization failed:",
             sheetsData
-        );
-    } else {
-        console.log(
-            "✅ Google Sheets synchronization successful."
         );
     }
 
@@ -627,11 +444,14 @@ export const createApplicant = async (
      * -----------------------------------------------------
      */
 
-    const createdApplicant: ApplicantType =
-        {
+    return {
+        success: true,
+
+        applicant: {
             ...applicantData,
 
-            userId: user.id,
+            userId:
+                applicantData.user_id,
 
             status:
                 applicantData.status?.toLowerCase(),
@@ -644,35 +464,24 @@ export const createApplicant = async (
             gender,
             hosteller,
             responses,
-        } as ApplicantType;
-
-    console.log(
-        "=========================================="
-    );
-
-    console.log(
-        "✅ APPLICATION CREATED SUCCESSFULLY"
-    );
-
-    console.log(
-        createdApplicant
-    );
-
-    console.log(
-        "=========================================="
-    );
-
-    return {
-        success: true,
-        applicant:
-            createdApplicant,
+        } as ApplicantType,
     };
 };
 
 /*
  * ---------------------------------------------------------
- * Update personal information
+ * Update personal information for logged-in applicant
  * ---------------------------------------------------------
+ *
+ * Editable:
+ * - name
+ * - phone
+ * - sid
+ * - branch
+ * - gender
+ * - hosteller
+ *
+ * Only PENDING applications can be edited.
  */
 
 export const updateApplicantPersonalInfo =
@@ -706,11 +515,6 @@ export const updateApplicantPersonalInfo =
         } = await client.auth.getUser();
 
         if (userError || !user) {
-            console.error(
-                "❌ Could not get authenticated user:",
-                userError
-            );
-
             return {
                 success: false,
                 reason: "error",
@@ -718,39 +522,27 @@ export const updateApplicantPersonalInfo =
         }
 
         /*
-         * Main applicant fields
+         * Update main applicant fields.
          */
-
-        const updateData = {
-            name,
-            phone: phone || null,
-            sid,
-            gender,
-            hosteller,
-        };
-
-        console.log(
-            "🟡 Updating applicant:",
-            applicantId
-        );
-
-        console.log(
-            "Update data:",
-            updateData
-        );
 
         const {
             data,
             error,
         } = await client
             .from("applicants")
-            .update(updateData)
+            .update({
+                name,
+                phone: phone || null,
+                sid,
+                gender,
+                hosteller,
+            })
             .eq(
                 "id",
                 applicantId
             )
             .eq(
-                "userId",
+                "user_id",
                 user.id
             )
             .eq(
@@ -762,40 +554,8 @@ export const updateApplicantPersonalInfo =
 
         if (error || !data) {
             console.error(
-                "=========================================="
-            );
-
-            console.error(
-                "❌ ERROR UPDATING PERSONAL INFORMATION"
-            );
-
-            console.error(
-                "Message:",
-                error?.message
-            );
-
-            console.error(
-                "Details:",
-                error?.details
-            );
-
-            console.error(
-                "Hint:",
-                error?.hint
-            );
-
-            console.error(
-                "Code:",
-                error?.code
-            );
-
-            console.error(
-                "Full error:",
+                "Error updating personal information:",
                 error
-            );
-
-            console.error(
-                "=========================================="
             );
 
             return {
@@ -826,40 +586,8 @@ export const updateApplicantPersonalInfo =
 
         if (branchError) {
             console.error(
-                "=========================================="
-            );
-
-            console.error(
-                "❌ ERROR UPDATING APPLICANT BRANCH"
-            );
-
-            console.error(
-                "Message:",
-                branchError.message
-            );
-
-            console.error(
-                "Details:",
-                branchError.details
-            );
-
-            console.error(
-                "Hint:",
-                branchError.hint
-            );
-
-            console.error(
-                "Code:",
-                branchError.code
-            );
-
-            console.error(
-                "Full error:",
+                "Error updating applicant branch:",
                 branchError
-            );
-
-            console.error(
-                "=========================================="
             );
 
             return {
@@ -869,7 +597,8 @@ export const updateApplicantPersonalInfo =
         }
 
         /*
-         * Sync updated information to Google Sheets.
+         * Sync updated personal information
+         * to Google Sheets.
          */
 
         const {
@@ -897,14 +626,14 @@ export const updateApplicantPersonalInfo =
 
         if (sheetsError) {
             console.error(
-                "⚠️ Personal information updated in Supabase, but Google Sheets synchronization failed:",
+                "Personal information updated in Supabase, but Google Sheets synchronization failed:",
                 sheetsError
             );
         } else if (
             sheetsData?.success === false
         ) {
             console.error(
-                "⚠️ Google Sheets synchronization failed:",
+                "Google Sheets personal information synchronization failed:",
                 sheetsData
             );
         }
@@ -926,7 +655,7 @@ export const updateApplicantPersonalInfo =
                 applicantId
             )
             .eq(
-                "userId",
+                "user_id",
                 user.id
             )
             .single();
@@ -935,11 +664,6 @@ export const updateApplicantPersonalInfo =
             fetchError ||
             !completeApplicant
         ) {
-            console.error(
-                "❌ Error fetching updated applicant:",
-                fetchError
-            );
-
             return {
                 success: false,
                 reason: "error",
@@ -948,6 +672,7 @@ export const updateApplicantPersonalInfo =
 
         return {
             success: true,
+
             applicant:
                 mapApplicant(
                     completeApplicant
@@ -957,8 +682,10 @@ export const updateApplicantPersonalInfo =
 
 /*
  * ---------------------------------------------------------
- * Generic applicant update
+ * Existing generic applicant update
  * ---------------------------------------------------------
+ *
+ * This function is used by panelist/admin functionality.
  */
 
 export const updateApplicant = async (
@@ -1023,7 +750,7 @@ export const updateApplicant = async (
 
     if (applicantError) {
         console.error(
-            "❌ Error updating applicant:",
+            "Error updating applicant:",
             applicantError
         );
 
@@ -1031,7 +758,11 @@ export const updateApplicant = async (
     }
 
     /*
-     * Update/create applicant_response
+     * Walk-ins do not normally have
+     * applicant_response.
+     *
+     * Only update/create applicant_response
+     * when branch or responses were supplied.
      */
 
     if (
@@ -1058,7 +789,7 @@ export const updateApplicant = async (
 
         if (responseFetchError) {
             console.error(
-                "❌ Error checking applicant response:",
+                "Error checking applicant response:",
                 responseFetchError
             );
 
@@ -1066,7 +797,7 @@ export const updateApplicant = async (
         }
 
         /*
-         * Existing response
+         * Existing response.
          */
 
         if (existingResponse) {
@@ -1113,7 +844,7 @@ export const updateApplicant = async (
                 responseUpdateError
             ) {
                 console.error(
-                    "❌ Error updating applicant response:",
+                    "Error updating applicant response:",
                     responseUpdateError
                 );
 
@@ -1121,7 +852,7 @@ export const updateApplicant = async (
             }
         } else {
             /*
-             * No response exists
+             * No response exists.
              */
 
             const {
@@ -1149,7 +880,7 @@ export const updateApplicant = async (
                 responseInsertError
             ) {
                 console.error(
-                    "❌ Error creating applicant response:",
+                    "Error creating applicant response:",
                     responseInsertError
                 );
 
@@ -1159,7 +890,7 @@ export const updateApplicant = async (
     }
 
     /*
-     * Return final applicant
+     * Return final updated applicant.
      */
 
     return await fetchApplicantWithResponses(
@@ -1169,7 +900,7 @@ export const updateApplicant = async (
 
 /*
  * ---------------------------------------------------------
- * Accept or reject applicant
+ * Accept or reject an applicant
  * ---------------------------------------------------------
  */
 
@@ -1182,6 +913,11 @@ export const updateApplicantDecision =
         remarks: string,
         reviewedBy: string
     ): Promise<boolean> => {
+        /*
+         * Use one timestamp for both Supabase
+         * and Google Sheets.
+         */
+
         const reviewedAt =
             new Date().toISOString();
 
@@ -1206,7 +942,7 @@ export const updateApplicantDecision =
 
         if (error) {
             console.error(
-                "❌ Error updating applicant decision:",
+                "Error updating applicant decision:",
                 error
             );
 
@@ -1214,7 +950,7 @@ export const updateApplicantDecision =
         }
 
         /*
-         * Sync decision to Google Sheets.
+         * Sync decision to Results Sheet.
          */
 
         const {
@@ -1238,16 +974,20 @@ export const updateApplicantDecision =
             }
         );
 
+        /*
+         * Supabase remains the source of truth.
+         */
+
         if (sheetsError) {
             console.error(
-                "⚠️ Decision saved to Supabase, but Results Sheet synchronization failed:",
+                "Decision saved to Supabase, but Results Sheet synchronization failed:",
                 sheetsError
             );
         } else if (
             sheetsData?.success === false
         ) {
             console.error(
-                "⚠️ Results Sheet synchronization failed:",
+                "Results Sheet synchronization failed:",
                 sheetsData
             );
         }
@@ -1285,7 +1025,7 @@ export const resetApplicantDecision =
 
         if (error) {
             console.error(
-                "❌ Error resetting applicant decision:",
+                "Error resetting applicant decision:",
                 error
             );
 
@@ -1328,6 +1068,9 @@ export const subscribeToApplicantUpdates = (
                 onUpdate({
                     ...item,
 
+                    userId:
+                        item.user_id,
+
                     status:
                         item.status?.toLowerCase(),
 
@@ -1358,6 +1101,9 @@ export const subscribeToApplicantUpdates = (
 
                 onInsert({
                     ...item,
+
+                    userId:
+                        item.user_id,
 
                     status:
                         item.status?.toLowerCase(),
