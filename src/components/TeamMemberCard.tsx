@@ -52,7 +52,7 @@ export default function TeamMemberCard({
             transition-all
             duration-700
             ease-in-out
-            ${isHovered ? "grayscale-0 scale-105" : "grayscale"}
+          
           `}
           sizes="
             (max-width: 640px) 100vw,
