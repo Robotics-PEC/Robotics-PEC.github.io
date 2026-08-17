@@ -160,7 +160,11 @@ export interface ApplicantType {
 
     // Regular application fields
     branch?: string;
+    gender?: "male" | "female";
+    hosteller?: "yes" | "no";
+
     responses?: Record<string, string>;
+
 
     isWalkin: boolean;
     status: "pending" | "accepted" | "rejected";

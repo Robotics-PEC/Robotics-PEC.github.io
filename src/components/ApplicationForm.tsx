@@ -56,23 +56,32 @@ const createEmptyResponses = () =>
         {} as Record<string, string>
     );
 
-const initialForm = {
+type FormState = {
+    name: string;
+    phone: string;
+    sid: string;
+    branch: string;
+    gender: string;
+    hosteller: string;
+    responses: Record<string, string>;
+};
+
+const initialForm: FormState = {
     name: "",
     phone: "",
     sid: "",
     branch: "",
-    responses:
-        createEmptyResponses(),
+    gender: "",
+    hosteller: "",
+    responses: createEmptyResponses(),
 };
 
 export default function ApplicationForm() {
     const [form, setForm] =
-        useState(initialForm);
+        useState<FormState>(initialForm);
 
     const [application, setApplication] =
-        useState<ApplicantType | null>(
-            null
-        );
+        useState<ApplicantType | null>(null);
 
     const [
         checkingApplication,
@@ -97,7 +106,7 @@ export default function ApplicationForm() {
      */
 
     const updateField = (
-        field: keyof typeof initialForm,
+        field: Exclude<keyof FormState, "responses">,
         value: string
     ) => {
         setForm((current) => ({
@@ -128,43 +137,33 @@ export default function ApplicationForm() {
     useEffect(() => {
         let active = true;
 
-        const loadApplication =
-            async () => {
-                const existing =
-                    await fetchMyApplication();
+        const loadApplication = async () => {
+            const existing =
+                await fetchMyApplication();
 
-                if (!active) {
-                    return;
-                }
+            if (!active) {
+                return;
+            }
 
-                if (existing) {
-                    setApplication(
-                        existing
-                    );
+            if (existing) {
+                setApplication(existing);
 
-                    setForm({
-                        name:
-                            existing.name ||
-                            "",
-                        phone:
-                            existing.phone ||
-                            "",
-                        sid:
-                            existing.sid ||
-                            "",
-                        branch:
-                            existing.branch ||
-                            "",
-                        responses:
-                            existing.responses ||
-                            createEmptyResponses(),
-                    });
-                }
+                setForm({
+                    name: existing.name || "",
+                    phone: existing.phone || "",
+                    sid: existing.sid || "",
+                    branch: existing.branch || "",
+                    gender: existing.gender || "",
+                    hosteller:
+                        existing.hosteller || "",
+                    responses:
+                        existing.responses ||
+                        createEmptyResponses(),
+                });
+            }
 
-                setCheckingApplication(
-                    false
-                );
-            };
+            setCheckingApplication(false);
+        };
 
         void loadApplication();
 
@@ -198,11 +197,23 @@ export default function ApplicationForm() {
         const branch =
             form.branch;
 
+        const gender =
+            form.gender;
+
+        const hosteller =
+            form.hosteller;
+
+        /*
+         * Validate personal information
+         */
+
         if (
             !name ||
             !phone ||
             !sid ||
-            !branch
+            !branch ||
+            !gender ||
+            !hosteller
         ) {
             setError(
                 "Please fill in all the required personal fields."
@@ -210,6 +221,40 @@ export default function ApplicationForm() {
 
             return;
         }
+
+        /*
+         * Validate gender
+         */
+
+        if (
+            gender !== "male" &&
+            gender !== "female"
+        ) {
+            setError(
+                "Please select a valid gender."
+            );
+
+            return;
+        }
+
+        /*
+         * Validate hosteller
+         */
+
+        if (
+            hosteller !== "yes" &&
+            hosteller !== "no"
+        ) {
+            setError(
+                "Please select whether you are a hosteller."
+            );
+
+            return;
+        }
+
+        /*
+         * Validate phone
+         */
 
         if (
             !/^[6-9]\d{9}$/.test(
@@ -223,6 +268,10 @@ export default function ApplicationForm() {
             return;
         }
 
+        /*
+         * Validate SID
+         */
+
         if (
             !/^\d{8}$/.test(sid)
         ) {
@@ -232,6 +281,10 @@ export default function ApplicationForm() {
 
             return;
         }
+
+        /*
+         * Validate application questions
+         */
 
         const missingResponses =
             APPLICATION_QUESTIONS.some(
@@ -248,6 +301,10 @@ export default function ApplicationForm() {
 
             return;
         }
+
+        /*
+         * Trim all responses
+         */
 
         const trimmedResponses =
             Object.keys(
@@ -276,6 +333,12 @@ export default function ApplicationForm() {
                     sid,
                     phone,
                     branch,
+                    gender as
+                        | "male"
+                        | "female",
+                    hosteller as
+                        | "yes"
+                        | "no",
                     trimmedResponses
                 );
 
@@ -296,6 +359,10 @@ export default function ApplicationForm() {
                 return;
             }
 
+            /*
+             * Store returned application
+             */
+
             setApplication(
                 result.applicant
             );
@@ -312,6 +379,12 @@ export default function ApplicationForm() {
                     "",
                 branch:
                     result.applicant.branch ||
+                    "",
+                gender:
+                    result.applicant.gender ||
+                    "",
+                hosteller:
+                    result.applicant.hosteller ||
                     "",
                 responses:
                     result.applicant
@@ -358,11 +431,23 @@ export default function ApplicationForm() {
             const branch =
                 form.branch;
 
+            const gender =
+                form.gender;
+
+            const hosteller =
+                form.hosteller;
+
+            /*
+             * Validate fields
+             */
+
             if (
                 !name ||
                 !phone ||
                 !sid ||
-                !branch
+                !branch ||
+                !gender ||
+                !hosteller
             ) {
                 setError(
                     "Please fill in all the personal information."
@@ -370,6 +455,40 @@ export default function ApplicationForm() {
 
                 return;
             }
+
+            /*
+             * Validate gender
+             */
+
+            if (
+                gender !== "male" &&
+                gender !== "female"
+            ) {
+                setError(
+                    "Please select a valid gender."
+                );
+
+                return;
+            }
+
+            /*
+             * Validate hosteller
+             */
+
+            if (
+                hosteller !== "yes" &&
+                hosteller !== "no"
+            ) {
+                setError(
+                    "Please select whether you are a hosteller."
+                );
+
+                return;
+            }
+
+            /*
+             * Validate phone
+             */
 
             if (
                 !/^[6-9]\d{9}$/.test(
@@ -383,6 +502,10 @@ export default function ApplicationForm() {
                 return;
             }
 
+            /*
+             * Validate SID
+             */
+
             if (
                 !/^\d{8}$/.test(sid)
             ) {
@@ -393,9 +516,7 @@ export default function ApplicationForm() {
                 return;
             }
 
-            setSavingPersonalInfo(
-                true
-            );
+            setSavingPersonalInfo(true);
 
             try {
                 const result =
@@ -404,7 +525,13 @@ export default function ApplicationForm() {
                         name,
                         phone,
                         sid,
-                        branch
+                        branch,
+                        gender as
+                            | "male"
+                            | "female",
+                        hosteller as
+                            | "yes"
+                            | "no"
                     );
 
                 if (!result.success) {
@@ -425,19 +552,33 @@ export default function ApplicationForm() {
                 setForm(
                     (current) => ({
                         ...current,
+
                         name:
                             result.applicant
                                 .name,
+
                         phone:
                             result.applicant
                                 .phone ||
                             "",
+
                         sid:
                             result.applicant
                                 .sid,
+
                         branch:
                             result.applicant
                                 .branch ||
+                            "",
+
+                        gender:
+                            result.applicant
+                                .gender ||
+                            "",
+
+                        hosteller:
+                            result.applicant
+                                .hosteller ||
                             "",
                     })
                 );
@@ -513,9 +654,7 @@ export default function ApplicationForm() {
                             }`}
                         >
                             {application.status
-                                .charAt(
-                                    0
-                                )
+                                .charAt(0)
                                 .toUpperCase() +
                                 application.status.slice(
                                     1
@@ -686,6 +825,93 @@ export default function ApplicationForm() {
                             </div>
                         </div>
 
+                        {/* Gender + Hosteller */}
+                        <div className="grid gap-6 md:grid-cols-2">
+                            <div className="space-y-2">
+                                <label
+                                    htmlFor="existing-gender"
+                                    className="text-sm font-medium"
+                                >
+                                    Gender
+                                </label>
+
+                                <select
+                                    id="existing-gender"
+                                    value={
+                                        form.gender
+                                    }
+                                    disabled={
+                                        !canEdit
+                                    }
+                                    onChange={(
+                                        event
+                                    ) =>
+                                        updateField(
+                                            "gender",
+                                            event
+                                                .target
+                                                .value
+                                        )
+                                    }
+                                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm outline-none disabled:cursor-not-allowed disabled:opacity-60"
+                                >
+                                    <option value="">
+                                        Select your gender
+                                    </option>
+
+                                    <option value="male">
+                                        Male
+                                    </option>
+
+                                    <option value="female">
+                                        Female
+                                    </option>
+                                </select>
+                            </div>
+
+                            <div className="space-y-2">
+                                <label
+                                    htmlFor="existing-hosteller"
+                                    className="text-sm font-medium"
+                                >
+                                    Are you a hosteller?
+                                </label>
+
+                                <select
+                                    id="existing-hosteller"
+                                    value={
+                                        form.hosteller
+                                    }
+                                    disabled={
+                                        !canEdit
+                                    }
+                                    onChange={(
+                                        event
+                                    ) =>
+                                        updateField(
+                                            "hosteller",
+                                            event
+                                                .target
+                                                .value
+                                        )
+                                    }
+                                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm outline-none disabled:cursor-not-allowed disabled:opacity-60"
+                                >
+                                    <option value="">
+                                        Select an option
+                                    </option>
+
+                                    <option value="yes">
+                                        Yes
+                                    </option>
+
+                                    <option value="no">
+                                        No
+                                    </option>
+                                </select>
+                            </div>
+                        </div>
+
                         {canEdit && (
                             <button
                                 type="button"
@@ -731,7 +957,8 @@ export default function ApplicationForm() {
                                         <span className="mr-2 text-muted-foreground">
                                             {
                                                 question.id
-                                            }.
+                                            }
+                                            .
                                         </span>
 
                                         {
@@ -937,6 +1164,87 @@ export default function ApplicationForm() {
                             </select>
                         </div>
                     </div>
+
+                    {/* Gender + Hosteller */}
+                    <div className="grid gap-6 md:grid-cols-2">
+                        <div className="space-y-2">
+                            <label
+                                htmlFor="gender"
+                                className="text-sm font-medium"
+                            >
+                                Gender
+                            </label>
+
+                            <select
+                                id="gender"
+                                value={
+                                    form.gender
+                                }
+                                onChange={(
+                                    event
+                                ) =>
+                                    updateField(
+                                        "gender",
+                                        event
+                                            .target
+                                            .value
+                                    )
+                                }
+                                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm outline-none"
+                            >
+                                <option value="">
+                                    Select your gender
+                                </option>
+
+                                <option value="male">
+                                    Male
+                                </option>
+
+                                <option value="female">
+                                    Female
+                                </option>
+                            </select>
+                        </div>
+
+                        <div className="space-y-2">
+                            <label
+                                htmlFor="hosteller"
+                                className="text-sm font-medium"
+                            >
+                                Are you a hosteller?
+                            </label>
+
+                            <select
+                                id="hosteller"
+                                value={
+                                    form.hosteller
+                                }
+                                onChange={(
+                                    event
+                                ) =>
+                                    updateField(
+                                        "hosteller",
+                                        event
+                                            .target
+                                            .value
+                                    )
+                                }
+                                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm outline-none"
+                            >
+                                <option value="">
+                                    Select an option
+                                </option>
+
+                                <option value="yes">
+                                    Yes
+                                </option>
+
+                                <option value="no">
+                                    No
+                                </option>
+                            </select>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -989,7 +1297,9 @@ export default function ApplicationForm() {
 
             <button
                 type="submit"
-                disabled={submitting}
+                disabled={
+                    submitting
+                }
                 className="w-full rounded-md bg-primary px-6 py-3 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
             >
                 {submitting
