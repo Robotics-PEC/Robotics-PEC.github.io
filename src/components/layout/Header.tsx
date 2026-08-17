@@ -27,10 +27,11 @@ const getInitials = (value: string) => {
     return `${tokens[0][0]}${tokens[tokens.length - 1][0]}`.toUpperCase();
 };
 
-const Header = ({ isAdmin = false }: { isAdmin?: boolean }) => {
-    const { role, user } = useAuthRole();
+const Header = () => {
+    const { role, user, isAdmin: roleIsAdmin } = useAuthRole();
     const router = useRouter();
     const [profileOpen, setProfileOpen] = useState(false);
+    const isAdmin = router.pathname === "/admin/page" || roleIsAdmin;
     const isPanelist = role?.slug === "admin" || role?.slug?.includes("panel");
     const displayName = user?.user_metadata?.full_name ?? user?.user_metadata?.name ?? null;
     const displayEmail = user?.email ?? null;
