@@ -161,7 +161,7 @@ export interface ApplicantType {
     // Regular application fields
     branch?: string;
     gender?: "male" | "female";
-    hosteller?: "yes" | "no";
+    isHostellers?: boolean;
 
     responses?: Record<string, string>;
 

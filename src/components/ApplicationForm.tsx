@@ -9,7 +9,9 @@ import {
     updateApplicantPersonalInfo,
 } from "@/lib/supabase/actions/applicants.actions";
 
-import type { ApplicantType } from "@/types";
+import type {
+    ApplicantType,
+} from "@/types";
 
 const branches = [
     "Aerospace Engineering",
@@ -47,23 +49,49 @@ export const APPLICATION_QUESTIONS = [
     },
 ];
 
-const createEmptyResponses = () =>
-    APPLICATION_QUESTIONS.reduce(
-        (acc, question) => {
-            acc[question.id] = "";
-            return acc;
-        },
-        {} as Record<string, string>
-    );
+const createEmptyResponses =
+    () =>
+        APPLICATION_QUESTIONS.reduce(
+            (
+                acc,
+                question
+            ) => {
+                acc[
+                    question.id
+                ] = "";
+
+                return acc;
+            },
+            {} as Record<
+                string,
+                string
+            >
+        );
 
 type FormState = {
     name: string;
     phone: string;
     sid: string;
     branch: string;
-    gender: string;
-    hosteller: string;
-    responses: Record<string, string>;
+
+    gender:
+        | ""
+        | "male"
+        | "female";
+
+    /*
+     * null = not selected
+     * true = Yes
+     * false = No
+     */
+    isHostellers:
+        | boolean
+        | null;
+
+    responses: Record<
+        string,
+        string
+    >;
 };
 
 const initialForm: FormState = {
@@ -72,16 +100,24 @@ const initialForm: FormState = {
     sid: "",
     branch: "",
     gender: "",
-    hosteller: "",
-    responses: createEmptyResponses(),
+    isHostellers: null,
+    responses:
+        createEmptyResponses(),
 };
 
 export default function ApplicationForm() {
     const [form, setForm] =
-        useState<FormState>(initialForm);
+        useState<FormState>(
+            initialForm
+        );
 
-    const [application, setApplication] =
-        useState<ApplicantType | null>(null);
+    const [
+        application,
+        setApplication,
+    ] =
+        useState<ApplicantType | null>(
+            null
+        );
 
     const [
         checkingApplication,
@@ -91,8 +127,10 @@ export default function ApplicationForm() {
     const [error, setError] =
         useState("");
 
-    const [submitting, setSubmitting] =
-        useState(false);
+    const [
+        submitting,
+        setSubmitting,
+    ] = useState(false);
 
     const [
         savingPersonalInfo,
@@ -101,31 +139,43 @@ export default function ApplicationForm() {
 
     /*
      * ---------------------------------------------------------
-     * Field helpers
+     * Field helper
      * ---------------------------------------------------------
      */
 
-    const updateField = (
-        field: Exclude<keyof FormState, "responses">,
-        value: string
+    const updateField = <
+        K extends Exclude<
+            keyof FormState,
+            "responses"
+        >
+    >(
+        field: K,
+        value: FormState[K]
     ) => {
-        setForm((current) => ({
-            ...current,
-            [field]: value,
-        }));
+        setForm(
+            (current) => ({
+                ...current,
+                [field]: value,
+            })
+        );
     };
 
     const updateResponse = (
         questionId: string,
         value: string
     ) => {
-        setForm((current) => ({
-            ...current,
-            responses: {
-                ...current.responses,
-                [questionId]: value,
-            },
-        }));
+        setForm(
+            (current) => ({
+                ...current,
+
+                responses: {
+                    ...current.responses,
+
+                    [questionId]:
+                        value,
+                },
+            })
+        );
     };
 
     /*
@@ -137,33 +187,55 @@ export default function ApplicationForm() {
     useEffect(() => {
         let active = true;
 
-        const loadApplication = async () => {
-            const existing =
-                await fetchMyApplication();
+        const loadApplication =
+            async () => {
+                const existing =
+                    await fetchMyApplication();
 
-            if (!active) {
-                return;
-            }
+                if (!active) {
+                    return;
+                }
 
-            if (existing) {
-                setApplication(existing);
+                if (existing) {
+                    setApplication(
+                        existing
+                    );
 
-                setForm({
-                    name: existing.name || "",
-                    phone: existing.phone || "",
-                    sid: existing.sid || "",
-                    branch: existing.branch || "",
-                    gender: existing.gender || "",
-                    hosteller:
-                        existing.hosteller || "",
-                    responses:
-                        existing.responses ||
-                        createEmptyResponses(),
-                });
-            }
+                    setForm({
+                        name:
+                            existing.name ||
+                            "",
 
-            setCheckingApplication(false);
-        };
+                        phone:
+                            existing.phone ||
+                            "",
+
+                        sid:
+                            existing.sid ||
+                            "",
+
+                        branch:
+                            existing.branch ||
+                            "",
+
+                        gender:
+                            existing.gender ||
+                            "",
+
+                        isHostellers:
+                            existing.isHostellers ??
+                            null,
+
+                        responses:
+                            existing.responses ||
+                            createEmptyResponses(),
+                    });
+                }
+
+                setCheckingApplication(
+                    false
+                );
+            };
 
         void loadApplication();
 
@@ -174,236 +246,228 @@ export default function ApplicationForm() {
 
     /*
      * ---------------------------------------------------------
-     * Create new application
+     * Submit new application
      * ---------------------------------------------------------
      */
 
-    const handleSubmit = async (
-        event: React.FormEvent<HTMLFormElement>
-    ) => {
-        event.preventDefault();
+    const handleSubmit =
+        async (
+            event: React.FormEvent<HTMLFormElement>
+        ) => {
+            event.preventDefault();
 
-        setError("");
+            setError("");
 
-        const name =
-            form.name.trim();
+            const name =
+                form.name.trim();
 
-        const phone =
-            form.phone.trim();
+            const phone =
+                form.phone.trim();
 
-        const sid =
-            form.sid.trim();
+            const sid =
+                form.sid.trim();
 
-        const branch =
-            form.branch;
+            const branch =
+                form.branch;
 
-        const gender =
-            form.gender;
+            const gender =
+                form.gender;
 
-        const hosteller =
-            form.hosteller;
+            const isHostellers =
+                form.isHostellers;
 
-        /*
-         * Validate personal information
-         */
+            /*
+             * Required fields
+             *
+             * Do NOT use !isHostellers.
+             * false is a valid value.
+             */
 
-        if (
-            !name ||
-            !phone ||
-            !sid ||
-            !branch ||
-            !gender ||
-            !hosteller
-        ) {
-            setError(
-                "Please fill in all the required personal fields."
-            );
-
-            return;
-        }
-
-        /*
-         * Validate gender
-         */
-
-        if (
-            gender !== "male" &&
-            gender !== "female"
-        ) {
-            setError(
-                "Please select a valid gender."
-            );
-
-            return;
-        }
-
-        /*
-         * Validate hosteller
-         */
-
-        if (
-            hosteller !== "yes" &&
-            hosteller !== "no"
-        ) {
-            setError(
-                "Please select whether you are a hosteller."
-            );
-
-            return;
-        }
-
-        /*
-         * Validate phone
-         */
-
-        if (
-            !/^[6-9]\d{9}$/.test(
-                phone
-            )
-        ) {
-            setError(
-                "Please enter a valid 10-digit phone number."
-            );
-
-            return;
-        }
-
-        /*
-         * Validate SID
-         */
-
-        if (
-            !/^\d{8}$/.test(sid)
-        ) {
-            setError(
-                "SID must be exactly 8 digits."
-            );
-
-            return;
-        }
-
-        /*
-         * Validate application questions
-         */
-
-        const missingResponses =
-            APPLICATION_QUESTIONS.some(
-                (question) =>
-                    !form.responses[
-                        question.id
-                    ].trim()
-            );
-
-        if (missingResponses) {
-            setError(
-                "Please answer all the application questions."
-            );
-
-            return;
-        }
-
-        /*
-         * Trim all responses
-         */
-
-        const trimmedResponses =
-            Object.keys(
-                form.responses
-            ).reduce(
-                (acc, key) => {
-                    acc[key] =
-                        form.responses[
-                            key
-                        ].trim();
-
-                    return acc;
-                },
-                {} as Record<
-                    string,
-                    string
-                >
-            );
-
-        setSubmitting(true);
-
-        try {
-            const result =
-                await createApplicant(
-                    name,
-                    sid,
-                    phone,
-                    branch,
-                    gender as
-                        | "male"
-                        | "female",
-                    hosteller as
-                        | "yes"
-                        | "no",
-                    trimmedResponses
+            if (
+                !name ||
+                !phone ||
+                !sid ||
+                !branch ||
+                !gender ||
+                isHostellers ===
+                    null
+            ) {
+                setError(
+                    "Please fill in all the required personal fields."
                 );
-
-            if (!result.success) {
-                if (
-                    result.reason ===
-                    "duplicate"
-                ) {
-                    setError(
-                        "You have already submitted an application."
-                    );
-                } else {
-                    setError(
-                        "We could not submit your application. Please try again."
-                    );
-                }
 
                 return;
             }
 
             /*
-             * Store returned application
+             * Phone
              */
 
-            setApplication(
-                result.applicant
-            );
+            if (
+                !/^[6-9]\d{9}$/.test(
+                    phone
+                )
+            ) {
+                setError(
+                    "Please enter a valid 10-digit phone number."
+                );
 
-            setForm({
-                name:
-                    result.applicant.name ||
-                    "",
-                phone:
-                    result.applicant.phone ||
-                    "",
-                sid:
-                    result.applicant.sid ||
-                    "",
-                branch:
-                    result.applicant.branch ||
-                    "",
-                gender:
-                    result.applicant.gender ||
-                    "",
-                hosteller:
-                    result.applicant.hosteller ||
-                    "",
-                responses:
+                return;
+            }
+
+            /*
+             * SID
+             */
+
+            if (
+                !/^\d{8}$/.test(
+                    sid
+                )
+            ) {
+                setError(
+                    "SID must be exactly 8 digits."
+                );
+
+                return;
+            }
+
+            /*
+             * Questions
+             */
+
+            const missingResponses =
+                APPLICATION_QUESTIONS.some(
+                    (question) =>
+                        !form.responses[
+                            question.id
+                        ].trim()
+                );
+
+            if (
+                missingResponses
+            ) {
+                setError(
+                    "Please answer all the application questions."
+                );
+
+                return;
+            }
+
+            /*
+             * Trim responses
+             */
+
+            const trimmedResponses =
+                Object.keys(
+                    form.responses
+                ).reduce(
+                    (
+                        acc,
+                        key
+                    ) => {
+                        acc[key] =
+                            form.responses[
+                                key
+                            ].trim();
+
+                        return acc;
+                    },
+                    {} as Record<
+                        string,
+                        string
+                    >
+                );
+
+            setSubmitting(true);
+
+            try {
+                const result =
+                    await createApplicant(
+                        name,
+                        sid,
+                        phone,
+                        branch,
+                        gender,
+                        isHostellers,
+                        trimmedResponses
+                    );
+
+                if (
+                    !result.success
+                ) {
+                    if (
+                        result.reason ===
+                        "duplicate"
+                    ) {
+                        setError(
+                            "You have already submitted an application."
+                        );
+                    } else {
+                        setError(
+                            "We could not submit your application. Please try again."
+                        );
+                    }
+
+                    return;
+                }
+
+                setApplication(
                     result.applicant
-                        .responses ||
-                    createEmptyResponses(),
-            });
-        } catch (submissionError) {
-            console.error(
-                "Unexpected application submission error:",
-                submissionError
-            );
+                );
 
-            setError(
-                "We could not submit your application. Please try again."
-            );
-        } finally {
-            setSubmitting(false);
-        }
-    };
+                setForm({
+                    name:
+                        result
+                            .applicant
+                            .name ||
+                        "",
+
+                    phone:
+                        result
+                            .applicant
+                            .phone ||
+                        "",
+
+                    sid:
+                        result
+                            .applicant
+                            .sid ||
+                        "",
+
+                    branch:
+                        result
+                            .applicant
+                            .branch ||
+                        "",
+
+                    gender:
+                        result
+                            .applicant
+                            .gender ||
+                        "",
+
+                    isHostellers:
+                        result
+                            .applicant
+                            .isHostellers ??
+                        null,
+
+                    responses:
+                        result
+                            .applicant
+                            .responses ||
+                        createEmptyResponses(),
+                });
+            } catch {
+                setError(
+                    "We could not submit your application. Please try again."
+                );
+            } finally {
+                setSubmitting(
+                    false
+                );
+            }
+        };
 
     /*
      * ---------------------------------------------------------
@@ -434,12 +498,8 @@ export default function ApplicationForm() {
             const gender =
                 form.gender;
 
-            const hosteller =
-                form.hosteller;
-
-            /*
-             * Validate fields
-             */
+            const isHostellers =
+                form.isHostellers;
 
             if (
                 !name ||
@@ -447,7 +507,8 @@ export default function ApplicationForm() {
                 !sid ||
                 !branch ||
                 !gender ||
-                !hosteller
+                isHostellers ===
+                    null
             ) {
                 setError(
                     "Please fill in all the personal information."
@@ -455,40 +516,6 @@ export default function ApplicationForm() {
 
                 return;
             }
-
-            /*
-             * Validate gender
-             */
-
-            if (
-                gender !== "male" &&
-                gender !== "female"
-            ) {
-                setError(
-                    "Please select a valid gender."
-                );
-
-                return;
-            }
-
-            /*
-             * Validate hosteller
-             */
-
-            if (
-                hosteller !== "yes" &&
-                hosteller !== "no"
-            ) {
-                setError(
-                    "Please select whether you are a hosteller."
-                );
-
-                return;
-            }
-
-            /*
-             * Validate phone
-             */
 
             if (
                 !/^[6-9]\d{9}$/.test(
@@ -502,12 +529,10 @@ export default function ApplicationForm() {
                 return;
             }
 
-            /*
-             * Validate SID
-             */
-
             if (
-                !/^\d{8}$/.test(sid)
+                !/^\d{8}$/.test(
+                    sid
+                )
             ) {
                 setError(
                     "SID must be exactly 8 digits."
@@ -516,7 +541,9 @@ export default function ApplicationForm() {
                 return;
             }
 
-            setSavingPersonalInfo(true);
+            setSavingPersonalInfo(
+                true
+            );
 
             try {
                 const result =
@@ -526,15 +553,13 @@ export default function ApplicationForm() {
                         phone,
                         sid,
                         branch,
-                        gender as
-                            | "male"
-                            | "female",
-                        hosteller as
-                            | "yes"
-                            | "no"
+                        gender,
+                        isHostellers
                     );
 
-                if (!result.success) {
+                if (
+                    !result.success
+                ) {
                     setError(
                         result.reason ===
                             "not_found"
@@ -550,44 +575,47 @@ export default function ApplicationForm() {
                 );
 
                 setForm(
-                    (current) => ({
+                    (
+                        current
+                    ) => ({
                         ...current,
 
                         name:
-                            result.applicant
+                            result
+                                .applicant
                                 .name,
 
                         phone:
-                            result.applicant
+                            result
+                                .applicant
                                 .phone ||
                             "",
 
                         sid:
-                            result.applicant
+                            result
+                                .applicant
                                 .sid,
 
                         branch:
-                            result.applicant
+                            result
+                                .applicant
                                 .branch ||
                             "",
 
                         gender:
-                            result.applicant
+                            result
+                                .applicant
                                 .gender ||
                             "",
 
-                        hosteller:
-                            result.applicant
-                                .hosteller ||
-                            "",
+                        isHostellers:
+                            result
+                                .applicant
+                                .isHostellers ??
+                            null,
                     })
                 );
-            } catch (updateError) {
-                console.error(
-                    "Error updating personal information:",
-                    updateError
-                );
-
+            } catch {
                 setError(
                     "Could not update your personal information. Please try again."
                 );
@@ -600,11 +628,13 @@ export default function ApplicationForm() {
 
     /*
      * ---------------------------------------------------------
-     * Loading state
+     * Loading
      * ---------------------------------------------------------
      */
 
-    if (checkingApplication) {
+    if (
+        checkingApplication
+    ) {
         return (
             <div className="mx-auto max-w-3xl rounded-xl border bg-white p-8 text-center shadow-sm">
                 <p className="text-sm text-muted-foreground">
@@ -627,7 +657,6 @@ export default function ApplicationForm() {
 
         return (
             <div className="mx-auto max-w-3xl space-y-8">
-                {/* Personal Information */}
                 <div className="rounded-xl border bg-white p-6 shadow-sm">
                     <div className="flex items-start justify-between gap-4">
                         <div>
@@ -654,7 +683,9 @@ export default function ApplicationForm() {
                             }`}
                         >
                             {application.status
-                                .charAt(0)
+                                .charAt(
+                                    0
+                                )
                                 .toUpperCase() +
                                 application.status.slice(
                                     1
@@ -664,6 +695,7 @@ export default function ApplicationForm() {
 
                     <div className="mt-6 space-y-6">
                         {/* Name + Phone */}
+
                         <div className="grid gap-6 md:grid-cols-2">
                             <div className="space-y-2">
                                 <label
@@ -734,6 +766,7 @@ export default function ApplicationForm() {
                         </div>
 
                         {/* SID + Branch */}
+
                         <div className="grid gap-6 md:grid-cols-2">
                             <div className="space-y-2">
                                 <label
@@ -826,6 +859,7 @@ export default function ApplicationForm() {
                         </div>
 
                         {/* Gender + Hosteller */}
+
                         <div className="grid gap-6 md:grid-cols-2">
                             <div className="space-y-2">
                                 <label
@@ -850,7 +884,10 @@ export default function ApplicationForm() {
                                             "gender",
                                             event
                                                 .target
-                                                .value
+                                                .value as
+                                                | ""
+                                                | "male"
+                                                | "female"
                                         )
                                     }
                                     className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm outline-none disabled:cursor-not-allowed disabled:opacity-60"
@@ -871,41 +908,53 @@ export default function ApplicationForm() {
 
                             <div className="space-y-2">
                                 <label
-                                    htmlFor="existing-hosteller"
+                                    htmlFor="existing-isHostellers"
                                     className="text-sm font-medium"
                                 >
                                     Are you a hosteller?
                                 </label>
 
                                 <select
-                                    id="existing-hosteller"
+                                    id="existing-isHostellers"
                                     value={
-                                        form.hosteller
+                                        form.isHostellers ===
+                                        null
+                                            ? ""
+                                            : String(
+                                                  form.isHostellers
+                                              )
                                     }
                                     disabled={
                                         !canEdit
                                     }
                                     onChange={(
                                         event
-                                    ) =>
-                                        updateField(
-                                            "hosteller",
+                                    ) => {
+                                        const value =
                                             event
                                                 .target
-                                                .value
-                                        )
-                                    }
+                                                .value;
+
+                                        updateField(
+                                            "isHostellers",
+                                            value ===
+                                                ""
+                                                ? null
+                                                : value ===
+                                                    "true"
+                                        );
+                                    }}
                                     className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm outline-none disabled:cursor-not-allowed disabled:opacity-60"
                                 >
                                     <option value="">
                                         Select an option
                                     </option>
 
-                                    <option value="yes">
+                                    <option value="true">
                                         Yes
                                     </option>
 
-                                    <option value="no">
+                                    <option value="false">
                                         No
                                     </option>
                                 </select>
@@ -931,15 +980,15 @@ export default function ApplicationForm() {
                     </div>
                 </div>
 
-                {/* Read-only answers */}
+                {/* Submitted answers */}
+
                 <div className="rounded-xl border bg-white p-6 shadow-sm">
                     <h2 className="text-xl font-semibold">
                         Submitted Application
                     </h2>
 
                     <p className="mt-1 text-sm text-muted-foreground">
-                        Your submitted answers
-                        cannot be changed.
+                        Your submitted answers cannot be changed.
                     </p>
 
                     <div className="mt-6 space-y-7">
@@ -957,8 +1006,7 @@ export default function ApplicationForm() {
                                         <span className="mr-2 text-muted-foreground">
                                             {
                                                 question.id
-                                            }
-                                            .
+                                            }.
                                         </span>
 
                                         {
@@ -992,16 +1040,19 @@ export default function ApplicationForm() {
 
     /*
      * ---------------------------------------------------------
-     * New application form
+     * New application
      * ---------------------------------------------------------
      */
 
     return (
         <form
-            onSubmit={handleSubmit}
+            onSubmit={
+                handleSubmit
+            }
             className="mx-auto max-w-3xl space-y-8"
         >
             {/* Personal Information */}
+
             <div className="rounded-xl border bg-white p-6 shadow-sm">
                 <h2 className="text-xl font-semibold">
                     Personal Information
@@ -1013,6 +1064,7 @@ export default function ApplicationForm() {
 
                 <div className="mt-6 space-y-6">
                     {/* Name + Phone */}
+
                     <div className="grid gap-6 md:grid-cols-2">
                         <div className="space-y-2">
                             <label
@@ -1079,6 +1131,7 @@ export default function ApplicationForm() {
                     </div>
 
                     {/* SID + Branch */}
+
                     <div className="grid gap-6 md:grid-cols-2">
                         <div className="space-y-2">
                             <label
@@ -1166,6 +1219,7 @@ export default function ApplicationForm() {
                     </div>
 
                     {/* Gender + Hosteller */}
+
                     <div className="grid gap-6 md:grid-cols-2">
                         <div className="space-y-2">
                             <label
@@ -1187,7 +1241,10 @@ export default function ApplicationForm() {
                                         "gender",
                                         event
                                             .target
-                                            .value
+                                            .value as
+                                            | ""
+                                            | "male"
+                                            | "female"
                                     )
                                 }
                                 className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm outline-none"
@@ -1208,38 +1265,50 @@ export default function ApplicationForm() {
 
                         <div className="space-y-2">
                             <label
-                                htmlFor="hosteller"
+                                htmlFor="isHostellers"
                                 className="text-sm font-medium"
                             >
                                 Are you a hosteller?
                             </label>
 
                             <select
-                                id="hosteller"
+                                id="isHostellers"
                                 value={
-                                    form.hosteller
+                                    form.isHostellers ===
+                                    null
+                                        ? ""
+                                        : String(
+                                              form.isHostellers
+                                          )
                                 }
                                 onChange={(
                                     event
-                                ) =>
-                                    updateField(
-                                        "hosteller",
+                                ) => {
+                                    const value =
                                         event
                                             .target
-                                            .value
-                                    )
-                                }
+                                            .value;
+
+                                    updateField(
+                                        "isHostellers",
+                                        value ===
+                                            ""
+                                            ? null
+                                            : value ===
+                                                "true"
+                                    );
+                                }}
                                 className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm outline-none"
                             >
                                 <option value="">
                                     Select an option
                                 </option>
 
-                                <option value="yes">
+                                <option value="true">
                                     Yes
                                 </option>
 
-                                <option value="no">
+                                <option value="false">
                                     No
                                 </option>
                             </select>
@@ -1249,6 +1318,7 @@ export default function ApplicationForm() {
             </div>
 
             {/* Questions */}
+
             <div className="rounded-xl border bg-white p-6 shadow-sm">
                 <h2 className="text-xl font-semibold">
                     Application Questions
@@ -1341,7 +1411,9 @@ function Question({
             <textarea
                 id={number}
                 value={value}
-                onChange={(event) =>
+                onChange={(
+                    event
+                ) =>
                     onChange(
                         event.target.value
                     )
