@@ -3,7 +3,7 @@
 import Image from "next/image";
 import { useState } from "react";
 
-import { Linkedin } from "lucide-react";
+import { Linkedin, Github } from "lucide-react";
 
 interface TeamMember {
   name: string;
@@ -14,7 +14,7 @@ interface TeamMember {
   socials?: {
     twitter?: string;
     linkedin?: string;
-    website?: string;
+    github?: string;
   };
 }
 
@@ -125,23 +125,44 @@ export default function TeamMemberCard({
               </div>
             )}
 
-            {member.socials?.linkedin && (
-  <a
-    href={member.socials.linkedin}
-    target="_blank"
-    rel="noopener noreferrer"
-    aria-label={`${member.name} LinkedIn`}
-    className="
-      text-gray-400
-      transition-all
-      duration-200
-      hover:scale-110
-      hover:text-[#0a66c2]
-    "
-  >
-    <Linkedin size={20} strokeWidth={2} />
-  </a>
-)}
+            {/* SOCIAL ICONS */}
+            <div className="flex items-center gap-3">
+              {member.socials?.github && (
+                <a
+                  href={member.socials.github}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label={`${member.name} GitHub`}
+                  className="
+                    text-gray-400
+                    transition-all
+                    duration-200
+                    hover:scale-110
+                    hover:text-[#181717]
+                  "
+                >
+                  <Github size={20} strokeWidth={2} />
+                </a>
+              )}
+
+              {member.socials?.linkedin && (
+                <a
+                  href={member.socials.linkedin}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label={`${member.name} LinkedIn`}
+                  className="
+                    text-gray-400
+                    transition-all
+                    duration-200
+                    hover:scale-110
+                    hover:text-[#0a66c2]
+                  "
+                >
+                  <Linkedin size={20} strokeWidth={2} />
+                </a>
+              )}
+            </div>
 
           </div>
         </div>

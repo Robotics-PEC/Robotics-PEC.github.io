@@ -5,7 +5,7 @@ import { useEffect, useMemo, useState } from "react";
 import { getStorageImageUrl } from "@/lib/supabase/actions/storage.actions";
 import { getTeamMembers } from "@/lib/supabase/actions/team.actions";
 
-import { teamDetails } from "./data/team_details";
+import { teamDetails, teamOrder } from "./data/team_details";
 
 import TeamMemberCard from "../../components/TeamMemberCard";
 
@@ -25,47 +25,44 @@ type TeamMember = {
 
 export default function TeamPage() {
   const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
-  const [resolvedImageUrls, setResolvedImageUrls] = useState<
-    Record<string, string | null>
-  >({});
+  const [resolvedImageUrls, setResolvedImageUrls] = useState<Record<string, string | null>>({});
 
   const [loadingMembers, setLoadingMembers] = useState(true);
   const [loadingImages, setLoadingImages] = useState(true);
 
   /*
-   * Add information from team_details.ts to the Supabase members.
+   * Merge Supabase rows with team_details.ts, then apply explicit order.
    *
-   * Supabase provides:
-   * - name
-   * - role
-   * - image
-   *
-   * team_details.ts provides:
-   * - description
-   * - location
-   * - socials
+   * Supabase provides: name, role (job title, e.g. "Website Subhead"), image
+   * team_details.ts provides: description, location, socials
    */
   const membersWithDetails = useMemo(() => {
-    return teamMembers.map((member) => {
+    const merged = teamMembers.map((member) => {
       const details = teamDetails[member.name];
 
       return {
         ...member,
-
+        role: member.role, // straight from Supabase `role` column
         description:
-          member.description ??
-          details?.description ??
-          "Core member of the Robotics Society team.",
-
-        location:
-          member.location ??
-          details?.location,
-
+          details?.description ?? "Core member of the Robotics Society team.",
+        location: details?.location,
         socials: {
           ...details?.socials,
           ...member.socials,
         },
       };
+    });
+
+    return merged.sort((a, b) => {
+      const ai = teamOrder.indexOf(a.name);
+      const bi = teamOrder.indexOf(b.name);
+
+      // Anyone not in teamOrder sorts after everyone who is,
+      // then alphabetically among themselves.
+      if (ai === -1 && bi === -1) return a.name.localeCompare(b.name);
+      if (ai === -1) return 1;
+      if (bi === -1) return -1;
+      return ai - bi;
     });
   }, [teamMembers]);
 
@@ -86,19 +83,21 @@ export default function TeamPage() {
         }
 
         const formattedMembers: TeamMember[] = data.map(
-          (member: {
-            id: string;
-            firstName: string;
-            lastName: string;
-            role: string;
-            image: string;
-          }) => ({
-            id: member.id,
-            name: `${member.firstName} ${member.lastName}`.trim(),
-            role: member.role,
-            image: member.image,
-          })
-        );
+  (member: {
+    id: string;
+    firstName: string;
+    lastName: string;
+    role: string;
+    image: string;
+  }) => ({
+    id: member.id,
+    name: `${member.firstName} ${member.lastName}`
+      .replace(/\s+/g, " ")
+      .trim(),
+    role: member.role,
+    image: member.image,
+  })
+);
 
         setTeamMembers(formattedMembers);
       } catch (error) {
@@ -162,7 +161,6 @@ export default function TeamPage() {
 
   return (
     <main className="min-h-screen bg-[#fafafa] px-5 py-20 md:px-8 lg:px-12">
-
       {/* ================= HEADER ================= */}
 
       <section className="mx-auto max-w-7xl pb-14">
@@ -195,7 +193,10 @@ export default function TeamPage() {
           {membersWithDetails.map((member) => (
             <TeamMemberCard
               key={member.id}
-              member={member}
+              member={{
+                ...member,
+                image: resolvedImageUrls[member.id] ?? member.image,
+              }}
             />
           ))}
         </div>
