@@ -9,23 +9,24 @@ import {
     updateApplicantPersonalInfo,
 } from "@/lib/supabase/actions/applicants.actions";
 
-import type { ApplicantType } from "@/types";
+import type {
+    ApplicantType,
+} from "@/types";
 
 const branches = [
     "Aerospace Engineering",
-    "Chemical Engineering",
+    "Bachelor of Design (B.Des)",
     "Civil Engineering",
     "Computer Science & Engineering",
-    "Electrical Engineering",
-    "Electronics & Communication Engineering",
-    "Mechanical Engineering",
-    "Production & Industrial Engineering",
     "Computer Science & Engineering (AI)",
     "Computer Science & Engineering (DS)",
+    "Electrical Engineering",
+    "Electronics & Communication Engineering",
     "Electronics Engineering (VLSI)",
     "Materials and Metallurgical Engineering",
     "Mathematics and Computing",
-    "Bachelor of Design (B.Des)",
+    "Mechanical Engineering",
+    "Production & Industrial Engineering",
 ];
 
 export const APPLICATION_QUESTIONS = [
@@ -47,29 +48,72 @@ export const APPLICATION_QUESTIONS = [
     },
 ];
 
-const createEmptyResponses = () =>
-    APPLICATION_QUESTIONS.reduce(
-        (acc, question) => {
-            acc[question.id] = "";
-            return acc;
-        },
-        {} as Record<string, string>
-    );
+const createEmptyResponses =
+    () =>
+        APPLICATION_QUESTIONS.reduce(
+            (
+                acc,
+                question
+            ) => {
+                acc[
+                    question.id
+                ] = "";
 
-const initialForm = {
+                return acc;
+            },
+            {} as Record<
+                string,
+                string
+            >
+        );
+
+type FormState = {
+    name: string;
+    phone: string;
+    sid: string;
+    branch: string;
+
+    gender:
+        | ""
+        | "male"
+        | "female";
+
+    /*
+     * null = not selected
+     * true = Yes
+     * false = No
+     */
+    isHostellers:
+        | boolean
+        | null;
+
+    responses: Record<
+        string,
+        string
+    >;
+};
+
+const initialForm: FormState = {
     name: "",
     phone: "",
     sid: "",
     branch: "",
+    gender: "",
+    isHostellers: null,
     responses:
         createEmptyResponses(),
 };
 
 export default function ApplicationForm() {
     const [form, setForm] =
-        useState(initialForm);
+        useState<FormState>(
+            initialForm
+        );
 
-    const [application, setApplication] =
+    const [
+        application,
+        setApplication,
+    ] =
         useState<ApplicantType | null>(
             null
         );
@@ -82,8 +126,10 @@ export default function ApplicationForm() {
     const [error, setError] =
         useState("");
 
-    const [submitting, setSubmitting] =
-        useState(false);
+    const [
+        submitting,
+        setSubmitting,
+    ] = useState(false);
 
     const [
         savingPersonalInfo,
@@ -92,31 +138,43 @@ export default function ApplicationForm() {
 
     /*
      * ---------------------------------------------------------
-     * Field helpers
+     * Field helper
      * ---------------------------------------------------------
      */
 
-    const updateField = (
-        field: keyof typeof initialForm,
-        value: string
+    const updateField = <
+        K extends Exclude<
+            keyof FormState,
+            "responses"
+        >
+    >(
+        field: K,
+        value: FormState[K]
     ) => {
-        setForm((current) => ({
-            ...current,
-            [field]: value,
-        }));
+        setForm(
+            (current) => ({
+                ...current,
+                [field]: value,
+            })
+        );
     };
 
     const updateResponse = (
         questionId: string,
         value: string
     ) => {
-        setForm((current) => ({
-            ...current,
-            responses: {
-                ...current.responses,
-                [questionId]: value,
-            },
-        }));
+        setForm(
+            (current) => ({
+                ...current,
+
+                responses: {
+                    ...current.responses,
+
+                    [questionId]:
+                        value,
+                },
+            })
+        );
     };
 
     /*
@@ -146,15 +204,27 @@ export default function ApplicationForm() {
                         name:
                             existing.name ||
                             "",
+
                         phone:
                             existing.phone ||
                             "",
+
                         sid:
                             existing.sid ||
                             "",
+
                         branch:
                             existing.branch ||
                             "",
+
+                        gender:
+                            existing.gender ||
+                            "",
+
+                        isHostellers:
+                            existing.isHostellers ??
+                            null,
+
                         responses:
                             existing.responses ||
                             createEmptyResponses(),
@@ -175,162 +245,228 @@ export default function ApplicationForm() {
 
     /*
      * ---------------------------------------------------------
-     * Create new application
+     * Submit new application
      * ---------------------------------------------------------
      */
 
-    const handleSubmit = async (
-        event: React.FormEvent<HTMLFormElement>
-    ) => {
-        event.preventDefault();
+    const handleSubmit =
+        async (
+            event: React.FormEvent<HTMLFormElement>
+        ) => {
+            event.preventDefault();
 
-        setError("");
+            setError("");
 
-        const name =
-            form.name.trim();
+            const name =
+                form.name.trim();
 
-        const phone =
-            form.phone.trim();
+            const phone =
+                form.phone.trim();
 
-        const sid =
-            form.sid.trim();
+            const sid =
+                form.sid.trim();
 
-        const branch =
-            form.branch;
+            const branch =
+                form.branch;
 
-        if (
-            !name ||
-            !phone ||
-            !sid ||
-            !branch
-        ) {
-            setError(
-                "Please fill in all the required personal fields."
-            );
+            const gender =
+                form.gender;
 
-            return;
-        }
+            const isHostellers =
+                form.isHostellers;
 
-        if (
-            !/^[6-9]\d{9}$/.test(
-                phone
-            )
-        ) {
-            setError(
-                "Please enter a valid 10-digit phone number."
-            );
+            /*
+             * Required fields
+             *
+             * Do NOT use !isHostellers.
+             * false is a valid value.
+             */
 
-            return;
-        }
-
-        if (
-            !/^\d{8}$/.test(sid)
-        ) {
-            setError(
-                "SID must be exactly 8 digits."
-            );
-
-            return;
-        }
-
-        const missingResponses =
-            APPLICATION_QUESTIONS.some(
-                (question) =>
-                    !form.responses[
-                        question.id
-                    ].trim()
-            );
-
-        if (missingResponses) {
-            setError(
-                "Please answer all the application questions."
-            );
-
-            return;
-        }
-
-        const trimmedResponses =
-            Object.keys(
-                form.responses
-            ).reduce(
-                (acc, key) => {
-                    acc[key] =
-                        form.responses[
-                            key
-                        ].trim();
-
-                    return acc;
-                },
-                {} as Record<
-                    string,
-                    string
-                >
-            );
-
-        setSubmitting(true);
-
-        try {
-            const result =
-                await createApplicant(
-                    name,
-                    sid,
-                    phone,
-                    branch,
-                    trimmedResponses
+            if (
+                !name ||
+                !phone ||
+                !sid ||
+                !branch ||
+                !gender ||
+                isHostellers ===
+                    null
+            ) {
+                setError(
+                    "Please fill in all the required personal fields."
                 );
-
-            if (!result.success) {
-                if (
-                    result.reason ===
-                    "duplicate"
-                ) {
-                    setError(
-                        "You have already submitted an application."
-                    );
-                } else {
-                    setError(
-                        "We could not submit your application. Please try again."
-                    );
-                }
 
                 return;
             }
 
-            setApplication(
-                result.applicant
-            );
+            /*
+             * Phone
+             */
 
-            setForm({
-                name:
-                    result.applicant.name ||
-                    "",
-                phone:
-                    result.applicant.phone ||
-                    "",
-                sid:
-                    result.applicant.sid ||
-                    "",
-                branch:
-                    result.applicant.branch ||
-                    "",
-                responses:
+            if (
+                !/^[6-9]\d{9}$/.test(
+                    phone
+                )
+            ) {
+                setError(
+                    "Please enter a valid 10-digit phone number."
+                );
+
+                return;
+            }
+
+            /*
+             * SID
+             */
+
+            if (
+                !/^\d{8}$/.test(
+                    sid
+                )
+            ) {
+                setError(
+                    "SID must be exactly 8 digits."
+                );
+
+                return;
+            }
+
+            /*
+             * Questions
+             */
+
+            const missingResponses =
+                APPLICATION_QUESTIONS.some(
+                    (question) =>
+                        !form.responses[
+                            question.id
+                        ].trim()
+                );
+
+            if (
+                missingResponses
+            ) {
+                setError(
+                    "Please answer all the application questions."
+                );
+
+                return;
+            }
+
+            /*
+             * Trim responses
+             */
+
+            const trimmedResponses =
+                Object.keys(
+                    form.responses
+                ).reduce(
+                    (
+                        acc,
+                        key
+                    ) => {
+                        acc[key] =
+                            form.responses[
+                                key
+                            ].trim();
+
+                        return acc;
+                    },
+                    {} as Record<
+                        string,
+                        string
+                    >
+                );
+
+            setSubmitting(true);
+
+            try {
+                const result =
+                    await createApplicant(
+                        name,
+                        sid,
+                        phone,
+                        branch,
+                        gender,
+                        isHostellers,
+                        trimmedResponses
+                    );
+
+                if (
+                    !result.success
+                ) {
+                    if (
+                        result.reason ===
+                        "duplicate"
+                    ) {
+                        setError(
+                            "You have already submitted an application."
+                        );
+                    } else {
+                        setError(
+                            "We could not submit your application. Please try again."
+                        );
+                    }
+
+                    return;
+                }
+
+                setApplication(
                     result.applicant
-                        .responses ||
-                    createEmptyResponses(),
-            });
-        } catch (submissionError) {
-            console.error(
-                "Unexpected application submission error:",
-                submissionError
-            );
+                );
 
-            setError(
-                "We could not submit your application. Please try again."
-            );
-        } finally {
-            setSubmitting(false);
-        }
-    };
+                setForm({
+                    name:
+                        result
+                            .applicant
+                            .name ||
+                        "",
+
+                    phone:
+                        result
+                            .applicant
+                            .phone ||
+                        "",
+
+                    sid:
+                        result
+                            .applicant
+                            .sid ||
+                        "",
+
+                    branch:
+                        result
+                            .applicant
+                            .branch ||
+                        "",
+
+                    gender:
+                        result
+                            .applicant
+                            .gender ||
+                        "",
+
+                    isHostellers:
+                        result
+                            .applicant
+                            .isHostellers ??
+                        null,
+
+                    responses:
+                        result
+                            .applicant
+                            .responses ||
+                        createEmptyResponses(),
+                });
+            } catch {
+                setError(
+                    "We could not submit your application. Please try again."
+                );
+            } finally {
+                setSubmitting(
+                    false
+                );
+            }
+        };
 
     /*
      * ---------------------------------------------------------
@@ -358,11 +494,20 @@ export default function ApplicationForm() {
             const branch =
                 form.branch;
 
+            const gender =
+                form.gender;
+
+            const isHostellers =
+                form.isHostellers;
+
             if (
                 !name ||
                 !phone ||
                 !sid ||
-                !branch
+                !branch ||
+                !gender ||
+                isHostellers ===
+                    null
             ) {
                 setError(
                     "Please fill in all the personal information."
@@ -384,7 +529,9 @@ export default function ApplicationForm() {
             }
 
             if (
-                !/^\d{8}$/.test(sid)
+                !/^\d{8}$/.test(
+                    sid
+                )
             ) {
                 setError(
                     "SID must be exactly 8 digits."
@@ -404,10 +551,14 @@ export default function ApplicationForm() {
                         name,
                         phone,
                         sid,
-                        branch
+                        branch,
+                        gender,
+                        isHostellers
                     );
 
-                if (!result.success) {
+                if (
+                    !result.success
+                ) {
                     setError(
                         result.reason ===
                             "not_found"
@@ -423,30 +574,47 @@ export default function ApplicationForm() {
                 );
 
                 setForm(
-                    (current) => ({
+                    (
+                        current
+                    ) => ({
                         ...current,
+
                         name:
-                            result.applicant
+                            result
+                                .applicant
                                 .name,
+
                         phone:
-                            result.applicant
+                            result
+                                .applicant
                                 .phone ||
                             "",
+
                         sid:
-                            result.applicant
+                            result
+                                .applicant
                                 .sid,
+
                         branch:
-                            result.applicant
+                            result
+                                .applicant
                                 .branch ||
                             "",
+
+                        gender:
+                            result
+                                .applicant
+                                .gender ||
+                            "",
+
+                        isHostellers:
+                            result
+                                .applicant
+                                .isHostellers ??
+                            null,
                     })
                 );
-            } catch (updateError) {
-                console.error(
-                    "Error updating personal information:",
-                    updateError
-                );
-
+            } catch {
                 setError(
                     "Could not update your personal information. Please try again."
                 );
@@ -459,11 +627,13 @@ export default function ApplicationForm() {
 
     /*
      * ---------------------------------------------------------
-     * Loading state
+     * Loading
      * ---------------------------------------------------------
      */
 
-    if (checkingApplication) {
+    if (
+        checkingApplication
+    ) {
         return (
             <div className="mx-auto max-w-3xl rounded-xl border bg-white p-8 text-center shadow-sm">
                 <p className="text-sm text-muted-foreground">
@@ -486,7 +656,6 @@ export default function ApplicationForm() {
 
         return (
             <div className="mx-auto max-w-3xl space-y-8">
-                {/* Personal Information */}
                 <div className="rounded-xl border bg-white p-6 shadow-sm">
                     <div className="flex items-start justify-between gap-4">
                         <div>
@@ -525,6 +694,7 @@ export default function ApplicationForm() {
 
                     <div className="mt-6 space-y-6">
                         {/* Name + Phone */}
+
                         <div className="grid gap-6 md:grid-cols-2">
                             <div className="space-y-2">
                                 <label
@@ -595,6 +765,7 @@ export default function ApplicationForm() {
                         </div>
 
                         {/* SID + Branch */}
+
                         <div className="grid gap-6 md:grid-cols-2">
                             <div className="space-y-2">
                                 <label
@@ -686,6 +857,109 @@ export default function ApplicationForm() {
                             </div>
                         </div>
 
+                        {/* Gender + Hosteller */}
+
+                        <div className="grid gap-6 md:grid-cols-2">
+                            <div className="space-y-2">
+                                <label
+                                    htmlFor="existing-gender"
+                                    className="text-sm font-medium"
+                                >
+                                    Gender
+                                </label>
+
+                                <select
+                                    id="existing-gender"
+                                    value={
+                                        form.gender
+                                    }
+                                    disabled={
+                                        !canEdit
+                                    }
+                                    onChange={(
+                                        event
+                                    ) =>
+                                        updateField(
+                                            "gender",
+                                            event
+                                                .target
+                                                .value as
+                                                | ""
+                                                | "male"
+                                                | "female"
+                                        )
+                                    }
+                                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm outline-none disabled:cursor-not-allowed disabled:opacity-60"
+                                >
+                                    <option value="">
+                                        Select your gender
+                                    </option>
+
+                                    <option value="male">
+                                        Male
+                                    </option>
+
+                                    <option value="female">
+                                        Female
+                                    </option>
+                                </select>
+                            </div>
+
+                            <div className="space-y-2">
+                                <label
+                                    htmlFor="existing-isHostellers"
+                                    className="text-sm font-medium"
+                                >
+                                    Are you a hosteller?
+                                </label>
+
+                                <select
+                                    id="existing-isHostellers"
+                                    value={
+                                        form.isHostellers ===
+                                        null
+                                            ? ""
+                                            : String(
+                                                  form.isHostellers
+                                              )
+                                    }
+                                    disabled={
+                                        !canEdit
+                                    }
+                                    onChange={(
+                                        event
+                                    ) => {
+                                        const value =
+                                            event
+                                                .target
+                                                .value;
+
+                                        updateField(
+                                            "isHostellers",
+                                            value ===
+                                                ""
+                                                ? null
+                                                : value ===
+                                                    "true"
+                                        );
+                                    }}
+                                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm outline-none disabled:cursor-not-allowed disabled:opacity-60"
+                                >
+                                    <option value="">
+                                        Select an option
+                                    </option>
+
+                                    <option value="true">
+                                        Yes
+                                    </option>
+
+                                    <option value="false">
+                                        No
+                                    </option>
+                                </select>
+                            </div>
+                        </div>
+
                         {canEdit && (
                             <button
                                 type="button"
@@ -705,15 +979,15 @@ export default function ApplicationForm() {
                     </div>
                 </div>
 
-                {/* Read-only answers */}
+                {/* Submitted answers */}
+
                 <div className="rounded-xl border bg-white p-6 shadow-sm">
                     <h2 className="text-xl font-semibold">
                         Submitted Application
                     </h2>
 
                     <p className="mt-1 text-sm text-muted-foreground">
-                        Your submitted answers
-                        cannot be changed.
+                        Your submitted answers cannot be changed.
                     </p>
 
                     <div className="mt-6 space-y-7">
@@ -765,16 +1039,19 @@ export default function ApplicationForm() {
 
     /*
      * ---------------------------------------------------------
-     * New application form
+     * New application
      * ---------------------------------------------------------
      */
 
     return (
         <form
-            onSubmit={handleSubmit}
+            onSubmit={
+                handleSubmit
+            }
             className="mx-auto max-w-3xl space-y-8"
         >
             {/* Personal Information */}
+
             <div className="rounded-xl border bg-white p-6 shadow-sm">
                 <h2 className="text-xl font-semibold">
                     Personal Information
@@ -786,6 +1063,7 @@ export default function ApplicationForm() {
 
                 <div className="mt-6 space-y-6">
                     {/* Name + Phone */}
+
                     <div className="grid gap-6 md:grid-cols-2">
                         <div className="space-y-2">
                             <label
@@ -852,6 +1130,7 @@ export default function ApplicationForm() {
                     </div>
 
                     {/* SID + Branch */}
+
                     <div className="grid gap-6 md:grid-cols-2">
                         <div className="space-y-2">
                             <label
@@ -937,10 +1216,108 @@ export default function ApplicationForm() {
                             </select>
                         </div>
                     </div>
+
+                    {/* Gender + Hosteller */}
+
+                    <div className="grid gap-6 md:grid-cols-2">
+                        <div className="space-y-2">
+                            <label
+                                htmlFor="gender"
+                                className="text-sm font-medium"
+                            >
+                                Gender
+                            </label>
+
+                            <select
+                                id="gender"
+                                value={
+                                    form.gender
+                                }
+                                onChange={(
+                                    event
+                                ) =>
+                                    updateField(
+                                        "gender",
+                                        event
+                                            .target
+                                            .value as
+                                            | ""
+                                            | "male"
+                                            | "female"
+                                    )
+                                }
+                                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm outline-none"
+                            >
+                                <option value="">
+                                    Select your gender
+                                </option>
+
+                                <option value="male">
+                                    Male
+                                </option>
+
+                                <option value="female">
+                                    Female
+                                </option>
+                            </select>
+                        </div>
+
+                        <div className="space-y-2">
+                            <label
+                                htmlFor="isHostellers"
+                                className="text-sm font-medium"
+                            >
+                                Are you a hosteller?
+                            </label>
+
+                            <select
+                                id="isHostellers"
+                                value={
+                                    form.isHostellers ===
+                                    null
+                                        ? ""
+                                        : String(
+                                              form.isHostellers
+                                          )
+                                }
+                                onChange={(
+                                    event
+                                ) => {
+                                    const value =
+                                        event
+                                            .target
+                                            .value;
+
+                                    updateField(
+                                        "isHostellers",
+                                        value ===
+                                            ""
+                                            ? null
+                                            : value ===
+                                                "true"
+                                    );
+                                }}
+                                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm outline-none"
+                            >
+                                <option value="">
+                                    Select an option
+                                </option>
+
+                                <option value="true">
+                                    Yes
+                                </option>
+
+                                <option value="false">
+                                    No
+                                </option>
+                            </select>
+                        </div>
+                    </div>
                 </div>
             </div>
 
             {/* Questions */}
+
             <div className="rounded-xl border bg-white p-6 shadow-sm">
                 <h2 className="text-xl font-semibold">
                     Application Questions
@@ -989,7 +1366,9 @@ export default function ApplicationForm() {
 
             <button
                 type="submit"
-                disabled={submitting}
+                disabled={
+                    submitting
+                }
                 className="w-full rounded-md bg-primary px-6 py-3 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
             >
                 {submitting
@@ -1031,7 +1410,9 @@ function Question({
             <textarea
                 id={number}
                 value={value}
-                onChange={(event) =>
+                onChange={(
+                    event
+                ) =>
                     onChange(
                         event.target.value
                     )

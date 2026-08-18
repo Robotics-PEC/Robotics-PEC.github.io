@@ -158,8 +158,11 @@ export interface ApplicantType {
     sid: string;
     phone?: string;
 
-    // Regular application fields
+    // Registration / scheduling fields
     branch?: string;
+    gender?: "male" | "female";
+    isHostellers?: boolean;
+
     responses?: Record<string, string>;
 
     isWalkin: boolean;
