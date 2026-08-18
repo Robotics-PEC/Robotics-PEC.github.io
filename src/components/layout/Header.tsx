@@ -59,6 +59,7 @@ const Header = () => {
 
     const navigation = [
         { name: "Home", path: "/" },
+        { name: "Team", path: "/team"},
         { name: "Projects", path: "/project" },
         { name: "Activities", path: "/activities" },
         { name: "Events", path: "/events" },
