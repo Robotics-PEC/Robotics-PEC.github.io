@@ -5,7 +5,7 @@ import { useEffect, useMemo, useState } from "react";
 import { getStorageImageUrl } from "@/lib/supabase/actions/storage.actions";
 import { getTeamMembers } from "@/lib/supabase/actions/team.actions";
 
-import { teamDetails, teamOrder } from "./data/team_details";
+import { teamDetails, teamOrder } from "@/data/team_details";
 
 import TeamMemberCard from "../../components/TeamMemberCard";
 
