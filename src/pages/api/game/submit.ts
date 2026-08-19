@@ -30,28 +30,21 @@ export default async function handler(
       .update(payloadString)
       .digest("hex");
 
-    // We send the payload AND the signature to Google Apps Script
-    const response = await fetch(scriptUrl, {
+    // Fire-and-forget: we send the payload to Google Apps Script in the background
+    // and immediately return a 200 OK so the user is never blocked.
+    fetch(scriptUrl, {
       method: "POST",
-      // Apps script doesn't need 'no-cors' from server side if following redirects manually or if Apps Script returns proper JSON redirect, but usually follow is default
       redirect: "follow",
       headers: {
-        "Content-Type": "text/plain", // Apps Script doPost often prefers text/plain
+        "Content-Type": "text/plain",
       },
       body: JSON.stringify({
         payload: payload,
         signature: signature,
       }),
-    });
+    }).catch(err => console.error("Background Apps Script POST failed:", err));
 
-    const responseText = await response.text();
-    console.log("Apps Script Response:", responseText);
-
-    if (response.ok) {
-      return res.status(200).json({ success: true, message: "Score submitted" });
-    } else {
-      return res.status(500).json({ error: "Failed to forward to Apps Script" });
-    }
+    return res.status(200).json({ success: true, message: "Score submitted asynchronously" });
   } catch (error) {
     console.error("Submit error:", error);
     return res.status(500).json({ error: "Internal server error" });

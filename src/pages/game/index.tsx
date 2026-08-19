@@ -33,7 +33,7 @@ export default function GamePage() {
   };
 
   useEffect(() => {
-    let intervalId: any;
+    let timeoutId: NodeJS.Timeout;
 
     const init = async () => {
       try {
@@ -54,10 +54,15 @@ export default function GamePage() {
         // 3. Fetch initial leaderboard and verify against Google Sheets
         await fetchLeaderboardData(currentDeviceId);
 
-        // 4. Setup fast polling (every 10s) to keep leaderboard live
-        intervalId = setInterval(() => {
-          fetchLeaderboardData(currentDeviceId);
-        }, 10000);
+        // 4. Setup fast polling with Jitter to prevent stampedes (10s + up to 5s random delay)
+        const pollLeaderboard = async () => {
+          await fetchLeaderboardData(currentDeviceId);
+          const jitterMs = Math.floor(Math.random() * 5000);
+          timeoutId = setTimeout(pollLeaderboard, 10000 + jitterMs);
+        };
+        
+        // Start the polling cycle
+        timeoutId = setTimeout(pollLeaderboard, 10000 + Math.floor(Math.random() * 5000));
 
       } catch (err) {
         console.error("Failed to init game data", err);
@@ -68,7 +73,7 @@ export default function GamePage() {
     init();
 
     return () => {
-      if (intervalId) clearInterval(intervalId);
+      if (timeoutId) clearTimeout(timeoutId);
     };
   }, []);
 
