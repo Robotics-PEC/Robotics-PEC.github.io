@@ -11,7 +11,7 @@ const PanelistIndex = () => {
         if (!loading) {
             if (!userId) {
                 router.replace("/login");
-            } else if (role && (role.slug === "panelist" || role.slug === "admin")) {
+            } else if (role && (role.slug === "admin" || role.slug.includes("panel"))) {
                 router.replace("/panelist/dashboard");
             }
         }
@@ -25,7 +25,7 @@ const PanelistIndex = () => {
         );
     }
 
-    if (role && (role.slug === "panelist" || role.slug === "admin")) {
+    if (role && (role.slug === "admin" || role.slug.includes("panel"))) {
         return (
             <div className="min-h-screen flex items-center justify-center">
                 <p>Redirecting to dashboard...</p>

@@ -2,8 +2,18 @@ import { useState, useRef, useEffect } from "react";
 import fpPromise from "@fingerprintjs/fingerprintjs";
 import DinoGame from "./DinoGame";
 import FeedbackForm, { FeedbackData } from "@/components/FeedbackForm";
+import { useAuthRole } from "@/lib/useAuthRole";
+import NotFound from "@/pages/404";
+import { client } from "@/lib/supabase/supabase";
 
 export default function GamePage() {
+  const { role, loading: roleLoading } = useAuthRole();
+  const isPanelist = role && (role.slug === "admin" || role.slug.includes("panel"));
+  
+  const [isGameEnabled, setIsGameEnabled] = useState<boolean | null>(null);
+  const [branchLeaderboard, setBranchLeaderboard] = useState<any[]>([]);
+  const [isToggling, setIsToggling] = useState(false);
+
   const [feedbackData, setFeedbackData] = useState<FeedbackData | null>(null);
   const [leaderboard, setLeaderboard] = useState<any[]>([]);
   const [deviceId, setDeviceId] = useState<string | null>(null);
@@ -19,6 +29,12 @@ export default function GamePage() {
         const data = await res.json();
         if (data && data.top50) {
           setLeaderboard(data.top50);
+        }
+        if (data && data.allBranches) {
+          setBranchLeaderboard(data.allBranches);
+        }
+        if (data && typeof data.isGameEnabled === "boolean") {
+          setIsGameEnabled(data.isGameEnabled);
         }
         
         // 3. Check if user already played
@@ -128,7 +144,32 @@ export default function GamePage() {
     }
   };
 
-  if (isLoading) {
+  const handleToggleGame = async () => {
+    setIsToggling(true);
+    try {
+      const { data: { session } } = await client.auth.getSession();
+      
+      const res = await fetch("/api/game/toggle", {
+        method: "POST",
+        headers: { 
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${session?.access_token || ""}`
+        },
+        body: JSON.stringify({ enabled: !isGameEnabled })
+      });
+      if (res.ok) {
+        setIsGameEnabled(!isGameEnabled);
+      } else {
+        console.error("Toggle failed with status:", res.status);
+      }
+    } catch (err) {
+      console.error("Failed to toggle game", err);
+    } finally {
+      setIsToggling(false);
+    }
+  };
+
+  if (isLoading || roleLoading) {
     return (
       <div className="min-h-screen bg-[#F6F6F7] flex items-center justify-center p-4">
         <div className="text-slate-500 animate-pulse">Loading Game Data...</div>
@@ -136,10 +177,26 @@ export default function GamePage() {
     );
   }
 
+  // Hide the game for standard users if disabled globally
+  if (isGameEnabled === false && !isPanelist) {
+    return <NotFound />;
+  }
+
   // If they have already played, skip straight to the leaderboard view without rendering the game or form.
   if (alreadyPlayed) {
     return (
       <div className="min-h-screen bg-[#F6F6F7] flex flex-col items-center py-16">
+        {isPanelist && isGameEnabled !== null && (
+          <div className="mb-6">
+            <button 
+              onClick={handleToggleGame}
+              disabled={isToggling}
+              className={`px-6 py-2 rounded-full font-bold text-white shadow-sm transition-opacity ${isToggling ? 'opacity-50' : ''} ${isGameEnabled ? 'bg-red-500 hover:bg-red-600' : 'bg-green-500 hover:bg-green-600'}`}
+            >
+              {isToggling ? "Toggling..." : isGameEnabled ? "Disable Game Globally" : "Enable Game Globally"}
+            </button>
+          </div>
+        )}
         <div className="w-full max-w-4xl px-4 mb-8">
           <div className="bg-amber-50 border border-amber-200 rounded-xl p-6 text-center shadow-sm">
             <h2 className="text-xl font-bold text-amber-800 mb-2">You've Already Played!</h2>
@@ -147,14 +204,26 @@ export default function GamePage() {
           </div>
         </div>
         <LeaderboardSection leaderboard={leaderboard} leaderboardRef={leaderboardRef} />
+        <BranchLeaderboardSection branchLeaderboard={branchLeaderboard} />
       </div>
     );
   }
 
   if (!feedbackData) {
     return (
-      <div className="min-h-screen bg-[#F6F6F7] flex items-center justify-center p-4">
-        <div className="w-full max-w-3xl bg-white rounded-2xl shadow-sm border p-6 md:p-8">
+      <div className="min-h-screen bg-[#F6F6F7] flex flex-col items-center justify-center p-4 relative">
+        {isPanelist && isGameEnabled !== null && (
+          <div className="absolute top-4 left-4 z-50">
+            <button 
+              onClick={handleToggleGame}
+              disabled={isToggling}
+              className={`px-6 py-2 rounded-full font-bold text-white shadow-sm transition-opacity ${isToggling ? 'opacity-50' : ''} ${isGameEnabled ? 'bg-red-500 hover:bg-red-600' : 'bg-green-500 hover:bg-green-600'}`}
+            >
+              {isToggling ? "Toggling..." : isGameEnabled ? "Disable Game Globally" : "Enable Game Globally"}
+            </button>
+          </div>
+        )}
+        <div className="w-full max-w-3xl bg-white rounded-2xl shadow-sm border p-6 md:p-8 mt-16">
           <div className="text-center mb-8">
             <h1 className="text-3xl font-bold tracking-tight text-slate-900 mb-2">Play Dino Run</h1>
             <p className="text-slate-500">Please provide your feedback first to unlock the game!</p>
@@ -171,6 +240,17 @@ export default function GamePage() {
 
   return (
     <div className="min-h-screen bg-[#061820] flex flex-col items-center">
+      {isPanelist && isGameEnabled !== null && (
+        <div className="absolute top-4 left-4 z-50">
+          <button 
+            onClick={handleToggleGame}
+            disabled={isToggling}
+            className={`px-6 py-2 rounded-full font-bold text-white shadow-sm transition-opacity ${isToggling ? 'opacity-50' : ''} ${isGameEnabled ? 'bg-red-500 hover:bg-red-600' : 'bg-green-500 hover:bg-green-600'}`}
+          >
+            {isToggling ? "Toggling..." : isGameEnabled ? "Disable Game Globally" : "Enable Game Globally"}
+          </button>
+        </div>
+      )}
       <div className="w-full relative">
         <DinoGame onGameOver={handleGameOver} />
         
@@ -185,6 +265,7 @@ export default function GamePage() {
       </div>
 
       <LeaderboardSection leaderboard={leaderboard} leaderboardRef={leaderboardRef} />
+      <BranchLeaderboardSection branchLeaderboard={branchLeaderboard} />
     </div>
   );
 }
@@ -222,7 +303,7 @@ function LeaderboardSection({ leaderboard, leaderboardRef }: { leaderboard: any[
               <tbody className="divide-y divide-slate-100">
                 {leaderboard.map((player, index) => (
                   <tr 
-                    key={player.deviceId || index} 
+                    key={index} 
                     className={`hover:bg-slate-50 transition-colors ${index < 3 ? 'bg-slate-50/50' : 'bg-white'}`}
                   >
                     <td className="px-6 py-4 font-medium whitespace-nowrap">
@@ -236,6 +317,56 @@ function LeaderboardSection({ leaderboard, leaderboardRef }: { leaderboard: any[
                     </td>
                     <td className="px-6 py-4 font-bold text-slate-900 text-right">
                       {player.score.toLocaleString()}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function BranchLeaderboardSection({ branchLeaderboard }: { branchLeaderboard: any[] }) {
+  return (
+    <div className="w-full max-w-4xl px-4 py-8">
+      <div className="bg-white rounded-2xl shadow-xl overflow-hidden border border-slate-200">
+        <div className="bg-slate-50 px-6 py-5 border-b border-slate-200 flex items-center justify-between">
+          <h2 className="text-xl font-bold text-slate-900 flex items-center gap-2">
+            🏛️ Top Branches Leaderboard
+          </h2>
+        </div>
+        
+        <div className="overflow-x-auto">
+          {branchLeaderboard.length === 0 ? (
+            <div className="p-12 text-center text-slate-500">
+              <p>Loading branch scores...</p>
+            </div>
+          ) : (
+            <table className="w-full text-sm text-left">
+              <thead className="text-xs text-slate-500 uppercase bg-slate-50">
+                <tr>
+                  <th scope="col" className="px-6 py-4 font-semibold">Rank</th>
+                  <th scope="col" className="px-6 py-4 font-semibold">Branch</th>
+                  <th scope="col" className="px-6 py-4 font-semibold text-right">Total Points</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {branchLeaderboard.map((b, index) => (
+                  <tr 
+                    key={index} 
+                    className={`hover:bg-slate-50 transition-colors ${index < 3 ? 'bg-slate-50/50' : 'bg-white'}`}
+                  >
+                    <td className="px-6 py-4 font-medium whitespace-nowrap">
+                      {index === 0 ? '🥇 1st' : index === 1 ? '🥈 2nd' : index === 2 ? '🥉 3rd' : `#${index + 1}`}
+                    </td>
+                    <td className="px-6 py-4 font-semibold text-slate-900">
+                      {b.branch}
+                    </td>
+                    <td className="px-6 py-4 font-bold text-slate-900 text-right">
+                      {b.totalScore.toLocaleString()}
                     </td>
                   </tr>
                 ))}
