@@ -21,10 +21,14 @@ export default function GamePage() {
           setLeaderboard(data.top50);
         }
         
-        // If Google Sheets says we played, save to local storage as fallback
+        // 3. Check if user already played
         if (data && data.allDeviceIds && data.allDeviceIds.includes(currentDeviceId)) {
-          setAlreadyPlayed(true);
-          try { localStorage.setItem("hasPlayedDinoGame", "true"); } catch(e){}
+          // Bypass this block in local development so you can test endlessly!
+          if (process.env.NODE_ENV !== "development") {
+            setAlreadyPlayed(true);
+          } else {
+            console.log("Dev Mode: Bypassing Already Played lock.");
+          }
         }
       }
     } catch (err) {
@@ -46,10 +50,12 @@ export default function GamePage() {
         // 2. Failsafe: check localStorage first!
         try {
           const localPlayed = localStorage.getItem("hasPlayedDinoGame");
-          if (localPlayed === "true") {
+          if (localPlayed && process.env.NODE_ENV !== "development") {
             setAlreadyPlayed(true);
+            setIsLoading(false);
+            return;
           }
-        } catch(e){}
+        } catch (e) {}
 
         // 3. Fetch initial leaderboard and verify against Google Sheets
         await fetchLeaderboardData(currentDeviceId);
