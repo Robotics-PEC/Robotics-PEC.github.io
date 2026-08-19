@@ -94,9 +94,11 @@ export default function GamePage() {
       return newLeaderboard.slice(0, 50); // keep top 50
     });
 
-    // Instantly lock out
-    setAlreadyPlayed(true);
-    try { localStorage.setItem("hasPlayedDinoGame", "true"); } catch(e){}
+    // Instantly lock out, UNLESS it's the exempt testing SID
+    if (feedbackData.sid !== "24106969") {
+      setAlreadyPlayed(true);
+      try { localStorage.setItem("hasPlayedDinoGame", "true"); } catch(e){}
+    }
     
     scrollToLeaderboard();
 
