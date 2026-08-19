@@ -149,7 +149,16 @@ export const deleteMarkdownFile = async (fileNameWithExtension: string, type: st
 
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     try {
-        const { action } = req.query;
+        const action =
+            req.method === "GET"
+                ? req.query.action
+                : req.body?.action;
+
+        if (!action || typeof action !== "string") {
+            return res.status(400).json({
+                error: "action is required",
+            });
+        }
 
         switch (req.method) {
             case "GET": {

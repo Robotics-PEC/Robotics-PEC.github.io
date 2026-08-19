@@ -1,72 +1,96 @@
 import { FormProjectType } from "@/types";
-import { client } from "../supabase";
-import { deleteImage, uploadImage } from "./storage.actions";
-import { urlToBase64 } from "@/lib/utils";
-import { PostgrestError } from "@supabase/supabase-js";
+import { apiFetch } from "../supabase";
+
+const PROJECTS_API = "/api/projects";
+
+const getErrorMessage = async (response: Response) => {
+    try {
+        const data = await response.json();
+
+        if (typeof data === "string") {
+            return data;
+        }
+
+        return (
+            data?.error ||
+            `Request failed with status ${response.status}`
+        );
+    } catch {
+        return `Request failed with status ${response.status}`;
+    }
+};
 
 export const getProjects = async () => {
-    const { data, error } = await client.from("projects").select("*");
+    const response = await fetch(PROJECTS_API);
 
-    if (error) console.log(error);
-    if (!data) throw new Error("Could not fetch Projects");
+    if (!response.ok) {
+        throw new Error(await getErrorMessage(response));
+    }
 
-    return JSON.parse(JSON.stringify(data));
-
+    return response.json();
 };
 
 export const getProjectById = async (id: string) => {
-    const { data, error } = await client.from("projects").select().eq("id", id);
+    const response = await fetch(
+        `${PROJECTS_API}?id=${encodeURIComponent(id)}`
+    );
 
-    if (error) console.log(error);
-    if (!data) throw new Error("Project with this id doesn't exist");
-
-    return JSON.parse(JSON.stringify(data[0]));
-};
-
-export const uploadProject = async (project: FormProjectType, fileName: string) => {
-    await uploadImage("projects", fileName, project.image);
-    const { data } = client.storage.from("media").getPublicUrl(`projects/${fileName}`);
-
-    const { id, ...rest } = project;
-
-    const { error } = await client.from("projects").insert({ ...rest, image: data.publicUrl });
-
-    if (error) {
-        console.log(error);
-        return { error: error };
+    if (!response.ok) {
+        throw new Error(await getErrorMessage(response));
     }
 
-    return { error: null };
-
+    return response.json();
 };
 
-export const deleteProject = async (project: FormProjectType) => {
-    await deleteImage([`projects/${project.image.split("/").pop()!}`]);
-    const response = await client.from("projects").delete().eq("id", project.id);
+export const uploadProject = async (
+    project: FormProjectType,
+    fileName: string
+) => {
+    const response = await apiFetch(PROJECTS_API, {
+        method: "POST",
+        body: JSON.stringify({
+            project,
+            fileName,
+        }),
+    });
 
-    return response;
+    if (!response.ok) {
+        throw new Error(await getErrorMessage(response));
+    }
+
+    return response.json();
 };
 
-export const updateProject = async (project: FormProjectType, fileName: string) => {
-    const oldProjectData = await getProjectById(project.id);
-    await deleteImage([`projects/${oldProjectData.image.split("/").pop()!}`]);
-    const { id, ...rest } = project;
-    const imageData = await uploadImage("projects", fileName, project.image);
+export const deleteProject = async (
+    project: FormProjectType
+) => {
+    const response = await apiFetch(PROJECTS_API, {
+        method: "DELETE",
+        body: JSON.stringify(project),
+    });
 
-    if (!imageData) {
-        // image upload fail
-        return new PostgrestError({ message: "Image upload fail", details: "", hint: "", code: "" });
+    if (!response.ok) {
+        throw new Error(await getErrorMessage(response));
     }
 
-    const { data } = client.storage.from("media").getPublicUrl(`projects/${fileName}`);
-    const { error } = await client.from("projects").update({ ...rest, image: data.publicUrl }).eq("id", project.id);
+    return response.json();
+};
 
+export const updateProject = async (
+    project: FormProjectType,
+    fileName: string
+) => {
+    const response = await apiFetch(PROJECTS_API, {
+        method: "PUT",
+        body: JSON.stringify({
+            project,
+            fileName,
+        }),
+    });
 
-    if (error) {
-        const fileData = await urlToBase64(oldProjectData.image);
-        await uploadImage("projects", oldProjectData.image.split("/").pop()!, fileData)
-        console.log(error);
+    if (!response.ok) {
+        throw new Error(await getErrorMessage(response));
     }
 
-    return error;
+    return response.json();
 };
