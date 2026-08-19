@@ -134,7 +134,11 @@ const obstacleImages = [
   rock2,
 ];
 
-export default function DinoGame() {
+interface DinoGameProps {
+  onGameOver?: (score: number) => void;
+}
+
+export default function DinoGame({ onGameOver }: DinoGameProps) {
   // ========================================
   // DOM REFS
   // ========================================
@@ -513,6 +517,10 @@ export default function DinoGame() {
 
               deathIntervalRef.current =
                 null;
+            }
+
+            if (onGameOver) {
+              onGameOver(scoreRef.current);
             }
 
             return;
@@ -1359,20 +1367,7 @@ export default function DinoGame() {
             </strong>
           </div>
 
-          <button
-            type="button"
-            onClick={(event) => {
-              event.stopPropagation();
-
-              window.location.reload();
-            }}
-          >
-            PLAY AGAIN
-          </button>
-
-          <p>
-            PRESS SPACE TO RESTART
-          </p>
+          {/* We remove the See Leaderboard button from here because index.tsx will handle the game over state */}
         </div>
       )}
 

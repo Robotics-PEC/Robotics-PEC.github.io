@@ -18,7 +18,8 @@ const branches = [
 
 export interface FeedbackData {
     name: string;
-    sid: string;
+    sid?: string;
+    email: string;
     branch: string;
     rating: number;
     review: string;
@@ -33,6 +34,7 @@ export default function FeedbackForm({
 }: FeedbackFormProps) {
     const [name, setName] = useState("");
     const [sid, setSid] = useState("");
+    const [email, setEmail] = useState("");
     const [branch, setBranch] = useState("");
     const [rating, setRating] = useState(0);
     const [review, setReview] = useState("");
@@ -48,11 +50,12 @@ export default function FeedbackForm({
 
         const trimmedName = name.trim();
         const trimmedSid = sid.trim();
+        const trimmedEmail = email.trim();
         const trimmedReview = review.trim();
 
         if (
             !trimmedName ||
-            !trimmedSid ||
+            !trimmedEmail ||
             !branch ||
             rating === 0
         ) {
@@ -62,7 +65,12 @@ export default function FeedbackForm({
             return;
         }
 
-        if (!/^\d{8}$/.test(trimmedSid)) {
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmedEmail)) {
+            setError("Please enter a valid email address.");
+            return;
+        }
+
+        if (trimmedSid && !/^\d{8}$/.test(trimmedSid)) {
             setError(
                 "SID must be exactly 8 digits."
             );
@@ -71,7 +79,8 @@ export default function FeedbackForm({
 
         const feedbackData: FeedbackData = {
             name: trimmedName,
-            sid: trimmedSid,
+            sid: trimmedSid || undefined,
+            email: trimmedEmail,
             branch,
             rating,
             review: trimmedReview,
@@ -142,13 +151,36 @@ export default function FeedbackForm({
 
                         <div className="space-y-2">
                             <label
+                                htmlFor="feedback-email"
+                                className="text-sm font-medium"
+                            >
+                                Email
+                                <span className="ml-1 text-red-500">
+                                    *
+                                </span>
+                            </label>
+
+                            <input
+                                id="feedback-email"
+                                type="email"
+                                value={email}
+                                onChange={(event) =>
+                                    setEmail(
+                                        event.target.value
+                                    )
+                                }
+                                placeholder="Enter your email"
+                                autoComplete="email"
+                                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm outline-none transition focus:ring-2 focus:ring-primary/20"
+                            />
+                        </div>
+
+                        <div className="space-y-2">
+                            <label
                                 htmlFor="feedback-sid"
                                 className="text-sm font-medium"
                             >
                                 SID
-                                <span className="ml-1 text-red-500">
-                                    *
-                                </span>
                             </label>
 
                             <input
@@ -165,7 +197,7 @@ export default function FeedbackForm({
                                         )
                                     )
                                 }
-                                placeholder="8-digit SID"
+                                placeholder="e.g. 23103000 (Optional)"
                                 autoComplete="off"
                                 className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm outline-none transition focus:ring-2 focus:ring-primary/20"
                             />
