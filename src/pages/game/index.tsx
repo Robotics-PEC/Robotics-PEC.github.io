@@ -286,9 +286,10 @@ function LeaderboardSection({ leaderboard, leaderboardRef }: { leaderboard: any[
         
         <div className="overflow-x-auto max-h-[600px] overflow-y-auto">
           {leaderboard.length === 0 ? (
-            <div className="p-12 text-center text-slate-500">
-              <p>Loading real scores from Google Sheets...</p>
-              <p className="text-sm mt-2">The dummy data has been removed.</p>
+            <div className="p-12 text-center text-slate-500 flex flex-col items-center gap-4">
+              <div className="text-6xl mb-2 opacity-50">🦖</div>
+              <p className="text-xl font-medium text-slate-600">Be the first one to play!</p>
+              <p className="text-sm text-slate-400">The leaderboard is currently waiting for challengers.</p>
             </div>
           ) : (
             <table className="w-full text-sm text-left">
@@ -341,8 +342,10 @@ function BranchLeaderboardSection({ branchLeaderboard }: { branchLeaderboard: an
         
         <div className="overflow-x-auto">
           {branchLeaderboard.length === 0 ? (
-            <div className="p-12 text-center text-slate-500">
-              <p>Loading branch scores...</p>
+            <div className="p-12 text-center text-slate-500 flex flex-col items-center gap-4">
+              <div className="text-6xl mb-2 opacity-50">🏛️</div>
+              <p className="text-xl font-medium text-slate-600">No branch data yet!</p>
+              <p className="text-sm text-slate-400">Play the game to put your branch on the map.</p>
             </div>
           ) : (
             <table className="w-full text-sm text-left">

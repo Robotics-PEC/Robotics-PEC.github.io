@@ -18,7 +18,7 @@ const branches = [
 
 export interface FeedbackData {
     name: string;
-    sid?: string;
+    sid: string;
     email: string;
     branch: string;
     rating: number;
@@ -55,6 +55,7 @@ export default function FeedbackForm({
 
         if (
             !trimmedName ||
+            !trimmedSid ||
             !trimmedEmail ||
             !branch ||
             rating === 0
@@ -70,7 +71,7 @@ export default function FeedbackForm({
             return;
         }
 
-        if (trimmedSid && !/^\d{8}$/.test(trimmedSid)) {
+        if (!/^\d{8}$/.test(trimmedSid)) {
             setError(
                 "SID must be exactly 8 digits."
             );
@@ -79,7 +80,7 @@ export default function FeedbackForm({
 
         const feedbackData: FeedbackData = {
             name: trimmedName,
-            sid: trimmedSid || undefined,
+            sid: trimmedSid,
             email: trimmedEmail,
             branch,
             rating,
@@ -181,6 +182,9 @@ export default function FeedbackForm({
                                 className="text-sm font-medium"
                             >
                                 SID
+                                <span className="ml-1 text-red-500">
+                                    *
+                                </span>
                             </label>
 
                             <input
@@ -197,7 +201,7 @@ export default function FeedbackForm({
                                         )
                                     )
                                 }
-                                placeholder="e.g. 23103000 (Optional)"
+                                placeholder="e.g. 23103000"
                                 autoComplete="off"
                                 className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm outline-none transition focus:ring-2 focus:ring-primary/20"
                             />
