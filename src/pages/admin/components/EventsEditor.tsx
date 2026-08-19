@@ -255,7 +255,7 @@ const EventsEditor = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <FormField
                 htmlFor="location"
-                title="Locaton"
+                title="Location"
                 id="location"
                 value={newEvent.location}
                 onChange={setNewEvent}
