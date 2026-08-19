@@ -60,6 +60,7 @@
     "easymde": "^2.20.0",
     "embla-carousel-react": "^8.3.0",
     "framer-motion": "^12.4.7",
+    "gsap": "^3.15.0",
     "input-otp": "^1.2.4",
     "lucide-react": "^0.462.0",
     "marked": "^15.0.7",
