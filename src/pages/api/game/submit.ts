@@ -30,9 +30,8 @@ export default async function handler(
       .update(payloadString)
       .digest("hex");
 
-    // Fire-and-forget: we send the payload to Google Apps Script in the background
-    // and immediately return a 200 OK so the user is never blocked.
-    fetch(scriptUrl, {
+    // Await the fetch to ensure Vercel doesn't kill the lambda before the network request completes
+    await fetch(scriptUrl, {
       method: "POST",
       redirect: "follow",
       headers: {

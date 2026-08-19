@@ -68,6 +68,7 @@ export default function GamePage() {
           const localPlayed = localStorage.getItem("hasPlayedDinoGame");
           if (localPlayed && process.env.NODE_ENV !== "development") {
             setAlreadyPlayed(true);
+            await fetchLeaderboardData(currentDeviceId); // Must fetch so they can actually see the leaderboard!
             setIsLoading(false);
             return;
           }
