@@ -1,6 +1,10 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import {
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import { gsap } from "gsap";
 
 // ========================================
@@ -126,7 +130,7 @@ const deadFrames = [
 ];
 
 // ========================================
-// OBSTACLE VARIANTS
+// OBSTACLES
 // ========================================
 
 const obstacleImages = [
@@ -134,11 +138,29 @@ const obstacleImages = [
   rock2,
 ];
 
+// ========================================
+// TYPES
+// ========================================
+
 interface DinoGameProps {
   onGameOver?: (score: number) => void;
 }
 
-export default function DinoGame({ onGameOver }: DinoGameProps) {
+interface TweenHandle {
+  current: gsap.core.Tween | null;
+}
+
+interface ScoreMarker {
+  current: boolean;
+}
+
+// ========================================
+// COMPONENT
+// ========================================
+
+export default function DinoGame({
+  onGameOver,
+}: DinoGameProps) {
   // ========================================
   // DOM REFS
   // ========================================
@@ -158,6 +180,12 @@ export default function DinoGame({ onGameOver }: DinoGameProps) {
   const obstacleSpriteRef =
     useRef<HTMLImageElement>(null);
 
+  const obstacle2Ref =
+    useRef<HTMLDivElement>(null);
+
+  const obstacle2SpriteRef =
+    useRef<HTMLImageElement>(null);
+
   const groundRef =
     useRef<HTMLDivElement>(null);
 
@@ -174,11 +202,14 @@ export default function DinoGame({ onGameOver }: DinoGameProps) {
   const obstacleTweenRef =
     useRef<gsap.core.Tween | null>(null);
 
+  const obstacle2TweenRef =
+    useRef<gsap.core.Tween | null>(null);
+
   const jumpTimelineRef =
     useRef<gsap.core.Timeline | null>(null);
 
   // ========================================
-  // INTERVAL REFS
+  // TIMER REFS
   // ========================================
 
   const spriteIntervalRef =
@@ -206,15 +237,14 @@ export default function DinoGame({ onGameOver }: DinoGameProps) {
   const gameOverRef =
     useRef(false);
 
+  const gameOverCallbackCalledRef =
+    useRef(false);
+
   const jumpingRef =
     useRef(false);
 
-  const scoredRef =
+  const jumpQueuedRef =
     useRef(false);
-
-  // ========================================
-  // SCORE
-  // ========================================
 
   const scoreRef =
     useRef(0);
@@ -222,8 +252,32 @@ export default function DinoGame({ onGameOver }: DinoGameProps) {
   const highScoreRef =
     useRef(0);
 
+  const firstObstacleScoredRef =
+    useRef(false);
+
+  const secondObstacleScoredRef =
+    useRef(false);
+
+  const gameStartTimeRef =
+    useRef<number | null>(null);
+
+  const obstacleCountRef =
+    useRef(0);
+
+  const previousDurationRef =
+    useRef<number | null>(null);
+
+  const previousGapRef =
+    useRef<number | null>(null);
+
+  const onGameOverRef =
+    useRef(onGameOver);
+
+  onGameOverRef.current =
+    onGameOver;
+
   // ========================================
-  // REACT STATE
+  // STATE
   // ========================================
 
   const [score, setScore] =
@@ -239,20 +293,28 @@ export default function DinoGame({ onGameOver }: DinoGameProps) {
     useState(false);
 
   // ========================================
-  // LOAD HIGH SCORE
+  // HIGH SCORE
   // ========================================
 
   useEffect(() => {
-    const savedScore = Number(
-      window.localStorage.getItem(
-        "highest-score"
-      ) || "0"
-    );
+    const savedScore =
+      Number(
+        window.localStorage.getItem(
+          "highest-score"
+        ) || "0"
+      );
+
+    const safeScore =
+      Number.isFinite(savedScore)
+        ? savedScore
+        : 0;
 
     highScoreRef.current =
-      savedScore;
+      safeScore;
 
-    setHighScore(savedScore);
+    setHighScore(
+      safeScore
+    );
   }, []);
 
   // ========================================
@@ -260,38 +322,85 @@ export default function DinoGame({ onGameOver }: DinoGameProps) {
   // ========================================
 
   useEffect(() => {
-    const game =
+    /*
+     * Resolve every DOM ref once.
+     * After this guard, all local constants
+     * below are guaranteed non-null.
+     */
+    const gameNode =
       gameRef.current;
 
-    const dino =
+    const dinoNode =
       dinoRef.current;
 
-    const dinoSprite =
+    const dinoSpriteNode =
       dinoSpriteRef.current;
 
-    const obstacle =
+    const obstacleNode =
       obstacleRef.current;
 
-    const ground =
+    const obstacleSpriteNode =
+      obstacleSpriteRef.current;
+
+    const obstacle2Node =
+      obstacle2Ref.current;
+
+    const obstacle2SpriteNode =
+      obstacle2SpriteRef.current;
+
+    const groundNode =
       groundRef.current;
 
-    const mountain =
+    const mountainNode =
       mountainRef.current;
 
-    const sky =
+    const skyNode =
       skyRef.current;
 
     if (
-      !game ||
-      !dino ||
-      !dinoSprite ||
-      !obstacle ||
-      !ground ||
-      !mountain ||
-      !sky
+      gameNode === null ||
+      dinoNode === null ||
+      dinoSpriteNode === null ||
+      obstacleNode === null ||
+      obstacleSpriteNode === null ||
+      obstacle2Node === null ||
+      obstacle2SpriteNode === null ||
+      groundNode === null ||
+      mountainNode === null ||
+      skyNode === null
     ) {
       return;
     }
+
+    const game: HTMLDivElement =
+      gameNode;
+
+    const dino: HTMLDivElement =
+      dinoNode;
+
+    const dinoSprite: HTMLImageElement =
+      dinoSpriteNode;
+
+    const obstacle: HTMLDivElement =
+      obstacleNode;
+
+    const obstacleSprite: HTMLImageElement =
+      obstacleSpriteNode;
+
+    const obstacle2: HTMLDivElement =
+      obstacle2Node;
+
+    const obstacle2Sprite: HTMLImageElement =
+      obstacle2SpriteNode;
+
+    const ground: HTMLDivElement =
+      groundNode;
+
+    const mountain: HTMLDivElement =
+      mountainNode;
+
+    const sky: HTMLDivElement =
+      skyNode;
 
     // ======================================
     // SPRITE ANIMATION
@@ -302,7 +411,8 @@ export default function DinoGame({ onGameOver }: DinoGameProps) {
     const stopSpriteAnimation =
       () => {
         if (
-          spriteIntervalRef.current
+          spriteIntervalRef.current !==
+          null
         ) {
           clearInterval(
             spriteIntervalRef.current
@@ -313,749 +423,1302 @@ export default function DinoGame({ onGameOver }: DinoGameProps) {
         }
       };
 
-    const startSpriteAnimation = (
-      frames: typeof runFrames,
-      interval: number
-    ) => {
-      stopSpriteAnimation();
+    const startSpriteAnimation =
+      (
+        frames:
+          | typeof idleFrames
+          | typeof runFrames,
+        interval: number
+      ) => {
+        stopSpriteAnimation();
 
-      spriteIndex = 0;
+        spriteIndex = 0;
 
-      spriteIntervalRef.current =
-        setInterval(() => {
-          if (
-            gameOverRef.current
-          ) {
-            return;
-          }
+        spriteIntervalRef.current =
+          setInterval(() => {
+            if (
+              gameOverRef.current
+            ) {
+              return;
+            }
 
-          if (
-            !dinoSpriteRef.current
-          ) {
-            return;
-          }
+            dinoSprite.src =
+              frames[
+                spriteIndex %
+                  frames.length
+              ].src;
 
-          dinoSpriteRef.current.src =
-            frames[
-              spriteIndex %
-                frames.length
-            ].src;
-
-          spriteIndex++;
-        }, interval);
-    };
+            spriteIndex++;
+          }, interval);
+      };
 
     // ======================================
     // SCORE
     // ======================================
 
-    const addScore = () => {
-      scoreRef.current += 10;
-
-      const newScore =
-        scoreRef.current;
-
-      setScore(newScore);
-
-      if (
-        newScore >
-        highScoreRef.current
-      ) {
-        highScoreRef.current =
-          newScore;
-
-        setHighScore(newScore);
-
-        window.localStorage.setItem(
-          "highest-score",
-          String(newScore)
-        );
-      }
-    };
-
-    // ======================================
-    // SPEED
-    // ======================================
-
-    /*
-     * Speed increases by 25%
-     * every 40 points.
-     *
-     * 0     -> 1.00x
-     * 40    -> 1.25x
-     * 80    -> 1.56x
-     * 120   -> 1.95x
-     * 160   -> 2.44x
-     * 200   -> 3.00x
-     *
-     * Maximum = 3x
-     */
-
-    const getSpeedMultiplier =
+    const addScore =
       () => {
-        const level =
-          Math.floor(
-            scoreRef.current / 40
+        if (
+          gameOverRef.current
+        ) {
+          return;
+        }
+
+        scoreRef.current += 10;
+
+        const nextScore =
+          scoreRef.current;
+
+        setScore(
+          nextScore
+        );
+
+        if (
+          nextScore >
+          highScoreRef.current
+        ) {
+          highScoreRef.current =
+            nextScore;
+
+          setHighScore(
+            nextScore
           );
 
-        return Math.min(
-          Math.pow(1.25, level),
-          3
-        );
+          window.localStorage.setItem(
+            "highest-score",
+            String(nextScore)
+          );
+        }
       };
 
     // ======================================
-    // GAME OVER
+    // ELAPSED TIME
     // ======================================
 
-    const endGame = () => {
-      if (
-        gameOverRef.current
-      ) {
-        return;
-      }
+    const getElapsedSeconds =
+      (): number => {
+        if (
+          gameStartTimeRef.current ===
+          null
+        ) {
+          return 0;
+        }
 
-      gameOverRef.current =
-        true;
+        return (
+          performance.now() -
+          gameStartTimeRef.current
+        ) / 1000;
+      };
 
-      setGameOver(true);
+    // ======================================
+    // DIFFICULTY
+    // ======================================
 
-      jumpingRef.current =
-        false;
+    /*
+     * Difficulty is intentionally continuous.
+     *
+     * The player should feel:
+     *
+     * 0-8s   -> "I get it."
+     * 8-16s  -> "This is fun."
+     * 16-22s -> "Okay, I need to focus."
+     * 22-28s -> "This is getting serious."
+     * 28-35s -> "Can I survive?"
+     * 35-40s -> high-score territory
+     *
+     * 350 points always forces the hardest
+     * difficulty band.
+     */
+    const getDifficulty =
+      () => {
+        const elapsed =
+          getElapsedSeconds();
 
-      // ------------------------------
-      // STOP ROCK
-      // ------------------------------
+        const currentScore =
+          scoreRef.current;
 
-      obstacleTweenRef.current?.pause();
+        /*
+         * Continuous progress through
+         * the intended 35-second run.
+         */
+        const timeProgress =
+          Math.min(
+            elapsed / 35,
+            1
+          );
 
-      if (
-        nextObstacleTimeoutRef.current
-      ) {
-        clearTimeout(
-          nextObstacleTimeoutRef.current
-        );
+        const scoreProgress =
+          Math.min(
+            currentScore / 350,
+            1
+          );
 
-        nextObstacleTimeoutRef.current =
-          null;
-      }
+        /*
+         * Time drives the game strongly,
+         * while score gives a small additional
+         * acceleration.
+         */
+        const progress =
+          Math.min(
+            timeProgress * 0.80 +
+              scoreProgress * 0.20,
+            1
+          );
 
-      // ------------------------------
-      // STOP GROUND
-      // ------------------------------
+        /*
+         * Crossing duration:
+         *
+         * Early  ≈ 4.8s
+         * Late   ≈ 2.45s
+         */
+        const baseDuration =
+          4.8 -
+          progress * 2.35;
 
-      gsap.getTweensOf(
-        ground
-      ).forEach((tween) => {
-        tween.pause();
-      });
+        /*
+         * Gap:
+         *
+         * Early  ≈ 1.4s
+         * Late   ≈ 0.45s
+         */
+        const baseGap =
+          1400 -
+          progress * 950;
 
-      // ------------------------------
-      // STOP MOUNTAINS
-      // ------------------------------
+        /*
+         * Double obstacles become common
+         * only after the player has had time
+         * to learn the game.
+         */
+        let doubleChance =
+          0.01 +
+          progress * 0.27;
 
-      gsap.getTweensOf(
-        mountain
-      ).forEach((tween) => {
-        tween.pause();
-      });
+        if (
+          elapsed < 12
+        ) {
+          doubleChance =
+            0.01;
+        }
 
-      // ------------------------------
-      // STOP SKY
-      // ------------------------------
+        if (
+          currentScore >= 350 ||
+          elapsed >= 40
+        ) {
+          doubleChance =
+            0.34;
+        }
 
-      gsap.getTweensOf(
-        sky
-      ).forEach((tween) => {
-        tween.pause();
-      });
+        return {
+          minDuration:
+            Math.max(
+              baseDuration -
+                0.45,
+              2.35
+            ),
 
-      // ------------------------------
-      // STOP JUMP
-      // ------------------------------
+          maxDuration:
+            Math.max(
+              baseDuration +
+                0.45,
+              2.85
+            ),
 
-      jumpTimelineRef.current?.kill();
+          minGap:
+            Math.max(
+              baseGap - 250,
+              400
+            ),
 
-      // ------------------------------
-      // STOP RUN
-      // ------------------------------
+          maxGap:
+            Math.max(
+              baseGap + 250,
+              650
+            ),
 
-      stopSpriteAnimation();
+          doubleChance,
 
-      // ------------------------------
-      // DEATH ANIMATION
-      // ------------------------------
+          /*
+           * A double must give the player
+           * enough time to land and jump again.
+           */
+          minDoubleDelay:
+            progress < 0.5
+              ? 1100
+              : progress < 0.75
+                ? 1000
+                : 900,
 
-      let deathFrame = 0;
+          maxDoubleDelay:
+            progress < 0.5
+              ? 1350
+              : progress < 0.75
+                ? 1250
+                : 1150,
+        };
+      };
 
-      if (
-        deathIntervalRef.current
-      ) {
-        clearInterval(
-          deathIntervalRef.current
-        );
-      }
+    // ======================================
+    // RANDOM VALUE
+    // ======================================
 
-      deathIntervalRef.current =
-        setInterval(() => {
-          if (
-            !dinoSpriteRef.current
+    const randomizeValue =
+      (
+        min: number,
+        max: number,
+        previous: number | null,
+        minimumDifference: number
+      ) => {
+        let value =
+          min +
+          Math.random() *
+            (max - min);
+
+        /*
+         * Prevent several obstacles from
+         * accidentally feeling identical.
+         */
+        if (
+          previous !== null &&
+          max - min >
+            minimumDifference *
+              2
+        ) {
+          let attempts = 0;
+
+          while (
+            Math.abs(
+              value -
+                previous
+            ) <
+              minimumDifference &&
+            attempts < 12
           ) {
-            return;
+            value =
+              min +
+              Math.random() *
+                (max - min);
+
+            attempts++;
           }
+        }
 
-          if (
-            deathFrame >=
-            deadFrames.length
-          ) {
-            if (
-              deathIntervalRef.current
-            ) {
-              clearInterval(
-                deathIntervalRef.current
-              );
+        return value;
+      };
 
-              deathIntervalRef.current =
-                null;
-            }
+    // ======================================
+    // ROCK RANDOMIZER
+    // ======================================
 
-            if (onGameOver) {
-              onGameOver(scoreRef.current);
-            }
+    const setRandomRock =
+      (
+        sprite: HTMLImageElement,
+        otherSprite?:
+          | HTMLImageElement
+          | undefined
+      ) => {
+        let index =
+          Math.floor(
+            Math.random() *
+              obstacleImages.length
+          );
 
-            return;
-          }
+        /*
+         * If two rocks are being used,
+         * prefer different visuals.
+         */
+        if (
+          otherSprite !== undefined &&
+          obstacleImages.length >
+            1 &&
+          sprite.src ===
+            otherSprite.src
+        ) {
+          index =
+            index === 0
+              ? 1
+              : 0;
+        }
 
-          dinoSpriteRef.current.src =
-            deadFrames[
-              deathFrame
-            ].src;
-
-          deathFrame++;
-        }, 90);
-    };
+        sprite.src =
+          obstacleImages[
+            index
+          ].src;
+      };
 
     // ======================================
     // COLLISION
     // ======================================
 
-    const checkCollision = () => {
-      if (
-        gameOverRef.current
-      ) {
-        return;
-      }
+    const checkCollision =
+      (
+        sprite: HTMLImageElement
+      ) => {
+        if (
+          gameOverRef.current
+        ) {
+          return;
+        }
 
-      const dinoRect =
-        dino.getBoundingClientRect();
+        const dinoRect =
+          dinoSprite.getBoundingClientRect();
 
-      const obstacleRect =
-        obstacle.getBoundingClientRect();
+        const spriteRect =
+          sprite.getBoundingClientRect();
 
-      /*
-       * Slightly smaller collision
-       * box to make the game fair.
-       */
+        /*
+         * IMPORTANT:
+         *
+         * The rock PNGs contain large transparent
+         * areas. Their raw image rectangles are
+         * therefore NOT their real hitboxes.
+         *
+         * Approximate the visible rock with a
+         * much smaller rectangle.
+         */
+        const rockLeft =
+          spriteRect.left +
+          spriteRect.width *
+            0.25;
 
-      const dinoPaddingX = 18;
-      const dinoPaddingY = 12;
+        const rockRight =
+          spriteRect.right -
+          spriteRect.width *
+            0.25;
 
-      const obstaclePaddingX = 8;
-      const obstaclePaddingY = 6;
+        const rockTop =
+          spriteRect.top +
+          spriteRect.height *
+            0.43;
 
-      const collision =
-        dinoRect.right -
-            dinoPaddingX >
-          obstacleRect.left +
-            obstaclePaddingX &&
-        dinoRect.left +
-            dinoPaddingX <
-          obstacleRect.right -
-            obstaclePaddingX &&
-        dinoRect.bottom -
-            dinoPaddingY >
-          obstacleRect.top +
-            obstaclePaddingY &&
-        dinoRect.top +
-            dinoPaddingY <
-          obstacleRect.bottom -
-            obstaclePaddingY;
+        const rockBottom =
+          spriteRect.bottom -
+          spriteRect.height *
+            0.03;
 
-      if (collision) {
-        endGame();
-      }
-    };
+        /*
+         * Slightly forgiving dino hitbox.
+         */
+        const dinoLeft =
+          dinoRect.left +
+          dinoRect.width *
+            0.16;
 
-    // ======================================
-    // OBSTACLE
-    // ======================================
+        const dinoRight =
+          dinoRect.right -
+          dinoRect.width *
+            0.16;
 
-    const moveObstacle = () => {
-      if (
-        gameOverRef.current ||
-        !gameStartedRef.current
-      ) {
-        return;
-      }
+        const dinoTop =
+          dinoRect.top +
+          dinoRect.height *
+            0.17;
 
-      obstacleTweenRef.current?.kill();
+        const dinoBottom =
+          dinoRect.bottom -
+          dinoRect.height *
+            0.08;
 
-      // ------------------------------
-      // PICK RANDOM ROCK
-      // ------------------------------
+        const collision =
+          dinoRight >
+            rockLeft &&
+          dinoLeft <
+            rockRight &&
+          dinoBottom >
+            rockTop &&
+          dinoTop <
+            rockBottom;
 
-      if (obstacleSpriteRef.current) {
-        const randomImage =
-          obstacleImages[
-            Math.floor(
-              Math.random() *
-                obstacleImages.length
-            )
-          ];
-
-        obstacleSpriteRef.current.src =
-          randomImage.src;
-      }
-
-      const gameWidth =
-        game.getBoundingClientRect()
-          .width;
-
-      const obstacleWidth =
-        obstacle.getBoundingClientRect()
-          .width;
-
-      /*
-       * Start outside right side.
-       */
-
-      const startX =
-        gameWidth + 100;
-
-      /*
-       * End outside left side.
-       */
-
-      const endX =
-        -(obstacleWidth + 100);
-
-      /*
-       * Current difficulty.
-       */
-
-      const speed =
-        getSpeedMultiplier();
-
-      /*
-       * Base crossing time = 4 seconds.
-       */
-
-      const duration =
-        4 / speed;
-
-      gsap.set(obstacle, {
-        x: startX,
-      });
-
-      scoredRef.current =
-        false;
-
-      obstacleTweenRef.current =
-        gsap.to(obstacle, {
-          x: endX,
-
-          duration,
-
-          ease: "none",
-
-          onUpdate: () => {
-            if (
-              gameOverRef.current
-            ) {
-              return;
-            }
-
-            checkCollision();
-
-            if (
-              scoredRef.current
-            ) {
-              return;
-            }
-
-            const dinoRect =
-              dino.getBoundingClientRect();
-
-            const obstacleRect =
-              obstacle.getBoundingClientRect();
-
-            /*
-             * Rock has passed Dino.
-             */
-
-            if (
-              obstacleRect.right <
-              dinoRect.left
-            ) {
-              scoredRef.current =
-                true;
-
-              addScore();
-            }
-          },
-
-          onComplete: () => {
-            if (
-              gameOverRef.current
-            ) {
-              return;
-            }
-
-            scheduleNextObstacle();
-          },
-        });
-    };
+        if (
+          collision
+        ) {
+          endGame();
+        }
+      };
 
     // ======================================
-    // RANDOM GAP BETWEEN OBSTACLES
+    // SCORE OBSTACLE
     // ======================================
 
-    const scheduleNextObstacle = () => {
-      if (
-        nextObstacleTimeoutRef.current
-      ) {
-        clearTimeout(
-          nextObstacleTimeoutRef.current
+    const checkPassedObstacle =
+      (
+        sprite: HTMLImageElement,
+        marker: ScoreMarker
+      ) => {
+        if (
+          gameOverRef.current ||
+          marker.current
+        ) {
+          return;
+        }
+
+        const dinoRect =
+          dinoSprite.getBoundingClientRect();
+
+        const rockRect =
+          sprite.getBoundingClientRect();
+
+        if (
+          rockRect.right <
+          dinoRect.left
+        ) {
+          marker.current =
+            true;
+
+          addScore();
+        }
+      };
+
+    // ======================================
+    // END GAME
+    // ======================================
+
+    const endGame =
+      () => {
+        if (
+          gameOverRef.current
+        ) {
+          return;
+        }
+
+        gameOverRef.current =
+          true;
+
+        setGameOver(
+          true
         );
 
-        nextObstacleTimeoutRef.current =
-          null;
-      }
+        jumpingRef.current =
+          false;
 
-      /*
-       * Random pause before the next rock
-       * appears, scaled down slightly as
-       * speed increases so higher levels
-       * don't get eerily generous gaps.
-       *
-       * Range: ~300ms to ~1500ms.
-       */
+        jumpQueuedRef.current =
+          false;
 
-      const speed =
-        getSpeedMultiplier();
+        obstacleTweenRef.current?.kill();
 
-      const minGap =
-        300;
+        obstacle2TweenRef.current?.kill();
 
-      const maxGap =
-        1500 / speed;
-
-      const randomGap =
-        minGap +
-        Math.random() *
-          Math.max(
-            maxGap - minGap,
-            0
+        if (
+          nextObstacleTimeoutRef.current !==
+          null
+        ) {
+          clearTimeout(
+            nextObstacleTimeoutRef.current
           );
 
-      nextObstacleTimeoutRef.current =
-        setTimeout(() => {
           nextObstacleTimeoutRef.current =
             null;
+        }
 
-          if (
-            !gameOverRef.current
-          ) {
-            moveObstacle();
+        jumpTimelineRef.current?.kill();
+
+        gsap.getTweensOf(
+          ground
+        ).forEach(
+          (tween) =>
+            tween.pause()
+        );
+
+        gsap.getTweensOf(
+          mountain
+        ).forEach(
+          (tween) =>
+            tween.pause()
+        );
+
+        gsap.getTweensOf(
+          sky
+        ).forEach(
+          (tween) =>
+            tween.pause()
+        );
+
+        stopSpriteAnimation();
+
+        let deathFrame =
+          0;
+
+        if (
+          deathIntervalRef.current !==
+          null
+        ) {
+          clearInterval(
+            deathIntervalRef.current
+          );
+        }
+
+        deathIntervalRef.current =
+          setInterval(() => {
+            if (
+              deathFrame >=
+              deadFrames.length
+            ) {
+              if (
+                deathIntervalRef.current !==
+                null
+              ) {
+                clearInterval(
+                  deathIntervalRef.current
+                );
+
+                deathIntervalRef.current =
+                  null;
+              }
+
+              if (
+                !gameOverCallbackCalledRef.current
+              ) {
+                gameOverCallbackCalledRef.current =
+                  true;
+
+                onGameOverRef.current?.(
+                  scoreRef.current
+                );
+              }
+
+              return;
+            }
+
+            dinoSprite.src =
+              deadFrames[
+                deathFrame
+              ].src;
+
+            deathFrame++;
+          }, 90);
+      };
+
+    // ======================================
+    // MOVE ONE OBSTACLE
+    // ======================================
+
+    const moveSingleObstacle =
+      (
+        container: HTMLDivElement,
+        sprite: HTMLImageElement,
+        tweenHandle: TweenHandle,
+        scoreMarker: ScoreMarker,
+        startX: number,
+        endX: number,
+        duration: number,
+        delaySeconds = 0
+      ) => {
+        tweenHandle.current?.kill();
+
+        scoreMarker.current =
+          false;
+
+        gsap.set(
+          container,
+          {
+            x: startX,
+            visibility:
+              "hidden",
           }
-        }, randomGap);
-    };
+        );
+
+        tweenHandle.current =
+          gsap.to(
+            container,
+            {
+              x: endX,
+              duration,
+              delay:
+                delaySeconds,
+              ease: "none",
+
+              onStart:
+                () => {
+                  container.style.visibility =
+                    "visible";
+                },
+
+              onUpdate:
+                () => {
+                  if (
+                    gameOverRef.current
+                  ) {
+                    return;
+                  }
+
+                  checkCollision(
+                    sprite
+                  );
+
+                  checkPassedObstacle(
+                    sprite,
+                    scoreMarker
+                  );
+                },
+
+              onComplete:
+                () => {
+                  container.style.visibility =
+                    "hidden";
+
+                  tweenHandle.current =
+                    null;
+                },
+            }
+          );
+      };
+
+    // ======================================
+    // SCHEDULE NEXT OBSTACLE
+    // ======================================
+
+    const scheduleNextObstacle =
+      (
+        sequenceTimeMs: number
+      ) => {
+        if (
+          gameOverRef.current
+        ) {
+          return;
+        }
+
+        if (
+          nextObstacleTimeoutRef.current !==
+          null
+        ) {
+          clearTimeout(
+            nextObstacleTimeoutRef.current
+          );
+        }
+
+        const difficulty =
+          getDifficulty();
+
+        const gap =
+          randomizeValue(
+            difficulty.minGap,
+            difficulty.maxGap,
+            previousGapRef.current,
+            110
+          );
+
+        previousGapRef.current =
+          gap;
+
+        /*
+         * This timer starts from the end of
+         * the current sequence, not from the
+         * beginning. Therefore sequences never
+         * accidentally stack on top of one another.
+         */
+        nextObstacleTimeoutRef.current =
+          setTimeout(
+            () => {
+              nextObstacleTimeoutRef.current =
+                null;
+
+              if (
+                !gameOverRef.current
+              ) {
+                moveObstacleSequence();
+              }
+            },
+            sequenceTimeMs +
+              gap
+          );
+      };
+
+    // ======================================
+    // OBSTACLE SEQUENCE
+    // ======================================
+
+    const moveObstacleSequence =
+      () => {
+        if (
+          gameOverRef.current ||
+          !gameStartedRef.current
+        ) {
+          return;
+        }
+
+        const difficulty =
+          getDifficulty();
+
+        const gameWidth =
+          game.getBoundingClientRect()
+            .width;
+
+        const obstacleWidth =
+          obstacle.getBoundingClientRect()
+            .width;
+
+        const startX =
+          gameWidth + 120;
+
+        const endX =
+          -(
+            obstacleWidth +
+            150
+          );
+
+        obstacleCountRef.current +=
+          1;
+
+        /*
+         * Continuous random duration.
+         *
+         * The range itself shrinks as the game
+         * gets harder, but every obstacle still
+         * gets some variation.
+         */
+        const duration =
+          randomizeValue(
+            difficulty.minDuration,
+            difficulty.maxDuration,
+            previousDurationRef.current,
+            0.30
+          );
+
+        previousDurationRef.current =
+          duration;
+
+        const isDouble =
+          getElapsedSeconds() >=
+            12 &&
+          Math.random() <
+            difficulty.doubleChance;
+
+        /*
+         * Give each obstacle an independent
+         * visual variant.
+         */
+        setRandomRock(
+          obstacleSprite
+        );
+
+        obstacle.style.visibility =
+          "hidden";
+
+        obstacle2.style.visibility =
+          "hidden";
+
+        obstacleTweenRef.current?.kill();
+
+        obstacle2TweenRef.current?.kill();
+
+        /*
+         * FIRST ROCK
+         */
+        moveSingleObstacle(
+          obstacle,
+          obstacleSprite,
+          obstacleTweenRef,
+          firstObstacleScoredRef,
+          startX,
+          endX,
+          duration
+        );
+
+        let secondDelayMs =
+          0;
+
+        /*
+         * SECOND ROCK
+         *
+         * Deliberately delayed by enough time
+         * for a normal jump to finish.
+         *
+         * This is what prevents the previous
+         * "I jumped the first one and randomly
+         * died to the second one" feeling.
+         */
+        if (
+          isDouble
+        ) {
+          setRandomRock(
+            obstacle2Sprite,
+            obstacleSprite
+          );
+
+          secondDelayMs =
+            randomizeValue(
+              difficulty.minDoubleDelay,
+              difficulty.maxDoubleDelay,
+              null,
+              0
+            );
+
+          moveSingleObstacle(
+            obstacle2,
+            obstacle2Sprite,
+            obstacle2TweenRef,
+            secondObstacleScoredRef,
+            startX,
+            endX,
+            duration,
+            secondDelayMs /
+              1000
+          );
+        }
+
+        /*
+         * The next sequence waits until both
+         * current rocks have completely cleared,
+         * then adds another random reaction gap.
+         */
+        const sequenceLength =
+          duration *
+            1000 +
+          secondDelayMs;
+
+        scheduleNextObstacle(
+          sequenceLength
+        );
+      };
 
     // ======================================
     // JUMP
     // ======================================
 
-    const jump = () => {
-      if (
-        gameOverRef.current
-      ) {
-        return;
-      }
-
-      if (
-        !gameStartedRef.current
-      ) {
-        startGame();
-
-        return;
-      }
-
-      if (
-        jumpingRef.current
-      ) {
-        return;
-      }
-
-      jumpingRef.current =
-        true;
-
-      // ------------------------------
-      // STOP RUN ANIMATION
-      // ------------------------------
-
-      stopSpriteAnimation();
-
-      spriteIndex = 0;
-
-      // ------------------------------
-      // JUMP ANIMATION
-      // ------------------------------
-
-      spriteIntervalRef.current =
-        setInterval(() => {
-          if (
-            !jumpingRef.current ||
-            gameOverRef.current
-          ) {
-            return;
-          }
-
-          if (
-            !dinoSpriteRef.current
-          ) {
-            return;
-          }
-
-          dinoSpriteRef.current.src =
-            jumpFrames[
-              spriteIndex %
-                jumpFrames.length
-            ].src;
-
-          spriteIndex++;
-        }, 65);
-
-      // ------------------------------
-      // GSAP JUMP
-      // ------------------------------
-
-      jumpTimelineRef.current?.kill();
-
-      jumpTimelineRef.current =
-        gsap.timeline({
-          onComplete: () => {
-            jumpingRef.current =
-              false;
-
-            stopSpriteAnimation();
-
-            startSpriteAnimation(
-              runFrames,
-              75
-            );
-          },
-        });
-
-      jumpTimelineRef.current.to(
-        dino,
-        {
-          y: -185,
-
-          duration: 0.42,
-
-          ease: "power2.out",
+    const performJump =
+      () => {
+        if (
+          gameOverRef.current
+        ) {
+          return;
         }
-      );
 
-      jumpTimelineRef.current.to(
-        dino,
-        {
-          y: 0,
+        jumpingRef.current =
+          true;
 
-          duration: 0.55,
+        jumpQueuedRef.current =
+          false;
 
-          ease: "power2.in",
+        stopSpriteAnimation();
+
+        spriteIndex = 0;
+
+        spriteIntervalRef.current =
+          setInterval(() => {
+            if (
+              !jumpingRef.current ||
+              gameOverRef.current
+            ) {
+              return;
+            }
+
+            dinoSprite.src =
+              jumpFrames[
+                spriteIndex %
+                  jumpFrames.length
+              ].src;
+
+            spriteIndex++;
+          }, 58);
+
+        jumpTimelineRef.current?.kill();
+
+        /*
+         * Responsive jump.
+         *
+         * Slightly lower than the old jump,
+         * but with a quicker rise.
+         */
+        const jumpHeight =
+          Math.min(
+            172,
+            dino.offsetHeight *
+              1.16
+          );
+
+        jumpTimelineRef.current =
+          gsap.timeline({
+            onComplete:
+              () => {
+                jumpingRef.current =
+                  false;
+
+                stopSpriteAnimation();
+
+                /*
+                 * One buffered jump is allowed.
+                 *
+                 * This makes back-to-back obstacles
+                 * feel responsive instead of requiring
+                 * pixel-perfect input timing.
+                 */
+                if (
+                  jumpQueuedRef.current &&
+                  !gameOverRef.current
+                ) {
+                  performJump();
+                  return;
+                }
+
+                if (
+                  !gameOverRef.current
+                ) {
+                  startSpriteAnimation(
+                    runFrames,
+                    75
+                  );
+                }
+              },
+          });
+
+        /*
+         * Rise.
+         */
+        jumpTimelineRef.current.to(
+          dino,
+          {
+            y:
+              -jumpHeight,
+            duration:
+              0.35,
+            ease:
+              "power2.out",
+          }
+        );
+
+        /*
+         * Fall.
+         */
+        jumpTimelineRef.current.to(
+          dino,
+          {
+            y: 0,
+            duration:
+              0.50,
+            ease:
+              "power2.in",
+          }
+        );
+      };
+
+    const jump =
+      () => {
+        if (
+          gameOverRef.current
+        ) {
+          return;
         }
-      );
-    };
+
+        /*
+         * If the player presses jump during
+         * a jump, buffer exactly one jump.
+         *
+         * This is especially useful for the
+         * intentional double-obstacle patterns.
+         */
+        if (
+          jumpingRef.current
+        ) {
+          jumpQueuedRef.current =
+            true;
+
+          return;
+        }
+
+        performJump();
+      };
 
     // ======================================
     // START GAME
     // ======================================
 
-    const startGame = () => {
-      if (
-        gameStartedRef.current ||
-        gameOverRef.current
-      ) {
-        return;
+    const startGame =
+      () => {
+        if (
+          gameStartedRef.current ||
+          gameOverRef.current
+        ) {
+          return;
+        }
+
+        gameStartedRef.current =
+          true;
+
+        gameOverCallbackCalledRef.current =
+          false;
+
+        setStarted(
+          true
+        );
+
+        scoreRef.current =
+          0;
+
+        setScore(
+          0
+        );
+
+        gameStartTimeRef.current =
+          performance.now();
+
+        obstacleCountRef.current =
+          0;
+
+        previousDurationRef.current =
+          null;
+
+        previousGapRef.current =
+          null;
+
+        firstObstacleScoredRef.current =
+          false;
+
+        secondObstacleScoredRef.current =
+          false;
+
+        // ==================================
+        // RUN
+        // ==================================
+
+        startSpriteAnimation(
+          runFrames,
+          75
+        );
+
+        const gameWidth =
+          game.getBoundingClientRect()
+            .width;
+
+        // ==================================
+        // GROUND
+        // ==================================
+
+        gsap.killTweensOf(
+          ground
+        );
+
+        gsap.set(
+          ground,
+          {
+            x: 0,
+          }
+        );
+
+        gsap.to(
+          ground,
+          {
+            x:
+              -gameWidth,
+            duration: 4,
+            ease: "none",
+            repeat: -1,
+
+            modifiers: {
+              x:
+                gsap.utils.unitize(
+                  (value) => {
+                    let x =
+                      parseFloat(
+                        String(value)
+                      );
+
+                    if (
+                      x <=
+                      -gameWidth
+                    ) {
+                      x +=
+                        gameWidth;
+                    }
+
+                    return x;
+                  }
+                ),
+            },
+          }
+        );
+
+        // ==================================
+        // MOUNTAINS
+        // ==================================
+
+        gsap.killTweensOf(
+          mountain
+        );
+
+        gsap.set(
+          mountain,
+          {
+            x: 0,
+          }
+        );
+
+        gsap.to(
+          mountain,
+          {
+            x:
+              -gameWidth,
+            duration: 18,
+            ease: "none",
+            repeat: -1,
+
+            modifiers: {
+              x:
+                gsap.utils.unitize(
+                  (value) => {
+                    let x =
+                      parseFloat(
+                        String(value)
+                      );
+
+                    if (
+                      x <=
+                      -gameWidth
+                    ) {
+                      x +=
+                        gameWidth;
+                    }
+
+                    return x;
+                  }
+                ),
+            },
+          }
+        );
+
+        // ==================================
+        // SKY
+        // ==================================
+
+        gsap.killTweensOf(
+          sky
+        );
+
+        gsap.set(
+          sky,
+          {
+            x: 0,
+          }
+        );
+
+        gsap.to(
+          sky,
+          {
+            x:
+              -gameWidth,
+            duration: 35,
+            ease: "none",
+            repeat: -1,
+
+            modifiers: {
+              x:
+                gsap.utils.unitize(
+                  (value) => {
+                    let x =
+                      parseFloat(
+                        String(value)
+                      );
+
+                    if (
+                      x <=
+                      -gameWidth
+                    ) {
+                      x +=
+                        gameWidth;
+                    }
+
+                    return x;
+                  }
+                ),
+            },
+          }
+        );
+
+        // ==================================
+        // RESET OBSTACLES
+        // ==================================
+
+        obstacle.style.visibility =
+          "hidden";
+
+        obstacle2.style.visibility =
+          "hidden";
+
+        gsap.set(
+          obstacle,
+          {
+            x:
+              gameWidth +
+              300,
+          }
+        );
+
+        gsap.set(
+          obstacle2,
+          {
+            x:
+              gameWidth +
+              500,
+          }
+        );
+
+        obstacleTweenRef.current?.kill();
+
+        obstacle2TweenRef.current?.kill();
+
+        /*
+         * Short breathing room before the
+         * first obstacle.
+         */
+        const openingDelay =
+          950 +
+          Math.random() *
+            450;
+
+        nextObstacleTimeoutRef.current =
+          setTimeout(
+            () => {
+              nextObstacleTimeoutRef.current =
+                null;
+
+              if (
+                !gameOverRef.current
+              ) {
+                moveObstacleSequence();
+              }
+            },
+            openingDelay
+          );
+      };
+
+    // ======================================
+    // INITIAL POSITIONS
+    // ======================================
+
+    gsap.set(
+      dino,
+      {
+        x: 0,
+        y: 0,
       }
+    );
 
-      gameStartedRef.current =
-        true;
+    const initialWidth =
+      game.getBoundingClientRect()
+        .width;
 
-      setStarted(true);
+    gsap.set(
+      obstacle,
+      {
+        x:
+          initialWidth +
+          300,
+      }
+    );
 
-      // ------------------------------
-      // RUN SPRITE
-      // ------------------------------
+    gsap.set(
+      obstacle2,
+      {
+        x:
+          initialWidth +
+          500,
+      }
+    );
 
-      startSpriteAnimation(
-        runFrames,
-        75
-      );
+    obstacle.style.visibility =
+      "hidden";
 
-      const gameWidth =
-        game.getBoundingClientRect()
-          .width;
-
-      // ------------------------------
-      // GROUND
-      // ------------------------------
-
-      gsap.killTweensOf(
-        ground
-      );
-
-      gsap.set(ground, {
-        x: 0,
-      });
-
-      gsap.to(ground, {
-        x: -gameWidth,
-
-        duration: 4,
-
-        ease: "none",
-
-        repeat: -1,
-
-        modifiers: {
-          x: gsap.utils.unitize(
-            (value) => {
-              let x =
-                parseFloat(
-                  String(value)
-                );
-
-              if (
-                x <=
-                -gameWidth
-              ) {
-                x += gameWidth;
-              }
-
-              return x;
-            }
-          ),
-        },
-      });
-
-      // ------------------------------
-      // MOUNTAINS
-      // ------------------------------
-
-      gsap.killTweensOf(
-        mountain
-      );
-
-      gsap.set(mountain, {
-        x: 0,
-      });
-
-      gsap.to(mountain, {
-        x: -gameWidth,
-
-        duration: 18,
-
-        ease: "none",
-
-        repeat: -1,
-
-        modifiers: {
-          x: gsap.utils.unitize(
-            (value) => {
-              let x =
-                parseFloat(
-                  String(value)
-                );
-
-              if (
-                x <=
-                -gameWidth
-              ) {
-                x += gameWidth;
-              }
-
-              return x;
-            }
-          ),
-        },
-      });
-
-      // ------------------------------
-      // SKY
-      // ------------------------------
-
-      gsap.killTweensOf(
-        sky
-      );
-
-      gsap.set(sky, {
-        x: 0,
-      });
-
-      gsap.to(sky, {
-        x: -gameWidth,
-
-        duration: 35,
-
-        ease: "none",
-
-        repeat: -1,
-
-        modifiers: {
-          x: gsap.utils.unitize(
-            (value) => {
-              let x =
-                parseFloat(
-                  String(value)
-                );
-
-              if (
-                x <=
-                -gameWidth
-              ) {
-                x += gameWidth;
-              }
-
-              return x;
-            }
-          ),
-        },
-      });
-
-      // ------------------------------
-      // START ROCK
-      // ------------------------------
-
-      moveObstacle();
-    };
-
-    // ======================================
-    // INITIAL POSITION
-    // ======================================
-
-    gsap.set(dino, {
-      x: 0,
-      y: 0,
-    });
-
-    gsap.set(obstacle, {
-      x:
-        game.getBoundingClientRect()
-          .width + 200,
-    });
+    obstacle2.style.visibility =
+      "hidden";
 
     // ======================================
     // IDLE
@@ -1070,13 +1733,22 @@ export default function DinoGame({ onGameOver }: DinoGameProps) {
     // KEYBOARD
     // ======================================
 
-    const handleKeyDown = (
-      event: KeyboardEvent
-    ) => {
-      if (
-        event.code === "Space" ||
-        event.code === "ArrowUp"
-      ) {
+    const handleKeyDown =
+      (
+        event: KeyboardEvent
+      ) => {
+        const isJumpKey =
+          event.code ===
+            "Space" ||
+          event.code ===
+            "ArrowUp";
+
+        if (
+          !isJumpKey
+        ) {
+          return;
+        }
+
         event.preventDefault();
 
         if (
@@ -1089,13 +1761,11 @@ export default function DinoGame({ onGameOver }: DinoGameProps) {
           !gameStartedRef.current
         ) {
           startGame();
-
           return;
         }
 
         jump();
-      }
-    };
+      };
 
     window.addEventListener(
       "keydown",
@@ -1114,8 +1784,13 @@ export default function DinoGame({ onGameOver }: DinoGameProps) {
 
       obstacleTweenRef.current?.kill();
 
+      obstacle2TweenRef.current?.kill();
+
+      jumpTimelineRef.current?.kill();
+
       if (
-        nextObstacleTimeoutRef.current
+        nextObstacleTimeoutRef.current !==
+        null
       ) {
         clearTimeout(
           nextObstacleTimeoutRef.current
@@ -1125,11 +1800,10 @@ export default function DinoGame({ onGameOver }: DinoGameProps) {
           null;
       }
 
-      jumpTimelineRef.current?.kill();
-
       gsap.killTweensOf([
         dino,
         obstacle,
+        obstacle2,
         ground,
         mountain,
         sky,
@@ -1138,7 +1812,8 @@ export default function DinoGame({ onGameOver }: DinoGameProps) {
       stopSpriteAnimation();
 
       if (
-        deathIntervalRef.current
+        deathIntervalRef.current !==
+        null
       ) {
         clearInterval(
           deathIntervalRef.current
@@ -1154,22 +1829,24 @@ export default function DinoGame({ onGameOver }: DinoGameProps) {
   // CLICK / TOUCH
   // ========================================
 
-  const handleGameClick = () => {
-    if (gameOver) {
-      window.location.reload();
+  const handleGameClick =
+    () => {
+      if (
+        gameOver
+      ) {
+        window.location.reload();
+        return;
+      }
 
-      return;
-    }
-
-    window.dispatchEvent(
-      new KeyboardEvent(
-        "keydown",
-        {
-          code: "Space",
-        }
-      )
-    );
-  };
+      window.dispatchEvent(
+        new KeyboardEvent(
+          "keydown",
+          {
+            code: "Space",
+          }
+        )
+      );
+    };
 
   // ========================================
   // RENDER
@@ -1179,7 +1856,9 @@ export default function DinoGame({ onGameOver }: DinoGameProps) {
     <div
       ref={gameRef}
       className="dino-game"
-      onClick={handleGameClick}
+      onClick={
+        handleGameClick
+      }
     >
       {/* ==================================
           SKY
@@ -1243,7 +1922,9 @@ export default function DinoGame({ onGameOver }: DinoGameProps) {
         </div>
 
         <div>
-          <span>HIGHEST</span>
+          <span>
+            HIGHEST
+          </span>
 
           <strong>
             {highScore}
@@ -1260,15 +1941,19 @@ export default function DinoGame({ onGameOver }: DinoGameProps) {
         className="dino-player"
       >
         <img
-          ref={dinoSpriteRef}
-          src={idle1.src}
+          ref={
+            dinoSpriteRef
+          }
+          src={
+            idle1.src
+          }
           alt="Dino"
           className="dino-sprite"
         />
       </div>
 
       {/* ==================================
-          ROCK
+          ROCK 1
       ================================== */}
 
       <div
@@ -1276,8 +1961,32 @@ export default function DinoGame({ onGameOver }: DinoGameProps) {
         className="dino-obstacle"
       >
         <img
-          ref={obstacleSpriteRef}
-          src={rock.src}
+          ref={
+            obstacleSpriteRef
+          }
+          src={
+            rock.src
+          }
+          alt="Rock"
+          className="rock-sprite"
+        />
+      </div>
+
+      {/* ==================================
+          ROCK 2
+      ================================== */}
+
+      <div
+        ref={obstacle2Ref}
+        className="dino-obstacle"
+      >
+        <img
+          ref={
+            obstacle2SpriteRef
+          }
+          src={
+            rock2.src
+          }
           alt="Rock"
           className="rock-sprite"
         />
@@ -1292,22 +2001,30 @@ export default function DinoGame({ onGameOver }: DinoGameProps) {
         className="dino-ground"
       >
         <img
-          src={ground.src}
+          src={
+            ground.src
+          }
           alt=""
         />
 
         <img
-          src={ground.src}
+          src={
+            ground.src
+          }
           alt=""
         />
 
         <img
-          src={ground.src}
+          src={
+            ground.src
+          }
           alt=""
         />
 
         <img
-          src={ground.src}
+          src={
+            ground.src
+          }
           alt=""
         />
       </div>
@@ -1367,7 +2084,11 @@ export default function DinoGame({ onGameOver }: DinoGameProps) {
             </strong>
           </div>
 
-          {/* We remove the See Leaderboard button from here because index.tsx will handle the game over state */}
+          <p>
+            Tap anywhere to
+            return to the
+            leaderboard.
+          </p>
         </div>
       )}
 
@@ -1386,29 +2107,16 @@ export default function DinoGame({ onGameOver }: DinoGameProps) {
       ================================== */}
 
       <style jsx>{`
-        /* =================================
-           GAME
-        ================================= */
-
         .dino-game {
           position: relative;
-
           width: 100%;
-
           height: 600px;
-
           overflow: hidden;
-
           background: #061820;
-
           color: #ffffff;
-
           font-family: monospace;
-
           user-select: none;
-
           cursor: pointer;
-
           isolation: isolate;
         }
 
@@ -1422,29 +2130,19 @@ export default function DinoGame({ onGameOver }: DinoGameProps) {
 
         .dino-sky {
           position: absolute;
-
           left: 0;
-
           top: 0;
-
           width: max-content;
-
           height: 58%;
-
           display: flex;
-
           z-index: 0;
-
           will-change: transform;
         }
 
         .dino-sky img {
           width: 100vw;
-
           height: 100%;
-
           flex-shrink: 0;
-
           object-fit: cover;
         }
 
@@ -1454,29 +2152,19 @@ export default function DinoGame({ onGameOver }: DinoGameProps) {
 
         .dino-mountains {
           position: absolute;
-
           left: 0;
-
           top: 22%;
-
           width: max-content;
-
           height: 36%;
-
           display: flex;
-
           z-index: 1;
-
           will-change: transform;
         }
 
         .dino-mountains img {
           width: 100vw;
-
           height: 100%;
-
           flex-shrink: 0;
-
           object-fit: cover;
         }
 
@@ -1486,48 +2174,34 @@ export default function DinoGame({ onGameOver }: DinoGameProps) {
 
         .dino-score {
           position: absolute;
-
           top: 0;
-
           left: 0;
-
           width: 100%;
-
           padding: 28px 38px;
-
           display: flex;
-
           justify-content: space-between;
-
           z-index: 50;
-
           pointer-events: none;
         }
 
         .dino-score > div {
           display: flex;
-
           flex-direction: column;
-
           gap: 5px;
         }
 
-        .dino-score
-          > div:last-child {
+        .dino-score > div:last-child {
           text-align: right;
         }
 
         .dino-score span {
           font-size: 12px;
-
           letter-spacing: 1px;
-
           opacity: 0.65;
         }
 
         .dino-score strong {
           font-size: 30px;
-
           line-height: 1;
         }
 
@@ -1537,110 +2211,68 @@ export default function DinoGame({ onGameOver }: DinoGameProps) {
 
         .dino-player {
           position: absolute;
-
           left: 15%;
-
+          bottom: 42%;
           width: 6rem;
-
           height: 9rem;
-
-          /*
-           * THIS IS THE POSITION THAT
-           * WORKED WITH YOUR ASSET.
-           *
-           * Ground begins at 58%.
-           */
-          top: calc(
-            58% - 9rem + 14px
-          );
-
           z-index: 20;
-
           will-change: transform;
-
           display: flex;
-
           align-items: flex-end;
-
           justify-content: center;
         }
 
         .dino-sprite {
           width: 100%;
-
           height: 100%;
-
           object-fit: contain;
-
-          /*
-           * THIS is what actually pins the
-           * dino to the ground. object-fit:
-           * contain centers the image inside
-           * the box by default, which left a
-           * gap under the feet even though
-           * .dino-player itself was correctly
-           * positioned. Anchoring to the
-           * bottom removes that gap.
-           */
           object-position: center bottom;
-
           image-rendering: pixelated;
-
-          transform: none;
         }
 
         /* =================================
-           ROCK
+           ROCKS
         ================================= */
 
         .dino-obstacle {
           position: absolute;
-
           left: 0;
-
-          /*
-           * Same ground reference as Dino.
-           *
-           * Rock is 6rem high now (bigger).
-           */
-          top: calc(
-            58% - 6rem + 5px
-          );
+          bottom: 42%;
 
           width: 6rem;
-
           height: 6rem;
 
           z-index: 25;
 
           display: flex;
-
           align-items: flex-end;
-
           justify-content: center;
 
           will-change: transform;
+
+          visibility: hidden;
+
+          overflow: visible;
         }
 
         .rock-sprite {
           width: 100%;
-
           height: 100%;
 
           object-fit: contain;
-
-          /*
-           * Same fix as the dino sprite:
-           * anchor to the bottom of the box
-           * instead of the default center,
-           * so the rock actually sits on the
-           * ground instead of floating.
-           */
           object-position: center bottom;
 
-          image-rendering: pixelated;
+          /*
+           * The supplied rock PNGs have transparent
+           * padding underneath the visible artwork.
+           * This moves the visible rock onto the
+           * ground line without moving the obstacle
+           * coordinate itself.
+           */
+          transform:
+            translateY(25%);
 
-          transform: none;
+          image-rendering: pixelated;
         }
 
         /* =================================
@@ -1649,45 +2281,31 @@ export default function DinoGame({ onGameOver }: DinoGameProps) {
 
         .dino-ground {
           position: absolute;
-
           left: 0;
-
           top: 58%;
-
           width: max-content;
-
           height: 42%;
-
           display: flex;
-
           z-index: 10;
-
           will-change: transform;
         }
 
         .dino-ground img {
           width: 100vw;
-
           height: 100%;
-
           flex-shrink: 0;
-
           object-fit: cover;
-
           object-position: top;
-
           image-rendering: pixelated;
         }
 
         /* =================================
-           START SCREEN
+           START
         ================================= */
 
         .dino-start-screen {
           position: absolute;
-
           left: 50%;
-
           top: 42%;
 
           transform:
@@ -1702,11 +2320,8 @@ export default function DinoGame({ onGameOver }: DinoGameProps) {
           );
 
           display: flex;
-
           flex-direction: column;
-
           align-items: center;
-
           gap: 16px;
 
           text-align: center;
@@ -1719,26 +2334,26 @@ export default function DinoGame({ onGameOver }: DinoGameProps) {
         .dino-start-screen h1 {
           margin: 0;
 
-          font-size: clamp(
-            24px,
-            4vw,
-            48px
-          );
+          font-size:
+            clamp(
+              24px,
+              4vw,
+              48px
+            );
 
           font-weight: 400;
 
-          letter-spacing: 2px;
+          letter-spacing:
+            2px;
         }
 
         .dino-start-screen p {
           margin: 0;
-
           font-size: 14px;
         }
 
         .dino-start-screen span {
           font-size: 11px;
-
           opacity: 0.65;
         }
 
@@ -1750,7 +2365,6 @@ export default function DinoGame({ onGameOver }: DinoGameProps) {
           position: absolute;
 
           left: 50%;
-
           top: 50%;
 
           transform:
@@ -1766,9 +2380,7 @@ export default function DinoGame({ onGameOver }: DinoGameProps) {
           padding: 35px;
 
           display: flex;
-
           flex-direction: column;
-
           align-items: center;
 
           gap: 14px;
@@ -1792,7 +2404,8 @@ export default function DinoGame({ onGameOver }: DinoGameProps) {
               0.15
             );
 
-          border-radius: 12px;
+          border-radius:
+            12px;
 
           box-shadow:
             0 20px 60px
@@ -1802,47 +2415,13 @@ export default function DinoGame({ onGameOver }: DinoGameProps) {
               0,
               0.5
             );
-
-          cursor: default;
         }
 
         .dino-game-over h1 {
-          margin: 0 0 10px;
+          margin:
+            0 0 10px;
 
           font-size: 30px;
-        }
-
-        .dino-game-over button {
-          margin-top: 10px;
-
-          padding: 12px 25px;
-
-          border: none;
-
-          border-radius: 7px;
-
-          background: #ffffff;
-
-          color: #061820;
-
-          font-family: inherit;
-
-          font-size: 12px;
-
-          cursor: pointer;
-
-          transition:
-            transform
-              0.2s ease,
-            opacity
-              0.2s ease;
-        }
-
-        .dino-game-over button:hover {
-          transform:
-            scale(1.05);
-
-          opacity: 0.9;
         }
 
         .dino-game-over p {
@@ -1861,7 +2440,6 @@ export default function DinoGame({ onGameOver }: DinoGameProps) {
           position: absolute;
 
           left: 50%;
-
           bottom: 15px;
 
           transform:
@@ -1873,9 +2451,11 @@ export default function DinoGame({ onGameOver }: DinoGameProps) {
 
           opacity: 0.45;
 
-          white-space: nowrap;
+          white-space:
+            nowrap;
 
-          pointer-events: none;
+          pointer-events:
+            none;
         }
 
         /* =================================
@@ -1889,24 +2469,13 @@ export default function DinoGame({ onGameOver }: DinoGameProps) {
 
           .dino-player {
             left: 12%;
-
             width: 5rem;
-
             height: 7.5rem;
-
-            /*
-             * Same positioning logic
-             * as desktop.
-             */
-            top: calc(
-              58% -
-              7.5rem +
-              12px
-            );
           }
 
-          .dino-sprite {
-            transform: none;
+          .dino-obstacle {
+            width: 5rem;
+            height: 5rem;
           }
 
           .dino-score {
@@ -1929,32 +2498,18 @@ export default function DinoGame({ onGameOver }: DinoGameProps) {
 
           .dino-player {
             left: 10%;
-
             width: 4rem;
-
             height: 6rem;
-
-            top: calc(
-              58% -
-              6rem +
-              10px
-            );
-          }
-
-          .dino-sprite {
-            transform: none;
           }
 
           .dino-obstacle {
             width: 4.5rem;
-
             height: 4.5rem;
+          }
 
-            top: calc(
-              58% -
-              4.5rem +
-              4px
-            );
+          .rock-sprite {
+            transform:
+              translateY(25%);
           }
 
           .dino-score {
@@ -1971,6 +2526,11 @@ export default function DinoGame({ onGameOver }: DinoGameProps) {
 
           .dino-start-screen p {
             font-size: 11px;
+          }
+
+          .dino-game-over {
+            min-width: 260px;
+            padding: 26px;
           }
         }
       `}
