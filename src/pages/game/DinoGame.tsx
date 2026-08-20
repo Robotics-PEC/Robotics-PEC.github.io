@@ -161,17 +161,18 @@ const DIFFICULTY_CONFIG = {
   // The base curve is deliberately restrained. Score milestones provide
   // the dramatic jumps in speed, so the game does not become impossible
   // simply because the clock reached the final third.
-  minSpeed: 510,
+  minSpeed: 380,
   maxSpeed: 1020,
 
   // Competitive speed ceiling after milestone multipliers are applied.
   maxCompetitiveSpeed: 3200,
 
-  // Every 30 points, speed receives a +22% milestone step.
-  // The effect is intentionally capped so late-game speed remains playable.
-  pointsPerSpeedMilestone: 30,
-  speedMilestoneStep: 0.22,
-  maxSpeedMilestones: 5,
+  // Every 10 points, speed receives a smooth +13% milestone step.
+  // This allows everyone to comfortably reach 30 points before it ramps up
+  // to the original speeds.
+  pointsPerSpeedMilestone: 10,
+  speedMilestoneStep: 0.13,
+  maxSpeedMilestones: 12,
 
   // Tiny deterministic variation inside a band.
   maxSpeedVariation: 0.04,
@@ -3149,8 +3150,6 @@ export default function DinoGame({
       if (
         gameOver
       ) {
-        window.location.reload();
-
         return;
       }
 
