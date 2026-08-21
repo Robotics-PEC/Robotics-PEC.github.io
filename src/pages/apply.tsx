@@ -6,7 +6,6 @@ import ApplicationForm from "@/components/ApplicationForm";
 import { Button } from "@/components/ui/button";
 import { client } from "@/lib/supabase/supabase";
 import { getFeatureFlagByName } from "@/lib/supabase/actions/flags.actions";
-import { FeatureFlagType } from "@/types";
 import FeatureDisabled from "@/components/FeatureDisabled";
 
 export default function ApplyPage() {
@@ -15,6 +14,7 @@ export default function ApplyPage() {
     const [loading, setLoading] = useState(true);
     const [isLoggedIn, setIsLoggedIn] = useState(false);
     const [isFeatureActive, setIsFeatureActive] = useState(true);
+    const [checksComplete, setChecksComplete] = useState(false);
 
     useEffect(() => {
         let active = true;
@@ -38,18 +38,25 @@ export default function ApplyPage() {
     }, []);
 
     useEffect(() => {
-        const fetch = async () => {
-            const feature = await getFeatureFlagByName("recruitment-application-2026");
-
-            if(feature) {
-                setIsFeatureActive(feature.isEnabled);
+        const checkFeatureFlag = async () => {
+            try {
+                const feature = await getFeatureFlagByName("recruitment-application-2026");
+                if (feature) {
+                    setIsFeatureActive(feature.isEnabled);
+                }
+            } catch (error) {
+                console.error("Failed to fetch feature flag:", error);
+                // Fail safe: disable feature if check fails
+                setIsFeatureActive(false);
+            } finally {
+                setChecksComplete(true); // Mark as done
             }
-        }
+        };
 
-        fetch();
+        checkFeatureFlag();
     }, []);
 
-    if (loading) {
+    if (loading || !checksComplete) {
         return (
             <section className="py-24">
                 <PageSection
