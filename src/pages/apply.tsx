@@ -5,12 +5,16 @@ import PageSection from "@/components/layout/PageSection";
 import ApplicationForm from "@/components/ApplicationForm";
 import { Button } from "@/components/ui/button";
 import { client } from "@/lib/supabase/supabase";
+import { getFeatureFlagByName } from "@/lib/supabase/actions/flags.actions";
+import { FeatureFlagType } from "@/types";
+import FeatureDisabled from "@/components/FeatureDisabled";
 
 export default function ApplyPage() {
     const router = useRouter();
 
     const [loading, setLoading] = useState(true);
     const [isLoggedIn, setIsLoggedIn] = useState(false);
+    const [isFeatureActive, setIsFeatureActive] = useState(true);
 
     useEffect(() => {
         let active = true;
@@ -31,6 +35,18 @@ export default function ApplyPage() {
         return () => {
             active = false;
         };
+    }, []);
+
+    useEffect(() => {
+        const fetch = async () => {
+            const feature = await getFeatureFlagByName("recruitment-application-2026");
+
+            if(feature) {
+                setIsFeatureActive(feature.isEnabled);
+            }
+        }
+
+        fetch();
     }, []);
 
     if (loading) {
@@ -85,7 +101,7 @@ export default function ApplyPage() {
                 title="Join Robotics Society"
                 subtitle="Apply to become a member of the Robotics Society at PEC."
             >
-                <ApplicationForm />
+                {isFeatureActive ? <ApplicationForm /> : <FeatureDisabled />}
             </PageSection>
         </section>
     );
