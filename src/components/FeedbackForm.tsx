@@ -93,6 +93,10 @@ export default function FeedbackForm({
          * Later this can be connected to the Dino game/session
          * without changing the form validation itself.
          */
+        try {
+            localStorage.setItem("dinoFeedbackData", JSON.stringify(feedbackData));
+        } catch(e) {}
+
         if (onContinue) {
             onContinue(feedbackData);
         } else {

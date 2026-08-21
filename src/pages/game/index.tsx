@@ -17,7 +17,9 @@ export default function GamePage() {
   const [feedbackData, setFeedbackData] = useState<FeedbackData | null>(null);
   const [leaderboard, setLeaderboard] = useState<any[]>([]);
   const [deviceId, setDeviceId] = useState<string | null>(null);
-  const [alreadyPlayed, setAlreadyPlayed] = useState<boolean>(false);
+  const [needsCooldown, setNeedsCooldown] = useState<boolean>(false);
+  const [isReturningUser, setIsReturningUser] = useState<boolean>(false);
+  const [gameKey, setGameKey] = useState<number>(0);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   
   const leaderboardRef = useRef<HTMLDivElement>(null);
@@ -39,11 +41,11 @@ export default function GamePage() {
         
         // 3. Check if user already played
         if (data && data.allDeviceIds && data.allDeviceIds.includes(currentDeviceId)) {
-          // Bypass this block in local development so you can test endlessly!
-          if (process.env.NODE_ENV !== "development") {
-            setAlreadyPlayed(true);
-          } else {
-            console.log("Dev Mode: Bypassing Already Played lock.");
+          setNeedsCooldown(true);
+          setIsReturningUser(true);
+          const localFeedback = localStorage.getItem("dinoFeedbackData");
+          if (localFeedback) {
+            setFeedbackData(JSON.parse(localFeedback));
           }
         }
       }
@@ -71,14 +73,12 @@ export default function GamePage() {
 
         // 2. Failsafe: check localStorage first!
         try {
-          const localPlayed = localStorage.getItem("hasPlayedDinoGame");
-          if (localPlayed && process.env.NODE_ENV !== "development") {
-            setAlreadyPlayed(true);
-            await fetchLeaderboardData(currentDeviceId); // Must fetch so they can actually see the leaderboard!
-            setIsLoading(false);
-            return;
+          const localFeedback = localStorage.getItem("dinoFeedbackData");
+          if (localFeedback) {
+            setFeedbackData(JSON.parse(localFeedback));
+            setNeedsCooldown(true);
           }
-        } catch (e) {}
+        } catch {}
 
         // 3. Fetch initial leaderboard and verify against Google Sheets
         await fetchLeaderboardData(currentDeviceId);
@@ -111,27 +111,46 @@ export default function GamePage() {
   };
 
   const handleGameOver = async (score: number) => {
-    if (!feedbackData || !deviceId) return;
+    if (!deviceId) return;
+    if (!feedbackData && !isReturningUser) return;
 
-    const payload = {
+    // Use actual feedback data if we have it, otherwise just send the bare minimum for the backend to update the score
+    const payload = feedbackData ? {
       ...feedbackData,
-      deviceId, // Attach deviceId here
+      deviceId,
       score,
       timestamp: new Date().toISOString(),
+    } : {
+      deviceId,
+      score,
+      timestamp: new Date().toISOString(),
+      sid: "returning_user", // Fallback SID so Google Apps Script doesn't complain about undefined
+      name: "Returning User", // These will be completely ignored by Google Apps Script anyway!
+      branch: "Returning",
     };
 
     console.log("Game Over! Securing and sending payload to backend...");
     
     // OPTIMISTIC UPDATE: Instantly put user's score on the board locally
     setLeaderboard((prev) => {
-      const newLeaderboard = [...prev, payload].sort((a, b) => b.score - a.score);
+      // Try to find their real name from the existing leaderboard if they didn't have local feedbackData
+      const existingPlayer = prev.find(p => p.deviceId === deviceId);
+      const optimisticPlayer = {
+        ...payload,
+        name: feedbackData?.name || existingPlayer?.name || "You (Updating...)",
+        branch: feedbackData?.branch || existingPlayer?.branch || "Updating..."
+      };
+      
+      // Remove any existing entry for this device ID first to prevent duplicates
+      const filteredPrev = prev.filter(p => p.deviceId !== deviceId);
+      const newLeaderboard = [...filteredPrev, optimisticPlayer].sort((a, b) => b.score - a.score);
       return newLeaderboard.slice(0, 50); // keep top 50
     });
 
     // Instantly lock out, UNLESS it's the exempt testing SID
-    if (feedbackData.sid !== "24106969") {
-      setAlreadyPlayed(true);
-      try { localStorage.setItem("hasPlayedDinoGame", "true"); } catch(e){}
+    if (feedbackData?.sid !== "24106969") {
+      setNeedsCooldown(true);
+      try { localStorage.setItem("hasPlayedDinoGame", "true"); } catch{}
     }
     
     scrollToLeaderboard();
@@ -149,6 +168,11 @@ export default function GamePage() {
     } catch (error) {
       console.error("Failed to securely send data:", error);
     }
+  };
+
+  const handlePlayAgain = () => {
+    setNeedsCooldown(true);
+    setGameKey(k => k + 1);
   };
 
   const handleToggleGame = async () => {
@@ -189,34 +213,9 @@ export default function GamePage() {
     return <NotFound />;
   }
 
-  // If they have already played, skip straight to the leaderboard view without rendering the game or form.
-  if (alreadyPlayed) {
-    return (
-      <div className="min-h-screen bg-[#F6F6F7] flex flex-col items-center py-16">
-        {isPanelist && isGameEnabled !== null && (
-          <div className="mb-6">
-            <button 
-              onClick={handleToggleGame}
-              disabled={isToggling}
-              className={`px-6 py-2 rounded-full font-bold text-white shadow-sm transition-opacity ${isToggling ? 'opacity-50' : ''} ${isGameEnabled ? 'bg-red-500 hover:bg-red-600' : 'bg-green-500 hover:bg-green-600'}`}
-            >
-              {isToggling ? "Toggling..." : isGameEnabled ? "Disable Game Globally" : "Enable Game Globally"}
-            </button>
-          </div>
-        )}
-        <div className="w-full max-w-4xl px-4 mb-8">
-          <div className="bg-amber-50 border border-amber-200 rounded-xl p-6 text-center shadow-sm">
-            <h2 className="text-xl font-bold text-amber-800 mb-2">You've Already Played!</h2>
-            <p className="text-amber-700">Thanks for participating. Each device is only allowed one submission. Here is how you stack up against everyone else!</p>
-          </div>
-        </div>
-        <LeaderboardSection leaderboard={leaderboard} leaderboardRef={leaderboardRef} />
-        <BranchLeaderboardSection branchLeaderboard={branchLeaderboard} />
-      </div>
-    );
-  }
 
-  if (!feedbackData) {
+
+  if (!feedbackData && !isReturningUser) {
     return (
       <div className="min-h-screen bg-[#F6F6F7] flex flex-col items-center justify-center p-4 relative">
         {isPanelist && isGameEnabled !== null && (
@@ -259,7 +258,7 @@ export default function GamePage() {
         </div>
       )}
       <div className="w-full relative">
-        <DinoGame onGameOver={handleGameOver} />
+        <DinoGame key={gameKey} onGameOver={handleGameOver} needsCooldown={needsCooldown} onPlayAgain={handlePlayAgain} />
         
         <div className="absolute top-4 right-4 z-50">
           <button 

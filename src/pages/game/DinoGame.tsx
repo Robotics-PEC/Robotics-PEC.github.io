@@ -227,6 +227,8 @@ const COMPETITION_SEED = 481729;
 
 interface DinoGameProps {
   onGameOver?: (score: number) => void;
+  needsCooldown?: boolean;
+  onPlayAgain?: () => void;
 }
 
 interface TweenHandle {
@@ -681,6 +683,8 @@ const PATTERNS: PatternDefinition[] = [
 
 export default function DinoGame({
   onGameOver,
+  needsCooldown,
+  onPlayAgain,
 }: DinoGameProps) {
   // ======================================
   // DOM REFS
@@ -830,6 +834,17 @@ export default function DinoGame({
 
   const [gameOver, setGameOver] =
     useState(false);
+
+  const [cooldownTimer, setCooldownTimer] = useState(needsCooldown ? 5 : 0);
+  const cooldownTimerRef = useRef(cooldownTimer);
+
+  useEffect(() => {
+    cooldownTimerRef.current = cooldownTimer;
+    if (cooldownTimer > 0) {
+      const timerId = setTimeout(() => setCooldownTimer(c => c - 1), 1000);
+      return () => clearTimeout(timerId);
+    }
+  }, [cooldownTimer]);
 
   const [elapsedTime, setElapsedTime] =
     useState(0);
@@ -3047,7 +3062,9 @@ export default function DinoGame({
         if (
           !startedRef.current
         ) {
-          startGame();
+          if (cooldownTimerRef.current <= 0) {
+            startGame();
+          }
 
           return;
         }
@@ -3149,8 +3166,6 @@ export default function DinoGame({
       if (
         gameOver
       ) {
-        window.location.reload();
-
         return;
       }
 
@@ -3359,14 +3374,16 @@ export default function DinoGame({
             <button
               onPointerDown={(e) => {
                 e.stopPropagation();
-                window.dispatchEvent(
-                  new KeyboardEvent("keydown", { code: "Space", repeat: false })
-                );
+                if (cooldownTimer <= 0) {
+                  window.dispatchEvent(
+                    new KeyboardEvent("keydown", { code: "Space", repeat: false })
+                  );
+                }
               }}
-              style={{ pointerEvents: 'auto' }}
-              className="mt-4 mb-4 px-8 py-3 bg-[#111] text-white border-2 border-white/10 font-bold text-xl rounded shadow-[4px_4px_0_rgba(0,0,0,0.3)] hover:translate-y-[2px] hover:shadow-[2px_2px_0_rgba(0,0,0,0.3)] transition-all active:translate-y-[4px] active:shadow-none font-mono tracking-widest"
+              style={{ pointerEvents: cooldownTimer > 0 ? 'none' : 'auto' }}
+              className={`mt-4 mb-4 px-8 py-3 ${cooldownTimer > 0 ? 'bg-red-900 border-red-500/50 cursor-not-allowed opacity-80' : 'bg-[#111] hover:translate-y-[2px] active:translate-y-[4px] hover:shadow-[2px_2px_0_rgba(0,0,0,0.3)] border-white/10 shadow-[4px_4px_0_rgba(0,0,0,0.3)]'} text-white border-2 font-bold text-xl rounded transition-all active:shadow-none font-mono tracking-widest`}
             >
-              START GAME
+              {cooldownTimer > 0 ? `STARTING IN ${cooldownTimer}...` : 'START GAME'}
             </button>
 
             <span>
@@ -3416,10 +3433,19 @@ export default function DinoGame({
             </div>
           </div>
 
-          <p>
-            Tap anywhere to
-            return to the
-            leaderboard.
+          <button
+            onPointerDown={(e) => {
+              e.stopPropagation();
+              if (onPlayAgain) onPlayAgain();
+            }}
+            style={{ pointerEvents: 'auto' }}
+            className="mt-6 px-8 py-3 bg-[#111] text-white border-2 border-white/10 font-bold text-xl rounded shadow-[4px_4px_0_rgba(0,0,0,0.3)] hover:translate-y-[2px] hover:shadow-[2px_2px_0_rgba(0,0,0,0.3)] transition-all active:translate-y-[4px] active:shadow-none font-mono tracking-widest"
+          >
+            PLAY AGAIN
+          </button>
+          
+          <p className="mt-4 opacity-50 text-sm">
+            Scroll down to see the leaderboard.
           </p>
         </div>
       )}
