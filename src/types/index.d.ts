@@ -187,3 +187,11 @@ export interface PanelistAuthType {
     name: string;
     panel_number: number;
 }
+
+export interface FeatureFlagType {
+    id: string;
+    created_at: Date;
+    updatedAt: Date;
+    name: string;
+    isEnabled: boolean;
+}

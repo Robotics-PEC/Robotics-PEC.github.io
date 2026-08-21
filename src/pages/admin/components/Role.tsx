@@ -6,7 +6,7 @@ import { ShieldAlert } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
-import { fetchRoles, type Role } from "@/lib/roles";
+import { fetchRoles, type Role as RolesEditor } from "@/lib/roles";
 import { useAuthRole } from "@/lib/useAuthRole";
 import RolesPanel from "./role/RolesPanel";
 import UsersPanel from "./role/UsersPanel";
@@ -18,9 +18,9 @@ import UsersPanel from "./role/UsersPanel";
  *   ...
  *   <TabsContent value="roles"><Role /></TabsContent>
  */
-const Role = () => {
+const RolesEditor = () => {
   const { loading, isAdmin } = useAuthRole();
-  const [roles, setRoles] = useState<Role[]>([]);
+  const [roles, setRoles] = useState<RolesEditor[]>([]);
 
   useEffect(() => {
     if (!isAdmin) return;
@@ -77,4 +77,4 @@ const Role = () => {
   );
 }
 
-export default Role;
+export default RolesEditor;
