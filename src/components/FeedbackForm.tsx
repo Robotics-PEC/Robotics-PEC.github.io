@@ -96,7 +96,7 @@ export default function FeedbackForm({
          * without changing the form validation itself.
          */
         try {
-            localStorage.setItem("dinoFeedbackData", JSON.stringify(feedbackData));
+            localStorage.setItem("rpec_dino_fb_v2", JSON.stringify(feedbackData));
         } catch(e) {}
 
         if (onContinue) {

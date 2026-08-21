@@ -16,6 +16,7 @@ export default function GamePage() {
 
   const [feedbackData, setFeedbackData] = useState<FeedbackData | null>(null);
   const [leaderboard, setLeaderboard] = useState<any[]>([]);
+  const [branchTop10, setBranchTop10] = useState<Record<string, any[]>>({});
   const [deviceId, setDeviceId] = useState<string | null>(null);
   const [needsCooldown, setNeedsCooldown] = useState<boolean>(false);
   const [isReturningUser, setIsReturningUser] = useState<boolean>(false);
@@ -41,12 +42,15 @@ export default function GamePage() {
         if (data && typeof data.isGameEnabled === "boolean") {
           setIsGameEnabled(data.isGameEnabled);
         }
+        if (data && data.branchTop10) {
+          setBranchTop10(data.branchTop10);
+        }
         
         // 3. Check if user already played
         if (data && data.allDeviceIds && data.allDeviceIds.includes(currentDeviceId)) {
           setNeedsCooldown(true);
           setIsReturningUser(true);
-          const localFeedback = localStorage.getItem("dinoFeedbackData");
+          const localFeedback = localStorage.getItem("rpec_dino_fb_v2");
           if (localFeedback) {
             setFeedbackData(JSON.parse(localFeedback));
           }
@@ -120,7 +124,7 @@ export default function GamePage() {
 
         // 2. Failsafe: check localStorage first!
         try {
-          const localFeedback = localStorage.getItem("dinoFeedbackData");
+          const localFeedback = localStorage.getItem("rpec_dino_fb_v2");
           if (localFeedback) {
             setFeedbackData(JSON.parse(localFeedback));
             setNeedsCooldown(true);
@@ -197,7 +201,7 @@ export default function GamePage() {
     // Instantly lock out, UNLESS it's the exempt testing SID
     if (feedbackData?.sid !== "24106969") {
       setNeedsCooldown(true);
-      try { localStorage.setItem("hasPlayedDinoGame", "true"); } catch{}
+      try { localStorage.setItem("rpec_dino_played_v2", "true"); } catch{}
     }
     
     scrollToLeaderboard();
@@ -361,14 +365,21 @@ export default function GamePage() {
         </div>
       </div>
 
-      <LeaderboardSection leaderboard={leaderboard} leaderboardRef={leaderboardRef} />
+      <LeaderboardSection leaderboard={leaderboard} branchTop10={branchTop10} leaderboardRef={leaderboardRef} />
       <BranchLeaderboardSection branchLeaderboard={branchLeaderboard} />
     </div>
   );
 }
 
 // Extracted Leaderboard UI into a small component so we can reuse it easily
-function LeaderboardSection({ leaderboard, leaderboardRef }: { leaderboard: any[], leaderboardRef: any }) {
+function LeaderboardSection({ leaderboard, branchTop10, leaderboardRef }: { leaderboard: any[], branchTop10: Record<string, any[]>, leaderboardRef: any }) {
+  const [selectedBranch, setSelectedBranch] = useState<string>("Overall");
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+
+  const branches = ["Overall", ...Object.keys(branchTop10).sort()];
+  const isFiltered = selectedBranch !== "Overall";
+  const displayData = isFiltered ? (branchTop10[selectedBranch] || []) : leaderboard;
+
   return (
     <div 
       ref={leaderboardRef} 
@@ -377,16 +388,52 @@ function LeaderboardSection({ leaderboard, leaderboardRef }: { leaderboard: any[
       <div className="bg-white rounded-2xl shadow-xl overflow-hidden border border-slate-200">
         <div className="bg-slate-50 px-6 py-5 border-b border-slate-200 flex items-center justify-between">
           <h2 className="text-xl font-bold text-slate-900 flex items-center gap-2">
-            🏆 Top Players Leaderboard
+            🏆 {isFiltered ? selectedBranch : 'Top Players Leaderboard'}
           </h2>
+          
+          <div className="relative">
+            <button
+              onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+              className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 rounded-lg text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors shadow-sm"
+            >
+              <span className="hidden sm:inline">{selectedBranch === 'Overall' ? 'All Branches' : selectedBranch}</span>
+              <span className="sm:hidden">Filter</span>
+              <svg className={`w-4 h-4 transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
+            </button>
+            
+            {isDropdownOpen && (
+              <div className="absolute right-0 mt-2 w-72 bg-white border border-slate-200 rounded-xl shadow-lg z-50 max-h-80 overflow-y-auto">
+                {branches.length <= 1 ? (
+                  <div className="px-4 py-3 text-sm text-slate-400 animate-pulse">Fetching branches...</div>
+                ) : (
+                  branches.map((branch) => (
+                    <button
+                      key={branch}
+                      onClick={() => {
+                        setSelectedBranch(branch);
+                        setIsDropdownOpen(false);
+                      }}
+                      className={`w-full text-left px-4 py-2.5 text-sm hover:bg-slate-50 transition-colors first:rounded-t-xl last:rounded-b-xl ${
+                        selectedBranch === branch ? 'bg-slate-100 font-semibold text-slate-900' : 'text-slate-600'
+                      }`}
+                    >
+                      {branch === 'Overall' ? '🌐 Overall (Top 50)' : branch}
+                    </button>
+                  ))
+                )}
+              </div>
+            )}
+          </div>
         </div>
         
         <div className="overflow-x-auto max-h-[600px] overflow-y-auto">
-          {leaderboard.length === 0 ? (
+          {displayData.length === 0 ? (
             <div className="p-12 text-center text-slate-500 flex flex-col items-center gap-4">
               <div className="text-6xl mb-2 opacity-50">🦖</div>
-              <p className="text-xl font-medium text-slate-600">Be the first one to play!</p>
-              <p className="text-sm text-slate-400">The leaderboard is currently waiting for challengers.</p>
+              <p className="text-xl font-medium text-slate-600">{isFiltered ? 'No players from this branch yet!' : 'Be the first one to play!'}</p>
+              <p className="text-sm text-slate-400">{isFiltered ? 'Be the first to represent your branch.' : 'The leaderboard is currently waiting for challengers.'}</p>
             </div>
           ) : (
             <table className="w-full text-sm text-left">
@@ -394,12 +441,12 @@ function LeaderboardSection({ leaderboard, leaderboardRef }: { leaderboard: any[
                 <tr>
                   <th scope="col" className="px-6 py-4 font-semibold">Rank</th>
                   <th scope="col" className="px-6 py-4 font-semibold">Name</th>
-                  <th scope="col" className="px-6 py-4 font-semibold">Branch</th>
+                  <th scope="col" className="px-6 py-4 font-semibold">{isFiltered ? 'Global Rank' : 'Branch'}</th>
                   <th scope="col" className="px-6 py-4 font-semibold text-right">Points</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
-                {leaderboard.map((player, index) => (
+                {displayData.map((player: any, index: number) => (
                   <tr 
                     key={index} 
                     className={`hover:bg-slate-50 transition-colors ${index < 3 ? 'bg-slate-50/50' : 'bg-white'}`}
@@ -411,7 +458,7 @@ function LeaderboardSection({ leaderboard, leaderboardRef }: { leaderboard: any[
                       {player.name}
                     </td>
                     <td className="px-6 py-4 text-slate-600">
-                      {player.branch}
+                      {isFiltered ? `#${player.globalRank} overall` : player.branch}
                     </td>
                     <td className="px-6 py-4 font-bold text-slate-900 text-right">
                       {player.score.toLocaleString()}
