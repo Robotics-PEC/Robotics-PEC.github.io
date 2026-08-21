@@ -1,39 +1,78 @@
-import { client } from "../supabase";
 import { FormEventType } from "@/types";
+import { apiFetch } from "../supabase";
+
+const EVENTS_API = "/api/events";
+
+const getErrorMessage = async (response: Response) => {
+    try {
+        const data = await response.json();
+
+        if (typeof data === "string") {
+            return data;
+        }
+
+        return (
+            data?.error ||
+            `Request failed with status ${response.status}`
+        );
+    } catch {
+        return `Request failed with status ${response.status}`;
+    }
+};
 
 export const getEvents = async () => {
-    const { data, error } = await client.from("events").select("*");
+    const response = await fetch(EVENTS_API);
 
-    if (error) {
-        console.log(error);
+    if (!response.ok) {
+        throw new Error(await getErrorMessage(response));
     }
 
-    return data;
+    return response.json();
 };
 
-export const uploadEvent = async (event: FormEventType) => {
-    const { id, ...rest } = event;
-    const { error } = await client.from("events").insert(rest);
+export const uploadEvent = async (
+    event: FormEventType
+) => {
+    const response = await apiFetch(EVENTS_API, {
+        method: "POST",
+        body: JSON.stringify(event),
+    });
 
-    if (error) {
-        console.log(error);
-        return error;
+    if (!response.ok) {
+        throw new Error(await getErrorMessage(response));
     }
 
-    return null;
+    return response.json();
 };
 
-export const deleteEvent = async (id: string) => {
-    const response = await client.from("events").delete().eq("id", id);
-    return response;
-};
+export const deleteEvent = async (
+    id: string
+) => {
+    const response = await apiFetch(
+        `${EVENTS_API}?id=${encodeURIComponent(id)}`,
+        {
+            method: "DELETE",
+        }
+    );
 
-export const updateEvent = async (event: FormEventType) => {
-    const { id, ...rest } = event;
-    const { error } = await client.from("events").update(rest).eq("id", id);
-
-    if (error) {
-        console.log(error);
+    if (!response.ok) {
+        throw new Error(await getErrorMessage(response));
     }
-    return error;
+
+    return response.json();
+};
+
+export const updateEvent = async (
+    event: FormEventType
+) => {
+    const response = await apiFetch(EVENTS_API, {
+        method: "PUT",
+        body: JSON.stringify(event),
+    });
+
+    if (!response.ok) {
+        throw new Error(await getErrorMessage(response));
+    }
+
+    return response.json();
 };

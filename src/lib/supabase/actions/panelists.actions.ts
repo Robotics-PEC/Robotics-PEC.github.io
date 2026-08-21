@@ -1,58 +1,96 @@
 import { client } from "../supabase";
+import { apiFetch } from "../supabase";
 import { PanelistType } from "@/types";
 
-export const fetchPanelists = async (): Promise<PanelistType[]> => {
-    const { data, error } = await client
-        .from("panelists")
-        .select("*")
-        .order("panelNumber", { ascending: true });
+const PANELISTS_API =
+    "/api/panelists";
 
-    if (error) {
-        console.error("Error fetching panelists:", error);
-        return [];
-    }
+export const fetchPanelists =
+    async (): Promise<
+        PanelistType[]
+    > => {
+        const response =
+            await apiFetch(
+                PANELISTS_API
+            );
 
-    return data as PanelistType[];
-};
+        if (!response.ok) {
+            console.error(
+                "Error fetching panelists:",
+                await response.text()
+            );
 
-export const updateMyStatus = async (
-    panelNumber: number,
-    isOccupied: boolean
-): Promise<boolean> => {
-    const { error } = await client
-        .from("panelists")
-        .update({
-            isOccupied: isOccupied,
-        })
-        .eq("panelNumber", panelNumber);
+            return [];
+        }
 
-    if (error) {
-        console.error("Error updating panelist status:", error);
-        return false;
-    }
-
-    return true;
-};
-
-export const subscribeToPanelistUpdates = (
-    onUpdate: (panelist: PanelistType) => void
-) => {
-    const channel = client
-        .channel(`panelists-status-${Date.now()}`)
-        .on(
-            "postgres_changes",
-            {
-                event: "UPDATE",
-                schema: "public",
-                table: "panelists",
-            },
-            (payload) => {
-                onUpdate(payload.new as PanelistType);
-            }
-        )
-        .subscribe();
-
-    return () => {
-        client.removeChannel(channel);
+        return response.json();
     };
-};
+
+export const updateMyStatus =
+    async (
+        panelNumber: number,
+        isOccupied: boolean
+    ): Promise<boolean> => {
+        const response =
+            await apiFetch(
+                PANELISTS_API,
+                {
+                    method: "PUT",
+
+                    body:
+                        JSON.stringify({
+                            panelNumber,
+                            isOccupied,
+                        }),
+                }
+            );
+
+        if (!response.ok) {
+            console.error(
+                "Error updating panelist status:",
+                await response.text()
+            );
+
+            return false;
+        }
+
+        return response.json();
+    };
+
+export const subscribeToPanelistUpdates =
+    (
+        onUpdate: (
+            panelist: PanelistType
+        ) => void
+    ) => {
+        const channel =
+            client
+                .channel(
+                    `panelists-status-${Date.now()}`
+                )
+                .on(
+                    "postgres_changes",
+                    {
+                        event:
+                            "UPDATE",
+                        schema:
+                            "public",
+                        table:
+                            "panelists",
+                    },
+                    (
+                        payload
+                    ) => {
+                        onUpdate(
+                            payload.new as PanelistType
+                        );
+                    }
+                )
+                .subscribe();
+
+        return () => {
+            client.removeChannel(
+                channel
+            );
+        };
+    };

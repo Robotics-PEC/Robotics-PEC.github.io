@@ -1,88 +1,122 @@
 import { FormTeamType } from "@/types";
-import { client } from "../supabase";
-import { deleteImage, uploadImage } from "./storage.actions";
-import { urlToBase64 } from "@/lib/utils";
+import { apiFetch } from "../supabase";
 
+const TEAM_API = "/api/team";
+
+const getErrorMessage = async (response: Response) => {
+    try {
+        const data = await response.json();
+
+        if (typeof data === "string") {
+            return data;
+        }
+
+        return (
+            data?.error ||
+            `Request failed with status ${response.status}`
+        );
+    } catch {
+        return `Request failed with status ${response.status}`;
+    }
+};
 
 export const getTeamImages = async () => {
-  const { data, error } = await client
-    .from("team")
-    .select("name, image");
+    const response = await fetch(
+        `${TEAM_API}?images=true`
+    );
 
-  if (error) {
-    console.error("Failed to fetch team images:", error);
-    return [];
-  }
+    if (!response.ok) {
+        throw new Error(await getErrorMessage(response));
+    }
 
-  return data as { name: string; image: string }[];
+    return response.json();
 };
 
 export const getTeamMembers = async () => {
-    const { data, error } = await client.from("team").select("*");
-    if (error) console.log(error);
-    if (!data) throw new Error("Could not fetch Team Members");
-    return JSON.parse(JSON.stringify(data));
+    const response = await fetch(TEAM_API);
+
+    if (!response.ok) {
+        throw new Error(await getErrorMessage(response));
+    }
+
+    return response.json();
 };
 
 export const getTeamMemberById = async (id: string) => {
-    const { data, error } = await client.from("team").select().eq("id", id);
+    const response = await fetch(
+        `${TEAM_API}?id=${encodeURIComponent(id)}`
+    );
 
-    if (error) console.log(error);
-    if (!data) throw new Error("Team member with this id doesn't exist");
-    return JSON.parse(JSON.stringify(data[0]));
-};
-
-export const addTeamMember = async (memberData: FormTeamType, fileName: string) => {
-    await uploadImage("team", fileName, memberData.image);
-    const { data } = client.storage.from("media").getPublicUrl(`team/${fileName}`);
-    const { id, ...rest } = memberData;
-
-    const { error } = await client.from("team").insert({ ...rest, image: data.publicUrl });
-
-    if (error) {
-        console.log(error);
-        return { error: error };
-    }
-    return { error: null }
-};
-
-export const deleteTeamMember = async (member: FormTeamType) => {
-    await deleteImage([`projects/${member.image.split("/").pop()!}`]);
-    const response = await client.from("team").delete().eq("id", member.id);
-
-    return response;
-};
-
-export const updateTeamMember = async (member: FormTeamType, fileName: string) => {
-    const oldMemberData = await getTeamMemberById(member.id);
-    await deleteImage([`team/${oldMemberData.image.split("/").pop()!}`]);
-
-    const { id, ...rest } = member;
-    const imageData = await uploadImage("team", fileName, member.image);
-
-    if (!imageData) {
-        // image upload fail
-        return new Error("Image Upload Failed");
+    if (!response.ok) {
+        throw new Error(await getErrorMessage(response));
     }
 
-    const { data } = client.storage.from("media").getPublicUrl(`team/${fileName}`);
-
-    const { error } = await client.from("team").update({ ...rest, image: data.publicUrl }).eq("id", member.id);
-
-
-    if (error) {
-        const fileData = await urlToBase64(oldMemberData.image);
-        await uploadImage("projects", oldMemberData.image.split("/").pop()!, fileData)
-        console.log(error);
-    }
-
-    return error;
+    return response.json();
 };
 
-export const getTeamMembersByCategory = async (category: string) => {
-    const { data, error } = await client.from("team").select("*").eq("category", category);
+export const addTeamMember = async (
+    memberData: FormTeamType,
+    fileName: string
+) => {
+    const response = await apiFetch(TEAM_API, {
+        method: "POST",
+        body: JSON.stringify({
+            memberData,
+            fileName,
+        }),
+    });
 
-    if (error) console.log(error);
-    if (!data) throw new Error("Team with this category doesn't exist");
-    return data;
+    if (!response.ok) {
+        throw new Error(await getErrorMessage(response));
+    }
+
+    return response.json();
+};
+
+export const deleteTeamMember = async (
+    member: FormTeamType
+) => {
+    const response = await apiFetch(TEAM_API, {
+        method: "DELETE",
+        body: JSON.stringify(member),
+    });
+
+    if (!response.ok) {
+        throw new Error(await getErrorMessage(response));
+    }
+
+    return response.json();
+};
+
+export const updateTeamMember = async (
+    member: FormTeamType,
+    fileName: string
+) => {
+    const response = await apiFetch(TEAM_API, {
+        method: "PUT",
+        body: JSON.stringify({
+            memberData: member,
+            fileName,
+        }),
+    });
+
+    if (!response.ok) {
+        throw new Error(await getErrorMessage(response));
+    }
+
+    return response.json();
+};
+
+export const getTeamMembersByCategory = async (
+    category: string
+) => {
+    const response = await fetch(
+        `${TEAM_API}?category=${encodeURIComponent(category)}`
+    );
+
+    if (!response.ok) {
+        throw new Error(await getErrorMessage(response));
+    }
+
+    return response.json();
 };

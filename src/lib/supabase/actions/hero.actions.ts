@@ -1,28 +1,41 @@
 import { HeroType } from "@/types";
-import { client } from "../supabase"
+import { apiFetch } from "../supabase";
+
+const HERO_API = "/api/hero";
+
+const getErrorMessage = async (response: Response) => {
+    try {
+        const data = await response.json();
+
+        if (typeof data === "string") {
+            return data;
+        }
+
+        return data?.error || `Request failed with status ${response.status}`;
+    } catch {
+        return `Request failed with status ${response.status}`;
+    }
+};
 
 export const getHeroData = async () => {
-    const { data, error } = await client.from("hero").select("*").eq("id", "e32e2ff0-8a37-4b44-aded-db033dc95333");
+    const response = await fetch(HERO_API);
 
-    if (error) {
-        console.log(error);
+    if (!response.ok) {
+        throw new Error(await getErrorMessage(response));
     }
 
-    if (!data) throw new Error("Could not fetch data for hero section");
-
-    return {
-        heading: data[0].heading,
-        description: data[0].description
-    };
+    return response.json();
 };
 
 export const updateHeroData = async (data: HeroType) => {
-    const { error } = await client.from("hero").update(data).eq("id", "e32e2ff0-8a37-4b44-aded-db033dc95333");
+    const response = await apiFetch(HERO_API, {
+        method: "PUT",
+        body: JSON.stringify(data),
+    });
 
-    if (error) {
-        console.log(error);
-        return error;
+    if (!response.ok) {
+        throw new Error(await getErrorMessage(response));
     }
 
-    return null;
-}
+    return response.json();
+};
