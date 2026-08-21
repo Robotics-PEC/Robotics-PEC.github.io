@@ -3155,16 +3155,6 @@ export default function DinoGame({
       }
 
       if (!started) {
-        window.dispatchEvent(
-          new KeyboardEvent(
-            "keydown",
-            {
-              code: "Space",
-              repeat: false,
-            },
-          ),
-        );
-
         return;
       }
 
@@ -3366,17 +3356,18 @@ export default function DinoGame({
               ROBOTICS DINO RUN
             </h1>
 
-            <p>
-              PRESS{" "}
-              <strong>
-                SPACE
-              </strong>{" "}
-              OR{" "}
-              <strong>
-                ↑
-              </strong>{" "}
-              TO START
-            </p>
+            <button
+              onPointerDown={(e) => {
+                e.stopPropagation();
+                window.dispatchEvent(
+                  new KeyboardEvent("keydown", { code: "Space", repeat: false })
+                );
+              }}
+              style={{ pointerEvents: 'auto' }}
+              className="mt-4 mb-4 px-8 py-3 bg-[#111] text-white border-2 border-white/10 font-bold text-xl rounded shadow-[4px_4px_0_rgba(0,0,0,0.3)] hover:translate-y-[2px] hover:shadow-[2px_2px_0_rgba(0,0,0,0.3)] transition-all active:translate-y-[4px] active:shadow-none font-mono tracking-widest"
+            >
+              START GAME
+            </button>
 
             <span>
               Deterministic competition run.

@@ -53,6 +53,12 @@ export default function GamePage() {
   };
 
   useEffect(() => {
+    if (feedbackData) {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  }, [feedbackData]);
+
+  useEffect(() => {
     let timeoutId: NodeJS.Timeout;
 
     const init = async () => {
