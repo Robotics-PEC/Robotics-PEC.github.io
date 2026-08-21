@@ -176,7 +176,7 @@ const DIFFICULTY_CONFIG = {
   // Tiny deterministic variation inside a band.
   maxSpeedVariation: 0.04,
 
-  // Pattern recovery shrinks with difficulty.
+  // Pattern recovery shrinks with difficulty
   earlyRecoveryMin: 0.46,
   earlyRecoveryMax: 0.74,
   lateRecoveryMin: 0.05,
