@@ -78,53 +78,53 @@ const tabComponentMap: Record<TabValues,React.ReactNode> = {
     ),
 }
 
-const tabTriggerMap: Record<TabValues,React.ReactNode> = {
-    [TabValues.HERO]: (
+const tabTriggerList: React.ReactNode[] = [
+    (
         <TabsTrigger value={TabValues.HERO} className="flex items-center gap-2">
             <Home className="h-4 w-4" /> Hero Section
         </TabsTrigger>
     ),
-    [TabValues.PROJECTS]: (
+    (
         <TabsTrigger value={TabValues.PROJECTS} className="flex items-center gap-2">
             <FileText className="h-4 w-4" /> Projects
         </TabsTrigger>
     ),
-    [TabValues.ACTIVITIES]: (
+    (
         <TabsTrigger value={TabValues.ACTIVITIES} className="flex items-center gap-2">
             <FileText className="h-4 w-4" /> Activities
         </TabsTrigger>
     ),
-    [TabValues.EVENTS]: (
+    (
         <TabsTrigger value={TabValues.EVENTS} className="flex items-center gap-2">
             <Calendar className="h-4 w-4" /> Events
         </TabsTrigger>
     ),
-    [TabValues.TEAM]: (
+    (
         <TabsTrigger value={TabValues.TEAM} className="flex items-center gap-2">
             <Users className="h-4 w-4" /> Team
         </TabsTrigger>
     ),
-    [TabValues.BLOGS]: (
+    (
         <TabsTrigger value={TabValues.BLOGS} className="flex items-center gap-2">
             <Users className="h-4 w-4" /> Blogs
         </TabsTrigger>
     ),
-    [TabValues.RESOURCES]: (
+    (
         <TabsTrigger value={TabValues.RESOURCES} className="flex items-center gap-2">
             <Book className="h-4 w-4" /> Resources
         </TabsTrigger>
     ),
-    [TabValues.ROLES]: (
+    (
         <TabsTrigger value={TabValues.ROLES} className="flex items-center gap-2">
             <Book className="h-4 w-4" /> Roles
         </TabsTrigger>
     ),
-    [TabValues.FEATURE_FLAGS]: (
+    (
         <TabsTrigger value={TabValues.FEATURE_FLAGS} className="flex items-center gap-2">
             <Book className="h-4 w-4" /> Feature Flags
         </TabsTrigger>
     ),
-}
+]
 
 const titleMap: Record<TabValues, string> = {
     [TabValues.HERO]: "Hero Section Editor",
@@ -174,9 +174,7 @@ const Admin = () => {
                             <Tabs defaultValue={TabValues.HERO} value={activeTab} onValueChange={(value: unknown) => setActiveTab(value as TabValues)} className="w-full mb-12">
                                 <div className="overflow-x-auto pb-2">
                                     <TabsList className="mb-8">
-                                        {
-                                            ...Object.entries(tabTriggerMap).map((object => object[1]))
-                                        }
+                                        {tabTriggerList}
                                     </TabsList>
                                 </div>
 
