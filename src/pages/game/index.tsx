@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import fpPromise from "@fingerprintjs/fingerprintjs";
-import DinoGame from "./DinoGame";
+import DinoGame, { preloadDinoAssets } from "./DinoGame";
 import FeedbackForm, { FeedbackData } from "@/components/FeedbackForm";
 import { useAuthRole } from "@/lib/useAuthRole";
 import NotFound from "@/pages/404";
@@ -21,6 +21,9 @@ export default function GamePage() {
   const [isReturningUser, setIsReturningUser] = useState<boolean>(false);
   const [gameKey, setGameKey] = useState<number>(0);
   const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [isPreparingGame, setIsPreparingGame] = useState<boolean>(false);
+  const [assetsReady, setAssetsReady] = useState<boolean>(false);
+  const [assetLoadError, setAssetLoadError] = useState<boolean>(false);
   
   const leaderboardRef = useRef<HTMLDivElement>(null);
 
@@ -59,6 +62,50 @@ export default function GamePage() {
       window.scrollTo({ top: 0, behavior: "smooth" });
     }
   }, [feedbackData]);
+
+  useEffect(() => {
+    if (
+      isLoading ||
+      roleLoading ||
+      isGameEnabled === false
+    ) {
+      return;
+    }
+
+    let cancelled = false;
+
+    const prepareAssets = async () => {
+      setAssetLoadError(false);
+
+      try {
+        await preloadDinoAssets();
+
+        if (!cancelled) {
+          setAssetsReady(true);
+        }
+      } catch (error) {
+        console.error(
+          "Failed to preload Dino assets:",
+          error,
+        );
+
+        if (!cancelled) {
+          setAssetsReady(false);
+          setAssetLoadError(true);
+        }
+      }
+    };
+
+    void prepareAssets();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [
+    isLoading,
+    roleLoading,
+    isGameEnabled,
+  ]);
 
   useEffect(() => {
     let timeoutId: NodeJS.Timeout;
@@ -234,11 +281,55 @@ export default function GamePage() {
             <h1 className="text-3xl font-bold tracking-tight text-slate-900 mb-2">Play Dino Run</h1>
             <p className="text-slate-500">Please provide your feedback first to unlock the game!</p>
           </div>
-          <FeedbackForm 
-            onContinue={(data: FeedbackData) => {
-              setFeedbackData(data);
-            }} 
+          <FeedbackForm
+            isPreparingGame={isPreparingGame}
+            onContinue={async (data: FeedbackData) => {
+              setIsPreparingGame(true);
+              setAssetLoadError(false);
+
+              try {
+                await preloadDinoAssets();
+                setAssetsReady(true);
+                setFeedbackData(data);
+              } catch (error) {
+                console.error(
+                  "Dino assets are not ready:",
+                  error,
+                );
+                setAssetLoadError(true);
+              } finally {
+                setIsPreparingGame(false);
+              }
+            }}
           />
+
+          {assetLoadError && (
+            <div
+              role="alert"
+              className="mt-4 rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700"
+            >
+              The game assets could not be loaded. Please press Continue again.
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  if (!assetsReady) {
+    return (
+      <div className="min-h-screen bg-[#061820] flex flex-col items-center justify-center p-4 text-white">
+        <div className="text-center">
+          <div className="text-xl font-semibold tracking-wide">
+            {assetLoadError
+              ? "Game assets could not be loaded"
+              : "Preparing the game..."}
+          </div>
+          <p className="mt-2 text-sm text-white/60">
+            {assetLoadError
+              ? "Please refresh the page and try again."
+              : "Please wait a moment while the game is prepared."}
+          </p>
         </div>
       </div>
     );
