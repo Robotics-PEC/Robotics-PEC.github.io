@@ -6,15 +6,6 @@ import type {
 
 /*
  * ---------------------------------------------------------
- * Google Apps Script URL
- * ---------------------------------------------------------
- */
-
-const APPS_SCRIPT_URL =
-    process.env.GOOGLE_APPS_SCRIPT_URL;
-
-/*
- * ---------------------------------------------------------
  * Types
  * ---------------------------------------------------------
  */
@@ -56,45 +47,86 @@ const appsScriptRequest =
             unknown
         >
     ): Promise<any> => {
-        if (
-            !APPS_SCRIPT_URL
-        ) {
-            throw new Error(
-                "GOOGLE_APPS_SCRIPT_URL is not configured."
-            );
+        const isServer =
+            typeof window ===
+            "undefined";
+
+        if (isServer) {
+            const appsScriptUrl =
+                process.env
+                    .GOOGLE_APPS_SCRIPT_URL;
+
+            if (
+                !appsScriptUrl
+            ) {
+                throw new Error(
+                    "GOOGLE_APPS_SCRIPT_URL is not configured."
+                );
+            }
+
+            const response =
+                await fetch(
+                    appsScriptUrl,
+                    {
+                        method: "POST",
+                        redirect:
+                            "follow",
+                        headers: {
+                            "Content-Type":
+                                "application/json",
+                        },
+                        body: JSON.stringify(
+                            body
+                        ),
+                    }
+                );
+
+            if (
+                !response.ok
+            ) {
+                throw new Error(
+                    `Google Apps Script returned ${response.status}`
+                );
+            }
+
+            return response.json();
+        } else {
+            const response =
+                await fetch(
+                    "/api/interviewer",
+                    {
+                        method: "POST",
+                        headers: {
+                            "Content-Type":
+                                "application/json",
+                        },
+                        body: JSON.stringify(
+                            body
+                        ),
+                    }
+                );
+
+            if (
+                !response.ok
+            ) {
+                const errorData =
+                    await response
+                        .json()
+                        .catch(
+                            () =>
+                                (
+                                    {}
+                                )
+                        );
+
+                throw new Error(
+                    errorData.error ||
+                        `API route returned status ${response.status}`
+                );
+            }
+
+            return response.json();
         }
-
-        const response =
-            await fetch(
-                APPS_SCRIPT_URL,
-                {
-                    method: "POST",
-
-                    headers: {
-                        "Content-Type":
-                            "application/json",
-                    },
-
-                    body: JSON.stringify(
-                        body
-                    ),
-
-                    cache: "no-store",
-                }
-            );
-
-        if (
-            !response.ok
-        ) {
-            throw new Error(
-                `Google Apps Script returned ${response.status}`
-            );
-        }
-
-        const result =
-            await response.json();
-
-        return result;
     };
 
 /*
