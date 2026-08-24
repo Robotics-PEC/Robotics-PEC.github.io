@@ -200,3 +200,11 @@ export type InterviewerType = {
         | "rejected";
     createdAt?: string | null;
 };
+
+export interface FeatureFlagType {
+    id: string;
+    created_at: Date;
+    updatedAt: Date;
+    name: string;
+    isEnabled: boolean;
+}

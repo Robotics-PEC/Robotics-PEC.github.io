@@ -5,12 +5,16 @@ import PageSection from "@/components/layout/PageSection";
 import ApplicationForm from "@/components/ApplicationForm";
 import { Button } from "@/components/ui/button";
 import { client } from "@/lib/supabase/supabase";
+import { getFeatureFlagByName } from "@/lib/supabase/actions/flags.actions";
+import FeatureDisabled from "@/components/FeatureDisabled";
 
 export default function ApplyPage() {
     const router = useRouter();
 
     const [loading, setLoading] = useState(true);
     const [isLoggedIn, setIsLoggedIn] = useState(false);
+    const [isFeatureActive, setIsFeatureActive] = useState(true);
+    const [checksComplete, setChecksComplete] = useState(false);
 
     useEffect(() => {
         let active = true;
@@ -33,7 +37,26 @@ export default function ApplyPage() {
         };
     }, []);
 
-    if (loading) {
+    useEffect(() => {
+        const checkFeatureFlag = async () => {
+            try {
+                const feature = await getFeatureFlagByName("recruitment-application-2026");
+                if (feature) {
+                    setIsFeatureActive(feature.isEnabled);
+                }
+            } catch (error) {
+                console.error("Failed to fetch feature flag:", error);
+                // Fail safe: disable feature if check fails
+                setIsFeatureActive(false);
+            } finally {
+                setChecksComplete(true); // Mark as done
+            }
+        };
+
+        checkFeatureFlag();
+    }, []);
+
+    if (loading || !checksComplete) {
         return (
             <section className="py-24">
                 <PageSection
@@ -85,7 +108,7 @@ export default function ApplyPage() {
                 title="Join Robotics Society"
                 subtitle="Apply to become a member of the Robotics Society at PEC."
             >
-                <ApplicationForm />
+                {isFeatureActive ? <ApplicationForm /> : <FeatureDisabled />}
             </PageSection>
         </section>
     );

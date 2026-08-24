@@ -26,11 +26,13 @@ export interface FeedbackData {
 }
 
 interface FeedbackFormProps {
-    onContinue?: (data: FeedbackData) => void;
+    onContinue?: (data: FeedbackData) => void | Promise<void>;
+    isPreparingGame?: boolean;
 }
 
 export default function FeedbackForm({
     onContinue,
+    isPreparingGame = false,
 }: FeedbackFormProps) {
     const [name, setName] = useState("");
     const [sid, setSid] = useState("");
@@ -93,6 +95,10 @@ export default function FeedbackForm({
          * Later this can be connected to the Dino game/session
          * without changing the form validation itself.
          */
+        try {
+            localStorage.setItem("rpec_dino_fb_v2", JSON.stringify(feedbackData));
+        } catch(e) {}
+
         if (onContinue) {
             onContinue(feedbackData);
         } else {
@@ -350,9 +356,12 @@ export default function FeedbackForm({
             {/* Continue */}
             <button
                 type="submit"
-                className="w-full rounded-md bg-primary px-6 py-3 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90"
+                disabled={isPreparingGame}
+                className="w-full rounded-md bg-primary px-6 py-3 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
             >
-                Continue →
+                {isPreparingGame
+                    ? "Preparing Game..."
+                    : "Continue →"}
             </button>
         </form>
     );

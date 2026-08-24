@@ -8,21 +8,6 @@ import {
 import { gsap } from "gsap";
 
 // ========================================
-// IDLE
-// ========================================
-
-import idle1 from "../../assets/idle1.png";
-import idle2 from "../../assets/idle2.png";
-import idle3 from "../../assets/idle3.png";
-import idle4 from "../../assets/idle4.png";
-import idle5 from "../../assets/idle5.png";
-import idle6 from "../../assets/idle6.png";
-import idle7 from "../../assets/idle7.png";
-import idle8 from "../../assets/idle8.png";
-import idle9 from "../../assets/idle9.png";
-import idle10 from "../../assets/idle10.png";
-
-// ========================================
 // RUN
 // ========================================
 
@@ -78,19 +63,6 @@ import night from "../../assets/night.png";
 // ========================================
 // FRAME ARRAYS
 // ========================================
-
-const idleFrames = [
-  idle1,
-  idle2,
-  idle3,
-  idle4,
-  idle5,
-  idle6,
-  idle7,
-  idle8,
-  idle9,
-  idle10,
-];
 
 const runFrames = [
   run1,
@@ -161,22 +133,23 @@ const DIFFICULTY_CONFIG = {
   // The base curve is deliberately restrained. Score milestones provide
   // the dramatic jumps in speed, so the game does not become impossible
   // simply because the clock reached the final third.
-  minSpeed: 510,
+  minSpeed: 380,
   maxSpeed: 1020,
 
   // Competitive speed ceiling after milestone multipliers are applied.
   maxCompetitiveSpeed: 3200,
 
-  // Every 30 points, speed receives a +22% milestone step.
-  // The effect is intentionally capped so late-game speed remains playable.
-  pointsPerSpeedMilestone: 30,
-  speedMilestoneStep: 0.22,
-  maxSpeedMilestones: 5,
+  // Every 10 points, speed receives a smooth +13% milestone step.
+  // This allows everyone to comfortably reach 30 points before it ramps up
+  // to the original speeds.
+  pointsPerSpeedMilestone: 10,
+  speedMilestoneStep: 0.13,
+  maxSpeedMilestones: 12,
 
   // Tiny deterministic variation inside a band.
   maxSpeedVariation: 0.04,
 
-  // Pattern recovery shrinks with difficulty.
+  // Pattern recovery shrinks with difficulty
   earlyRecoveryMin: 0.46,
   earlyRecoveryMax: 0.74,
   lateRecoveryMin: 0.05,
@@ -227,6 +200,8 @@ const COMPETITION_SEED = 481729;
 
 interface DinoGameProps {
   onGameOver?: (score: number) => void;
+  needsCooldown?: boolean;
+  onPlayAgain?: () => void;
 }
 
 interface TweenHandle {
@@ -676,11 +651,168 @@ const PATTERNS: PatternDefinition[] = [
 ];
 
 // ========================================
+// DINO ASSET PRELOAD
+// ========================================
+//
+// All gameplay images are loaded and decoded before the
+// game starts. The browser's normal HTTP cache handles
+// subsequent visits, while this in-memory cache keeps the
+// current session's decoded images warm.
+
+const DINO_ASSET_SOURCES = Array.from(
+  new Set(
+    [
+      ...runFrames,
+      ...jumpFrames,
+      ...deadFrames,
+      ...obstacleImages,
+      ground,
+      mountain,
+      night,
+    ].map((asset) => asset.src),
+  ),
+);
+
+const dinoImageCache =
+  new Map<string, HTMLImageElement>();
+
+let dinoAssetsReadyPromise:
+  | Promise<void>
+  | null = null;
+
+const preloadDinoImage = (
+  src: string,
+): Promise<void> => {
+  const cached =
+    dinoImageCache.get(src);
+
+  if (
+    cached &&
+    cached.complete &&
+    cached.naturalWidth > 0
+  ) {
+    return Promise.resolve();
+  }
+
+  const image =
+    cached ?? new Image();
+
+  image.decoding = "async";
+  image.src = src;
+
+  dinoImageCache.set(
+    src,
+    image,
+  );
+
+  return new Promise<void>(
+    (resolve, reject) => {
+      const finish = async () => {
+        if (image.naturalWidth <= 0) {
+          dinoImageCache.delete(src);
+          reject(
+            new Error(
+              `Failed to load Dino asset: ${src}`,
+            ),
+          );
+          return;
+        }
+
+        try {
+          await image.decode();
+        } catch {
+          // The resource has loaded. Some browsers can reject
+          // decode() even though the image is usable.
+        }
+
+        resolve();
+      };
+
+      if (image.complete) {
+        void finish();
+        return;
+      }
+
+      image.onload = () => {
+        void finish();
+      };
+
+      image.onerror = () => {
+        dinoImageCache.delete(src);
+        reject(
+          new Error(
+            `Failed to load Dino asset: ${src}`,
+          ),
+        );
+      };
+    },
+  );
+};
+
+const preloadDinoAssetBatch = async (
+  sources: string[],
+  concurrency = 4,
+): Promise<void> => {
+  let nextIndex = 0;
+
+  const worker = async () => {
+    while (true) {
+      const currentIndex =
+        nextIndex++;
+
+      if (
+        currentIndex >=
+        sources.length
+      ) {
+        return;
+      }
+
+      await preloadDinoImage(
+        sources[currentIndex],
+      );
+    }
+  };
+
+  const workerCount =
+    Math.min(
+      concurrency,
+      sources.length,
+    );
+
+  await Promise.all(
+    Array.from(
+      { length: workerCount },
+      () => worker(),
+    ),
+  );
+};
+
+export const preloadDinoAssets =
+  (): Promise<void> => {
+    if (dinoAssetsReadyPromise) {
+      return dinoAssetsReadyPromise;
+    }
+
+    dinoAssetsReadyPromise =
+      preloadDinoAssetBatch(
+        DINO_ASSET_SOURCES,
+        4,
+      ).catch((error) => {
+        dinoAssetsReadyPromise = null;
+        throw error;
+      });
+
+    return dinoAssetsReadyPromise;
+  };
+
+// ========================================
 // COMPONENT
 // ========================================
 
 export default function DinoGame({
   onGameOver,
+  needsCooldown,
+  onPlayAgain,
 }: DinoGameProps) {
   // ======================================
   // DOM REFS
@@ -831,6 +963,17 @@ export default function DinoGame({
   const [gameOver, setGameOver] =
     useState(false);
 
+  const [cooldownTimer, setCooldownTimer] = useState(needsCooldown ? 5 : 0);
+  const cooldownTimerRef = useRef(cooldownTimer);
+
+  useEffect(() => {
+    cooldownTimerRef.current = cooldownTimer;
+    if (cooldownTimer > 0) {
+      const timerId = setTimeout(() => setCooldownTimer(c => c - 1), 1000);
+      return () => clearTimeout(timerId);
+    }
+  }, [cooldownTimer]);
+
   const [elapsedTime, setElapsedTime] =
     useState(0);
 
@@ -966,8 +1109,7 @@ export default function DinoGame({
     const startSpriteAnimation =
       (
         frames:
-          | typeof idleFrames
-          | typeof runFrames,
+          typeof runFrames,
         interval: number,
       ) => {
         stopSpriteAnimation();
@@ -2998,11 +3140,6 @@ export default function DinoGame({
       },
     );
 
-    startSpriteAnimation(
-      idleFrames,
-      100,
-    );
-
     obstaclePool.forEach(
       (obstacle) => {
         obstacle.container.style.visibility =
@@ -3047,7 +3184,9 @@ export default function DinoGame({
         if (
           !startedRef.current
         ) {
-          startGame();
+          if (cooldownTimerRef.current <= 0) {
+            startGame();
+          }
 
           return;
         }
@@ -3149,22 +3288,10 @@ export default function DinoGame({
       if (
         gameOver
       ) {
-        window.location.reload();
-
         return;
       }
 
       if (!started) {
-        window.dispatchEvent(
-          new KeyboardEvent(
-            "keydown",
-            {
-              code: "Space",
-              repeat: false,
-            },
-          ),
-        );
-
         return;
       }
 
@@ -3274,7 +3401,7 @@ export default function DinoGame({
             dinoSpriteRef
           }
           src={
-            idle1.src
+            run1.src
           }
           alt="Dino"
           className="dino-sprite"
@@ -3366,17 +3493,20 @@ export default function DinoGame({
               ROBOTICS DINO RUN
             </h1>
 
-            <p>
-              PRESS{" "}
-              <strong>
-                SPACE
-              </strong>{" "}
-              OR{" "}
-              <strong>
-                ↑
-              </strong>{" "}
-              TO START
-            </p>
+            <button
+              onPointerDown={(e) => {
+                e.stopPropagation();
+                if (cooldownTimer <= 0) {
+                  window.dispatchEvent(
+                    new KeyboardEvent("keydown", { code: "Space", repeat: false })
+                  );
+                }
+              }}
+              style={{ pointerEvents: cooldownTimer > 0 ? 'none' : 'auto' }}
+              className={`mt-4 mb-4 px-8 py-3 ${cooldownTimer > 0 ? 'bg-red-900 border-red-500/50 cursor-not-allowed opacity-80' : 'bg-[#111] hover:translate-y-[2px] active:translate-y-[4px] hover:shadow-[2px_2px_0_rgba(0,0,0,0.3)] border-white/10 shadow-[4px_4px_0_rgba(0,0,0,0.3)]'} text-white border-2 font-bold text-xl rounded transition-all active:shadow-none font-mono tracking-widest`}
+            >
+              {cooldownTimer > 0 ? `STARTING IN ${cooldownTimer}...` : 'START GAME'}
+            </button>
 
             <span>
               Deterministic competition run.
@@ -3425,10 +3555,19 @@ export default function DinoGame({
             </div>
           </div>
 
-          <p>
-            Tap anywhere to
-            return to the
-            leaderboard.
+          <button
+            onPointerDown={(e) => {
+              e.stopPropagation();
+              if (onPlayAgain) onPlayAgain();
+            }}
+            style={{ pointerEvents: 'auto' }}
+            className="mt-6 px-8 py-3 bg-[#111] text-white border-2 border-white/10 font-bold text-xl rounded shadow-[4px_4px_0_rgba(0,0,0,0.3)] hover:translate-y-[2px] hover:shadow-[2px_2px_0_rgba(0,0,0,0.3)] transition-all active:translate-y-[4px] active:shadow-none font-mono tracking-widest"
+          >
+            PLAY AGAIN
+          </button>
+          
+          <p className="mt-4 opacity-50 text-sm">
+            Scroll down to see the leaderboard.
           </p>
         </div>
       )}
