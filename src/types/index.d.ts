@@ -187,6 +187,19 @@ export interface PanelistAuthType {
     name: string;
     panel_number: number;
 }
+export type InterviewerType = {
+    id: string;
+    name: string;
+    email: string;
+    sid: string;
+    availableDays: string[];
+    responses: Record<string, string>;
+    status:
+        | "pending"
+        | "accepted"
+        | "rejected";
+    createdAt?: string | null;
+};
 
 export interface FeatureFlagType {
     id: string;
