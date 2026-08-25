@@ -50,7 +50,7 @@ export default async function handler(
     }
 
     // 3. Forward to Google Apps Script
-    const { enabled } = req.body;
+    const { enabled, action, resultsPublished } = req.body;
     const scriptUrl = process.env.GOOGLE_APPS_SCRIPT_URL;
 
     if (!scriptUrl) {
@@ -64,8 +64,9 @@ export default async function handler(
         "Content-Type": "text/plain",
       },
       body: JSON.stringify({
-        action: "toggleGame",
+        action: action || "toggleGame",
         enabled: enabled,
+        resultsPublished: resultsPublished,
       }),
     });
 
