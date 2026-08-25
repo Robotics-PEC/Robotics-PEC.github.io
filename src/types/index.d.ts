@@ -192,6 +192,7 @@ export type InterviewerType = {
     name: string;
     email: string;
     sid: string;
+    phone: string;
     availableDays: string[];
     responses: Record<string, string>;
     status:
