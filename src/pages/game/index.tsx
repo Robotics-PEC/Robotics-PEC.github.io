@@ -318,7 +318,7 @@ export default function GamePage() {
   if (isGameEnabled === false) {
     if (isResultsPublished) {
       return (
-        <div className="min-h-screen bg-[#061820] relative">
+        <div className="min-h-screen bg-slate-50 relative">
           <AdminControls />
           <ResultsView branchTop10={branchTop10} />
         </div>
@@ -327,6 +327,19 @@ export default function GamePage() {
       if (!isPanelist) {
         return <NotFound />;
       }
+      // Panelist: game is disabled, results not yet published — show holding screen with controls
+      return (
+        <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-4 relative">
+          <AdminControls />
+          <div className="text-center max-w-md mt-16">
+            <div className="text-blue-600 font-mono text-xs tracking-[0.3em] uppercase mb-4 border border-blue-200 bg-blue-50 px-4 py-1.5 rounded-full inline-block">
+              [ PANELIST VIEW ]
+            </div>
+            <h2 className="text-2xl font-bold text-slate-800 mb-2">Game is Disabled</h2>
+            <p className="text-slate-500 text-sm">Results are not published yet. Use the controls above to publish results when ready.</p>
+          </div>
+        </div>
+      );
     }
   }
 
