@@ -1,34 +1,62 @@
 import { BlogUserType } from "@/types";
-import { client } from "../supabase"
+import { apiFetch } from "../supabase";
+
+const BLOGS_API = "/api/blogs";
+
+const getErrorMessage = async (response: Response) => {
+    try {
+        const data = await response.json();
+
+        if (typeof data === "string") {
+            return data;
+        }
+
+        return (
+            data?.error ||
+            `Request failed with status ${response.status}`
+        );
+    } catch {
+        return `Request failed with status ${response.status}`;
+    }
+};
 
 export const fetchUserByEmail = async (email: string) => {
-    const { data, error } = await client.from("blogs").select("*").eq("email", email).maybeSingle();
+    const response = await fetch(
+        `${BLOGS_API}?email=${encodeURIComponent(email)}`
+    );
 
-    if (error) {
-        console.log(error);
-        return { data: null, error };
+    if (!response.ok) {
+        throw new Error(await getErrorMessage(response));
     }
 
-    return { data, error };
+    return response.json();
 };
 
 export const fetchUserBySID = async (sid: string) => {
-    const { data, error } = await client.from("blogs").select("*").eq("sid", sid).maybeSingle();
+    const response = await fetch(
+        `${BLOGS_API}?sid=${encodeURIComponent(sid)}`
+    );
 
-    if (error) {
-        console.log(error);
-        return { data: null, error };
+    if (!response.ok) {
+        throw new Error(await getErrorMessage(response));
     }
 
-    return { data, error };
+    return response.json();
 };
 
-export const insertBlogPost = async (data: BlogUserType) => {
-    const { error } = await client.from("blogs").insert(data);
-    if (error) {
-        console.log(error);
-        return error;
+export const insertBlogPost = async (
+    data: BlogUserType
+) => {
+    const response = await apiFetch(BLOGS_API, {
+        method: "POST",
+        body: JSON.stringify(data),
+    });
+
+    if (!response.ok) {
+        throw new Error(await getErrorMessage(response));
     }
 
-    return null;
-}
+    const result = await response.json();
+
+    return result.error ?? null;
+};

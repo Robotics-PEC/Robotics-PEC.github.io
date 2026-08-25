@@ -1,56 +1,113 @@
 import { FormActivityType } from "@/types";
-import { client } from "../supabase"
-import { deleteMarkdownFile, deleteMarkdownFolder, uploadMarkdownFile } from "./storage.actions";
+import { apiFetch } from "../supabase";
+
+const getErrorMessage = async (response: Response) => {
+    try {
+        const data = await response.json();
+
+        if (typeof data === "string") {
+            return data;
+        }
+
+        return data?.error || `Request failed with status ${response.status}`;
+    } catch {
+        return `Request failed with status ${response.status}`;
+    }
+};
 
 export const getActivites = async () => {
-    const { data, error } = await client.from("activities").select("*");
-    if (error) console.log(error);
-    if (!data) throw new Error("Could not fetch Activies");
-    return JSON.parse(JSON.stringify(data));
+    try {
+        // GET is public, so regular fetch is fine
+        const response = await fetch("/api/activity");
+
+        if (!response.ok) {
+            throw new Error(await getErrorMessage(response));
+        }
+
+        return response.json();
+    } catch (error) {
+        console.log(error);
+        throw error;
+    }
 };
 
 export const getActivityById = async (id: string) => {
-    const { data, error } = await client.from("activities").select().eq("id", id);
-    if (error) console.log(error);
-    if (!data) throw new Error("Project with this id doesn't exist");
-    return JSON.parse(JSON.stringify(data[0]));
-};
+    try {
+        // GET is public, so regular fetch is fine
+        const response = await fetch(
+            `/api/activity?id=${encodeURIComponent(id)}`
+        );
 
-export const updateActivity = async (activity: FormActivityType) => {
-    const { id, longDescription, ...rest } = activity;
-    await deleteMarkdownFile(`${id}.md`, "activities");
-    await uploadMarkdownFile(`${id}.md`, "activities", longDescription);
-    const { error } = await client.from("activities").update(rest).eq("id", activity.id);
-    if (error) {
+        if (!response.ok) {
+            throw new Error(await getErrorMessage(response));
+        }
+
+        return response.json();
+    } catch (error) {
         console.log(error);
+        throw error;
     }
-    return error;
 };
 
-export const uploadActivity = async (activity: FormActivityType) => {
-    // upload the activity -> upload the markdown file with the name === id
-    const { id, longDescription, ...rest } = activity;
-    const { data, error } = await client.from("activities").insert(rest).select().single();
-    await uploadMarkdownFile(`${data.id}.md`, "activities", longDescription);
+export const updateActivity = async (
+    activity: FormActivityType
+) => {
+    try {
+        // PUT requires authentication
+        const response = await apiFetch("/api/activity", {
+            method: "PUT",
+            body: JSON.stringify(activity),
+        });
 
-    if (error) {
+        if (!response.ok) {
+            throw new Error(await getErrorMessage(response));
+        }
+
+        return response.json();
+    } catch (error) {
         console.log(error);
-        return { error: error };
+        throw error;
     }
-    return { error: null };
-
 };
 
+export const uploadActivity = async (
+    activity: FormActivityType
+) => {
+    try {
+        // POST requires authentication
+        const response = await apiFetch("/api/activity", {
+            method: "POST",
+            body: JSON.stringify(activity),
+        });
 
+        if (!response.ok) {
+            throw new Error(await getErrorMessage(response));
+        }
+
+        return response.json();
+    } catch (error) {
+        console.log(error);
+        throw error;
+    }
+};
 
 export const deleteActivity = async (id: string) => {
-    const data = await deleteMarkdownFolder(id, "activities");
+    try {
+        // DELETE requires authentication
+        const response = await apiFetch(
+            `/api/activity?id=${encodeURIComponent(id)}`,
+            {
+                method: "DELETE",
+            }
+        );
 
-    if (!data) {
-        throw new Error(`Markdown file of ${id} in activities folder could not be deleted`);
+        if (!response.ok) {
+            throw new Error(await getErrorMessage(response));
+        }
+
+        return response.json();
+    } catch (error) {
+        console.log(error);
+        throw error;
     }
-
-    const response = await client.from("activities").delete().eq("id", id);
-
-    return response;
 };

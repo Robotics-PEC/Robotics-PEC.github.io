@@ -1,171 +1,177 @@
-import { base64ToBlob, HTMLToMarkdown } from "@/lib/utils";
-import { client } from "../supabase";
+import { apiFetch } from "../supabase";
 
-const STORAGE_BUCKET = "media";
-const SIGNED_URL_TTL_SECONDS = 60 * 60;
+const STORAGE_API = "/api/storage";
 
-export const getFileNames = async (folder: string) => {
-    const { data, error } = await client.storage.from(STORAGE_BUCKET).list(folder);
+const getErrorMessage = async (response: Response) => {
+    try {
+        const data = await response.json();
 
-    if (error) {
-        console.log(error);
-        return [];
+        if (typeof data === "string") {
+            return data;
+        }
+
+        return data?.error || `Request failed with status ${response.status}`;
+    } catch {
+        return `Request failed with status ${response.status}`;
+    }
+};
+
+const get = async <T>(
+    action: string,
+    params: Record<string, string>
+): Promise<T> => {
+    const searchParams = new URLSearchParams({
+        action,
+        ...params,
+    });
+
+    const response = await fetch(
+        `${STORAGE_API}?${searchParams.toString()}`
+    );
+
+    if (!response.ok) {
+        throw new Error(await getErrorMessage(response));
     }
 
-    return data?.map(file => file.name);
+    return response.json();
 };
+
+const post = async <T>(
+    action: string,
+    body: Record<string, unknown>
+): Promise<T> => {
+    const response = await apiFetch(STORAGE_API, {
+        method: "POST",
+        body: JSON.stringify({
+            action,
+            ...body,
+        }),
+    });
+
+    if (!response.ok) {
+        throw new Error(await getErrorMessage(response));
+    }
+
+    return response.json();
+};
+
+const del = async <T>(
+    action: string,
+    body: Record<string, unknown>
+): Promise<T> => {
+    const response = await apiFetch(STORAGE_API, {
+        method: "DELETE",
+        body: JSON.stringify({
+            action,
+            ...body,
+        }),
+    });
+
+    if (!response.ok) {
+        throw new Error(await getErrorMessage(response));
+    }
+
+    return response.json();
+};
+
 
 export const getImagesFromFolder = async (folder: string) => {
-    const files = await getFileNames(folder);
-    const publicUrls = [];
-
-    for (let i = 0; i < files.length; i++) {
-
-        const { data } = client.storage.from(STORAGE_BUCKET).getPublicUrl(`${folder}/${files[i]}`);
-
-        publicUrls.push(data.publicUrl);
-    }
-
-    return publicUrls;
+    return get<string[]>("images", {
+        folder,
+    });
 };
 
-export const uploadImage = async (folder: string, name: string, fileData: string) => {
-    const extension = name.split(".")[name.split(".").length - 1]
-    const contentType = `image/${extension}`;
-    const base64String = fileData.replace(/^data:image\/\w+;base64,/, '');
-    const blob = base64ToBlob(base64String, contentType)
-    const filePath = `${folder}/${name}`;
 
-    const { data, error } = await client.storage.from(STORAGE_BUCKET).upload(filePath, blob, { contentType, upsert: true });
-
-    if (error) console.log(error);
-
-    return data;
+export const uploadImage = async (
+    folder: string,
+    name: string,
+    fileData: string
+) => {
+    return post("upload-image", {
+        folder,
+        name,
+        fileData,
+    });
 };
+
 
 export const deleteImage = async (paths: string[]) => {
-    const { data, error } = await client.storage.from(STORAGE_BUCKET).remove(paths);
-
-    if (error) {
-        console.log(error);
-        return;
-    }
-
-    return data;
-
-};
-
-export const getMarkdownFile = async (fileName: string, type: string) => {
-    const { data, error } = await client.storage.from(STORAGE_BUCKET).download(`markdown/${type}/${fileName.split(".")[0]}/${fileName}`);
-
-
-    if (error) {
-        console.log(error);
-        return null;
-    }
-
-    const text = await data.text();
-    return text;
-};
-
-export const uploadMarkdownFile = async (fileNameWithExtension: string, type: string, htmlData: string) => {
-    const contentType = "text/markdown";
-    const mdData = HTMLToMarkdown(htmlData);
-    const file = new File([mdData], fileNameWithExtension, {
-        type: contentType
-    });
-
-    await client.storage.from(STORAGE_BUCKET).upload(`markdown/${type}/${fileNameWithExtension.split(".")[0]}/${fileNameWithExtension}`, file, {
-        contentType, upsert: true
+    return del("image", {
+        paths,
     });
 };
 
-export const getMarkdownPublicURL = (fileName: string, folder: string) => {
-    const { data } = client.storage.from(STORAGE_BUCKET).getPublicUrl(`markdown/${folder}/${fileName.split(".")[0]}/${fileName}`);
 
-    return data.publicUrl;
+export const getMarkdownFile = async (
+    fileName: string,
+    type: string
+) => {
+    return get<string | null>("markdown", {
+        fileName,
+        type,
+    });
 };
+
+
+export const uploadMarkdownFile = async (
+    fileNameWithExtension: string,
+    type: string,
+    htmlData: string
+) => {
+    return post("upload-markdown", {
+        fileNameWithExtension,
+        type,
+        htmlData,
+    });
+};
+
+
+export const getMarkdownPublicURL = (
+    fileName: string,
+    folder: string
+) => {
+    return get<string>("markdown-url", {
+        fileName,
+        folder,
+    });
+};
+
 
 export const getStorageImageUrl = async (path: string) => {
-    const cleanPath = path.trim().replace(/^\/+/, "");
-
-    if (!cleanPath) {
+    if (!path?.trim()) {
         return null;
     }
 
-    // If DB already stores a complete public/signed URL, use it directly.
-    if (/^https?:\/\//i.test(path.trim())) {
-        return path.trim();
-    }
-
-    const { data: signedData, error: signedError } = await client
-        .storage
-        .from(STORAGE_BUCKET)
-        .createSignedUrl(cleanPath, SIGNED_URL_TTL_SECONDS);
-
-    if (!signedError && signedData?.signedUrl) {
-        return signedData.signedUrl;
-    }
-
-    const { data: publicData } = client.storage.from(STORAGE_BUCKET).getPublicUrl(cleanPath);
-    return publicData.publicUrl || null;
+    return get<string | null>("image-url", {
+        path,
+    });
 };
+
 
 export const getAllFiles = async (path: string) => {
-    let allFiles: string[] = [];
-
-    const { data: list, error } = await client
-        .storage
-        .from(STORAGE_BUCKET)
-        .list(path, { limit: 1000 });
-
-    if (error) {
-        console.error('Error listing files:', error);
-        return [];
-    }
-
-    for (const item of list) {
-        if (item.name && item.metadata?.mimetype !== 'inode/directory') {
-            allFiles.push(`${path ? path + '/' : ''}${item.name}`);
-        }
-
-        // Recursively handle subfolders
-        if (item.name && item.metadata === null) {
-            const subPath = `${path ? path + '/' : ''}${item.name}`;
-            const nestedFiles = await getAllFiles(subPath);
-            allFiles.push(...nestedFiles);
-        }
-    }
-
-    return allFiles;
-}
-
-export const deleteMarkdownFolder = async (folder: string, type: string) => {
-    const filesToDelete = await getAllFiles(`markdown/${type}/${folder}`);
-
-    if (filesToDelete.length > 0) {
-        const { data, error } = await client.storage.from(STORAGE_BUCKET).remove(filesToDelete);
-
-        if (error) {
-            console.log(error);
-            return;
-        }
-
-        return data;
-    }
-    else {
-        throw new Error(`No files in the folder "markdown/${type}/${folder}"`);
-    }
-
+    return get<string[]>("all-files", {
+        path,
+    });
 };
 
-export const deleteMarkdownFile = async (fileNameWithExtension: string, type: string) => {
-    const { data, error } = await client.storage.from(STORAGE_BUCKET).remove([`markdown/${type}/${fileNameWithExtension.split(".")[0]}/${fileNameWithExtension}`]);
 
-    if (error) {
-        console.log(error);
-        return;
-    }
+export const deleteMarkdownFolder = async (
+    folder: string,
+    type: string
+) => {
+    return del("markdown-folder", {
+        folder,
+        type,
+    });
+};
 
-    return data;
-}
+
+export const deleteMarkdownFile = async (
+    fileNameWithExtension: string,
+    type: string
+) => {
+    return del("markdown-file", {
+        fileNameWithExtension,
+        type,
+    });
+};

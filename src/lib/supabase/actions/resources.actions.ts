@@ -1,43 +1,80 @@
 import { FormResourceType } from "@/types";
-import { client } from "../supabase";
-import { PostgrestError } from "@supabase/supabase-js";
+import { apiFetch } from "../supabase";
+
+const RESOURCES_API = "/api/resources";
+
+const getErrorMessage = async (response: Response) => {
+    try {
+        const data = await response.json();
+
+        if (typeof data === "string") {
+            return data;
+        }
+
+        return (
+            data?.error ||
+            `Request failed with status ${response.status}`
+        );
+    } catch {
+        return `Request failed with status ${response.status}`;
+    }
+};
 
 export const getResourceData = async () => {
+    const response = await fetch(RESOURCES_API);
 
-    const { data, error } = await client.from("resources").select("*");
-
-    if (error) {
-        console.log(error);
+    if (!response.ok) {
+        throw new Error(await getErrorMessage(response));
     }
 
-    return { data, error };
+    return response.json();
 };
 
-export const uploadResource = async (data: FormResourceType) => {
-    const { id, ...rest } = data;
-    const { error } = await client.from("resources").insert(rest);
+export const uploadResource = async (
+    data: FormResourceType
+) => {
+    const response = await apiFetch(RESOURCES_API, {
+        method: "POST",
+        body: JSON.stringify(data),
+    });
 
-    if (error) {
-        console.log(error);
+    if (!response.ok) {
+        throw new Error(await getErrorMessage(response));
     }
 
-    return error;
+    const result = await response.json();
+
+    return result.error ?? null;
 };
 
-export const deleteResource = async (resource: FormResourceType) => {
-    const response = await client.from("projects").delete().eq("id", resource.id);
+export const deleteResource = async (
+    resource: FormResourceType
+) => {
+    const response = await apiFetch(RESOURCES_API, {
+        method: "DELETE",
+        body: JSON.stringify(resource),
+    });
 
-    return response;
-};
-
-export const updateResource = async (resource: FormResourceType) => {
-    const { id, ...rest } = resource;
-    const { error } = await client.from("resources").update(rest).eq("id", resource.id);
-
-
-    if (error) {
-        console.log(error);
+    if (!response.ok) {
+        throw new Error(await getErrorMessage(response));
     }
 
-    return error;
+    return response.json();
+};
+
+export const updateResource = async (
+    resource: FormResourceType
+) => {
+    const response = await apiFetch(RESOURCES_API, {
+        method: "PUT",
+        body: JSON.stringify(resource),
+    });
+
+    if (!response.ok) {
+        throw new Error(await getErrorMessage(response));
+    }
+
+    const result = await response.json();
+
+    return result.error ?? null;
 };
