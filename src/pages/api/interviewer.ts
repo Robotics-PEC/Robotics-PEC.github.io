@@ -9,7 +9,7 @@ export default async function handler(
   }
 
   try {
-    const scriptUrl = process.env.GOOGLE_APPS_SCRIPT_URL;
+    const scriptUrl = process.env.INT_GOOGLE_APPS_SCRIPT_URL;
 
     if (!scriptUrl) {
       console.error("Missing GOOGLE_APPS_SCRIPT_URL in environment");

@@ -54,13 +54,13 @@ const appsScriptRequest =
         if (isServer) {
             const appsScriptUrl =
                 process.env
-                    .GOOGLE_APPS_SCRIPT_URL;
+                    .INT_GOOGLE_APPS_SCRIPT_URL;
 
             if (
                 !appsScriptUrl
             ) {
                 throw new Error(
-                    "GOOGLE_APPS_SCRIPT_URL is not configured."
+                    "INT_GOOGLE_APPS_SCRIPT_URL is not configured."
                 );
             }
 
@@ -159,6 +159,10 @@ const mapInterviewer =
                 String(
                     item.sid || ""
                 ),
+            phone:
+                String(
+                    item.phone || ""
+                ),
 
             availableDays:
                 Array.isArray(
@@ -255,6 +259,7 @@ export const createInterviewer =
         name: string,
         sid: string,
         email: string,
+        phone: string,
         availableDays: string[],
         responses: Record<
             string,
@@ -278,6 +283,9 @@ export const createInterviewer =
 
                         email:
                             email.trim(),
+
+                        phone:
+                            phone.trim(),
 
                         availableDays:
                             availableDays,
@@ -373,6 +381,7 @@ export const updateInterviewerPersonalInfo =
         name: string,
         email: string,
         sid: string,
+        phone: string, 
         availableDays: string[]
     ): Promise<
         UpdateInterviewerResult
@@ -394,6 +403,9 @@ export const updateInterviewerPersonalInfo =
 
                         sid:
                             sid.trim(),
+
+                        phone:
+                            phone.trim(),
 
                         availableDays:
                             availableDays,

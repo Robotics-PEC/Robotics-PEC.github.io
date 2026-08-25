@@ -49,7 +49,7 @@ type FormState = {
     name: string;
     email: string;
     sid: string;
-
+    phone: string;
     availableDays: string[];
 
     responses: Record<
@@ -63,6 +63,7 @@ const initialForm: FormState = {
     email: "",
     sid: "",
     availableDays: [],
+    phone:"",
     responses:
         createEmptyResponses(),
 };
@@ -201,6 +202,9 @@ export default function InterviewerForm() {
             const sid =
                 form.sid.trim();
 
+            const phone = 
+                    form.phone.trim();
+
             const availableDays =
                 form.availableDays;
 
@@ -212,6 +216,7 @@ export default function InterviewerForm() {
                 !name ||
                 !email ||
                 !sid ||
+                !phone||
                 availableDays.length ===
                     0
             ) {
@@ -249,6 +254,17 @@ export default function InterviewerForm() {
             ) {
                 setError(
                     "SID must be exactly 8 digits."
+                );
+
+                return;
+            }
+             if (
+                !/^\d{10}$/.test(
+                    phone
+                )
+            ) {
+                setError(
+                    "phone number is invalid."
                 );
 
                 return;
@@ -313,6 +329,7 @@ export default function InterviewerForm() {
                         name,
                         sid,
                         email,
+                        phone,
                         availableDays,
                         trimmedResponses
                     );
@@ -361,6 +378,11 @@ export default function InterviewerForm() {
                         result
                             .applicant
                             .sid ||
+                        "",
+                    phone:
+                        result
+                            .applicant
+                            .phone ||
                         "",
 
                     availableDays:
@@ -416,6 +438,9 @@ export default function InterviewerForm() {
             const sid =
                 form.sid.trim();
 
+            const phone =
+                form.phone.trim();
+
             const availableDays =
                 form.availableDays;
 
@@ -427,6 +452,7 @@ export default function InterviewerForm() {
                 !name ||
                 !email ||
                 !sid ||
+                !phone ||
                 availableDays.length ===
                     0
             ) {
@@ -469,6 +495,22 @@ export default function InterviewerForm() {
                 return;
             }
 
+            /*
+             * Phone validation
+             */
+
+            if (
+                !/^\d{10}$/.test(
+                    phone
+                )
+            ) {
+                setError(
+                    "phone number is invalid."
+                );
+
+                return;
+            }
+
             setSavingPersonalInfo(
                 true
             );
@@ -480,6 +522,7 @@ export default function InterviewerForm() {
                         name,
                         email,
                         sid,
+                        phone,
                         availableDays
                     );
 
@@ -529,6 +572,12 @@ export default function InterviewerForm() {
                             result
                                 .applicant
                                 .sid,
+
+                        phone:
+                            result
+                                .applicant
+                                .phone ||
+                            "",
 
                         availableDays:
                             result
@@ -708,6 +757,43 @@ export default function InterviewerForm() {
                                             )
                                         )
                                     }
+                                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm outline-none disabled:cursor-not-allowed disabled:opacity-60"
+                                />
+                            </div>
+
+                            <div className="space-y-2">
+                                <label
+                                    htmlFor="existing-phone"
+                                    className="text-sm font-medium"
+                                >
+                                    Phone
+                                </label>
+
+                                <input
+                                    id="existing-phone"
+                                    type="tel"
+                                    inputMode="numeric"
+                                    maxLength={
+                                        10
+                                    }
+                                    value={
+                                        form.phone
+                                    }
+                                    disabled={
+                                        !canEdit
+                                    }
+                                    onChange={(
+                                        event
+                                    ) =>
+                                        updateField(
+                                            "phone",
+                                            event.target.value.replace(
+                                                /\D/g,
+                                                ""
+                                            )
+                                        )
+                                    }
+                                    placeholder="10-digit phone number"
                                     className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm outline-none disabled:cursor-not-allowed disabled:opacity-60"
                                 />
                             </div>
@@ -958,6 +1044,40 @@ export default function InterviewerForm() {
                                     )
                                 }
                                 placeholder="8-digit SID"
+                                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm outline-none"
+                            />
+                        </div>
+
+                        <div className="space-y-2">
+                            <label
+                                htmlFor="phone"
+                                className="text-sm font-medium"
+                            >
+                                Phone
+                            </label>
+
+                            <input
+                                id="phone"
+                                type="tel"
+                                inputMode="numeric"
+                                maxLength={
+                                    10
+                                }
+                                value={
+                                    form.phone
+                                }
+                                onChange={(
+                                    event
+                                ) =>
+                                    updateField(
+                                        "phone",
+                                        event.target.value.replace(
+                                            /\D/g,
+                                            ""
+                                        )
+                                    )
+                                }
+                                placeholder="10-digit phone number"
                                 className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm outline-none"
                             />
                         </div>
