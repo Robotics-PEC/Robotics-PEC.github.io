@@ -9,13 +9,24 @@ const corsHeaders = {
 };
 
 const SLOT_MINUTES = 10;
+
 const FIRST_SLOT_MINUTES =
     17 * 60 + 10; // 5:10 PM
 
 const SLOTS_PER_PANEL = 11;
 
-const INITIAL_DAY_1_PANELS = 10;
-const MAX_ONE_DAY_PANELS = 15;
+/*
+ * There is intentionally NO maximum panel count.
+ *
+ * Each panel can handle exactly 11 applicants
+ * per day.
+ */
+const MAX_DAYS = 3;
+
+type InterviewDay =
+    | "Day 1"
+    | "Day 2"
+    | "Day 3";
 
 type ApplicantRow = {
     id: string;
@@ -51,26 +62,16 @@ type OrderedApplicant = {
 };
 
 type ScheduleSlot = {
-    day:
-        | "Day 1"
-        | "Day 2";
-
+    day: InterviewDay;
     time: string;
-
     panel: number;
 };
 
 type PublicScheduleRow = {
-    day:
-        | "Day 1"
-        | "Day 2";
-
+    day: InterviewDay;
     time: string;
-
     panel: number;
-
     name: string;
-
     sid: string;
 };
 
@@ -110,8 +111,7 @@ function getAcademicYear(): string {
  * 2. Male   + Day Scholar
  * 3. Female + Hosteller
  * 4. Male   + Hosteller
- *
- * Legacy/unspecified applicants get priority 5.
+ * 5. Legacy / unspecified
  */
 
 function getPriority(
@@ -160,7 +160,7 @@ function getPriority(
 
 /*
  * ---------------------------------------------------------
- * Randomize only within the same priority
+ * Randomize only within same priority
  * ---------------------------------------------------------
  */
 
@@ -309,45 +309,55 @@ function formatTime(
 
 /*
  * ---------------------------------------------------------
- * Determine exact day/panel state
+ * Determine panel/day layout
  * ---------------------------------------------------------
  *
- * One-day rule:
+ * Every panel gives:
  *
- * <=165 applicants
- * → minimum panels needed
- * → Day 1 only
+ *   11 applicants/day
  *
- * Two-day rule:
+ * No maximum number of panels.
  *
- * Start:
- *   10-0
+ * We determine the minimum total number of
+ * panel-days required and then distribute those
+ * panels as evenly as possible across up to 3 days.
  *
- * Then:
- *   10-1
- *   10-2
- *   ...
- *   10-10
+ * Examples:
  *
- * Then:
- *   11-10
- *   11-11
- *   12-11
- *   12-12
- *   ...
+ * 11 applicants
+ *   -> 1 panel
+ *   -> Day 1 = 1
  *
- * where:
+ * 12 applicants
+ *   -> 2 panels
+ *   -> Day 1 = 1
+ *   -> Day 2 = 1
  *
- *   first number = Day 1 panels
- *   second number = Day 2 panels
+ * 23 applicants
+ *   -> 3 panels
+ *   -> Day 1 = 1
+ *   -> Day 2 = 1
+ *   -> Day 3 = 1
+ *
+ * 34 applicants
+ *   -> 4 panels
+ *   -> 2 / 1 / 1
+ *
+ * 60 applicants
+ *   -> 6 panels
+ *   -> 2 / 2 / 2
+ *
+ * We never create unnecessary days if everything
+ * fits into fewer days.
  */
 
 function determinePanelLayout(
     applicantCount: number
 ): {
-    days: 1 | 2;
+    days: 1 | 2 | 3;
     day1Panels: number;
     day2Panels: number;
+    day3Panels: number;
 } {
     if (
         applicantCount <= 0
@@ -356,86 +366,160 @@ function determinePanelLayout(
             days: 1,
             day1Panels: 0,
             day2Panels: 0,
+            day3Panels: 0,
         };
     }
 
     /*
-     * First determine whether everything can fit
-     * into one day with at most 15 panels.
+     * Minimum total panels required if we use
+     * only one day.
      */
-    const requiredOneDayPanels =
+    const requiredPanels =
         Math.ceil(
             applicantCount /
                 SLOTS_PER_PANEL
         );
 
+    /*
+     * First try one day.
+     *
+     * There is no panel cap.
+     */
     if (
-        requiredOneDayPanels <=
-        MAX_ONE_DAY_PANELS
+        requiredPanels <=
+        Math.ceil(
+            applicantCount /
+                SLOTS_PER_PANEL
+        ) &&
+        applicantCount <=
+        requiredPanels *
+            SLOTS_PER_PANEL
     ) {
-        return {
-            days: 1,
-            day1Panels:
-                requiredOneDayPanels,
-            day2Panels: 0,
-        };
+        /*
+         * Keep one day only for a single panel
+         * worth of applicants.
+         *
+         * For more than 11 applicants we spread
+         * across additional days to keep the
+         * panel count balanced and the daily
+         * interview load reasonable.
+         */
+        if (
+            requiredPanels === 1
+        ) {
+            return {
+                days: 1,
+                day1Panels: 1,
+                day2Panels: 0,
+                day3Panels: 0,
+            };
+        }
     }
 
     /*
-     * Two-day mode.
+     * Determine the minimum number of days needed
+     * while keeping panel counts balanced.
      *
-     * Start with 10 panels on Day 1
-     * and zero on Day 2.
+     * Prefer:
+     *
+     *   1 day for <= 11
+     *   2 days for <= 22
+     *   3 days for > 22
+     *
+     * But there is NO hard applicant maximum.
+     *
+     * Since there is also no maximum panel count,
+     * three days can scale indefinitely.
      */
-    let day1Panels =
-        INITIAL_DAY_1_PANELS;
+    let days:
+        | 1
+        | 2
+        | 3;
 
-    let day2Panels = 0;
-
-    while (
-        day1Panels *
-                SLOTS_PER_PANEL +
-            day2Panels *
-                SLOTS_PER_PANEL <
-        applicantCount
+    if (
+        applicantCount <=
+        SLOTS_PER_PANEL
     ) {
-        /*
-         * First fill Day 2 until it reaches
-         * 10 panels.
-         */
-        if (
-            day2Panels <
-            INITIAL_DAY_1_PANELS
-        ) {
-            day2Panels += 1;
-
-            continue;
-        }
-
-        /*
-         * Once Day 2 reaches 10, increase
-         * Day 1 and Day 2 alternately:
-         *
-         * 11-10
-         * 11-11
-         * 12-11
-         * 12-12
-         * ...
-         */
-        if (
-            day1Panels ===
-            day2Panels
-        ) {
-            day1Panels += 1;
-        } else {
-            day2Panels += 1;
-        }
+        days = 1;
+    } else if (
+        applicantCount <=
+        SLOTS_PER_PANEL * 2
+    ) {
+        days = 2;
+    } else {
+        days = 3;
     }
 
+    /*
+     * Total panels required if the panels were
+     * used across the chosen number of days.
+     */
+    const totalPanels =
+        Math.ceil(
+            applicantCount /
+                SLOTS_PER_PANEL
+        );
+
+    /*
+     * Distribute panels as evenly as possible.
+     *
+     * Example:
+     *
+     * 4 panels / 3 days
+     *   -> 2 / 1 / 1
+     *
+     * 5 panels / 3 days
+     *   -> 2 / 2 / 1
+     *
+     * 6 panels / 3 days
+     *   -> 2 / 2 / 2
+     *
+     * The first days receive the extra panel
+     * when perfect equality is impossible.
+     */
+    const basePanels =
+        Math.floor(
+            totalPanels /
+                days
+        );
+
+    const remainder =
+        totalPanels %
+        days;
+
+    const day1Panels =
+        basePanels +
+        (
+            remainder >= 1
+                ? 1
+                : 0
+        );
+
+    const day2Panels =
+        days >= 2
+            ? basePanels +
+              (
+                  remainder >= 2
+                      ? 1
+                      : 0
+              )
+            : 0;
+
+    const day3Panels =
+        days >= 3
+            ? basePanels +
+              (
+                  remainder >= 3
+                      ? 1
+                      : 0
+              )
+            : 0;
+
     return {
-        days: 2,
+        days,
         day1Panels,
         day2Panels,
+        day3Panels,
     };
 }
 
@@ -447,18 +531,19 @@ function determinePanelLayout(
  *
  * Within each time:
  *
- * Day 1 panels first
- * then Day 2 panels.
+ *   Day 1 panels
+ *   Day 2 panels
+ *   Day 3 panels
  *
- * This means that when we assign priority order,
- * higher-priority applicants get the earliest actual
- * available interview slots.
+ * The priority ordering is therefore preserved
+ * across the entire schedule.
  */
 
 function buildSlots(
-    days: 1 | 2,
+    days: 1 | 2 | 3,
     day1Panels: number,
-    day2Panels: number
+    day2Panels: number,
+    day3Panels: number
 ): ScheduleSlot[] {
     const slots:
         ScheduleSlot[] = [];
@@ -483,11 +568,12 @@ function buildSlots(
             )}`;
 
         /*
-         * Day 1.
+         * Day 1
          */
         for (
             let panel = 1;
-            panel <= day1Panels;
+            panel <=
+            day1Panels;
             panel++
         ) {
             slots.push({
@@ -498,18 +584,39 @@ function buildSlots(
         }
 
         /*
-         * Day 2.
+         * Day 2
          */
         if (
-            days === 2
+            days >= 2
         ) {
             for (
                 let panel = 1;
-                panel <= day2Panels;
+                panel <=
+                day2Panels;
                 panel++
             ) {
                 slots.push({
                     day: "Day 2",
+                    time,
+                    panel,
+                });
+            }
+        }
+
+        /*
+         * Day 3
+         */
+        if (
+            days === 3
+        ) {
+            for (
+                let panel = 1;
+                panel <=
+                day3Panels;
+                panel++
+            ) {
+                slots.push({
+                    day: "Day 3",
                     time,
                     panel,
                 });
@@ -534,6 +641,7 @@ function buildSchedule(
         days,
         day1Panels,
         day2Panels,
+        day3Panels,
     } =
         determinePanelLayout(
             applicants.length
@@ -548,7 +656,8 @@ function buildSchedule(
         buildSlots(
             days,
             day1Panels,
-            day2Panels
+            day2Panels,
+            day3Panels
         );
 
     if (
@@ -564,7 +673,10 @@ function buildSchedule(
         PublicScheduleRow[] = [];
 
     /*
-     * Highest priority gets earliest available slot.
+     * Highest priority gets the earliest slot.
+     *
+     * Within the same priority, order was
+     * randomized above.
      */
     for (
         let index = 0;
@@ -592,9 +704,6 @@ function buildSchedule(
             panel:
                 slot.panel,
 
-            /*
-             * ONLY public information.
-             */
             name:
                 applicant.name,
 
@@ -612,6 +721,8 @@ function buildSchedule(
         day1Panels,
 
         day2Panels,
+
+        day3Panels,
 
         rows,
     };
@@ -665,9 +776,9 @@ Deno.serve(
 
         try {
             /*
-             * -----------------------------------------------------
-             * Authenticate caller.
-             * -----------------------------------------------------
+             * ---------------------------------------------
+             * Authenticate caller
+             * ---------------------------------------------
              */
 
             const authorization =
@@ -768,10 +879,6 @@ Deno.serve(
                 );
             }
 
-            /*
-             * Service-role client is only used inside
-             * this trusted Edge Function.
-             */
             const adminClient =
                 createClient(
                     supabaseUrl,
@@ -779,9 +886,9 @@ Deno.serve(
                 );
 
             /*
-             * -----------------------------------------------------
-             * Google configuration.
-             * -----------------------------------------------------
+             * ---------------------------------------------
+             * Google configuration
+             * ---------------------------------------------
              */
 
             const googleScriptUrl =
@@ -804,16 +911,11 @@ Deno.serve(
             }
 
             /*
-             * -----------------------------------------------------
-             * Fetch current PENDING applicants.
-             * -----------------------------------------------------
+             * ---------------------------------------------
+             * Fetch current pending applicants
+             * ---------------------------------------------
              *
-             * PENDING means the applicant still needs
-             * an interview.
-             *
-             * ACCEPTED/REJECTED are deliberately excluded.
-             *
-             * Walk-ins are excluded.
+             * Pending + non-walk-in applicants only.
              */
 
             const {
@@ -853,9 +955,9 @@ Deno.serve(
             }
 
             /*
-             * -----------------------------------------------------
-             * Calculate complete schedule.
-             * -----------------------------------------------------
+             * ---------------------------------------------
+             * Build schedule
+             * ---------------------------------------------
              */
 
             const schedule =
@@ -867,17 +969,9 @@ Deno.serve(
                 );
 
             /*
-             * -----------------------------------------------------
-             * Send ONLY:
-             *
-             * Day
-             * Time
-             * Panel
-             * Name
-             * SID
-             *
-             * to the shared Google Sheet.
-             * -----------------------------------------------------
+             * ---------------------------------------------
+             * Synchronize Google Sheet
+             * ---------------------------------------------
              */
 
             const generatedAt =
@@ -911,6 +1005,9 @@ Deno.serve(
 
                                 day2Panels:
                                     schedule.day2Panels,
+
+                                day3Panels:
+                                    schedule.day3Panels,
 
                                 generatedAt,
 
@@ -968,6 +1065,9 @@ Deno.serve(
 
                     day2Panels:
                         schedule.day2Panels,
+
+                    day3Panels:
+                        schedule.day3Panels,
 
                     applicantCount:
                         applicants?.length ??
