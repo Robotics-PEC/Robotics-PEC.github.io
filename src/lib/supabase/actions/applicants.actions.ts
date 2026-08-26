@@ -26,6 +26,9 @@ export type CreateApplicantResult =
 
 const requestInterviewSchedule =
     async (): Promise<void> => {
+        // Skip in dev — edge functions only exist on the production Supabase project
+        if (process.env.NODE_ENV !== "production") return;
+
         try {
             const {
                 error,
@@ -482,6 +485,7 @@ export const createApplicant =
          */
 
         try {
+            if (process.env.NODE_ENV === "production") {
             const {
                 error:
                     sheetsError,
@@ -535,6 +539,7 @@ export const createApplicant =
                     sheetsError
                 );
             }
+            } // end production-only block
         } catch (error) {
             console.error(
                 "Application saved to Supabase, but Google Sheets synchronization failed:",
@@ -733,7 +738,7 @@ export const updateApplicantPersonalInfo =
          * in Google Sheets.
          */
 
-        try {
+        if (process.env.NODE_ENV === "production") try {
             const {
                 error:
                     sheetsError,
@@ -1107,7 +1112,7 @@ export const updateApplicantDecision =
          * Keep Results sheet synchronized.
          */
 
-        try {
+        if (process.env.NODE_ENV === "production") try {
             const {
                 error:
                     sheetsError,
