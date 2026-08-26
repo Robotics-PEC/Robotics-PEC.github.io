@@ -75,30 +75,32 @@ export default function ApplyPage() {
 
     if (!isLoggedIn) {
         return (
-            <section className="py-24">
-                <PageSection
-                    title="Join Robotics Society"
-                    subtitle="You must be logged in to submit an application."
+          <section className="py-24">
+            <PageSection
+              title="Join Robotics Society"
+              subtitle="You must be logged in to submit an application."
+            >
+              <div className="mx-auto max-w-3xl rounded-xl border bg-white p-8 text-center shadow-sm">
+                <h2 className="text-xl font-semibold">Login Required</h2>
+
+                <p className="mt-2 text-sm text-muted-foreground">
+                  Please log in with your PEC account before accessing the
+                  registration form.
+                </p>
+
+                <Button
+                  className="mt-6"
+                  onClick={() =>
+                    router.push(
+                      `/login?redirect=${encodeURIComponent(router.asPath)}`,
+                    )
+                  }
                 >
-                    <div className="mx-auto max-w-3xl rounded-xl border bg-white p-8 text-center shadow-sm">
-                        <h2 className="text-xl font-semibold">
-                            Login Required
-                        </h2>
-
-                        <p className="mt-2 text-sm text-muted-foreground">
-                            Please log in with your PEC account before
-                            accessing the registration form.
-                        </p>
-
-                        <Button
-                            className="mt-6"
-                            onClick={() => router.push("/login")}
-                        >
-                            Login
-                        </Button>
-                    </div>
-                </PageSection>
-            </section>
+                  Login
+                </Button>
+              </div>
+            </PageSection>
+          </section>
         );
     }
 
