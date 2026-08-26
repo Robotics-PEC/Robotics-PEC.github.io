@@ -32,19 +32,19 @@ const branches = [
 export const APPLICATION_QUESTIONS = [
     {
         id: "Q1",
-        text: "Why are you interested in robotics, and what motivates you to join this society?",
+        text: "If you weren’t pursuing engineering, what would you see yourself doing?",
     },
     {
         id: "Q2",
-        text: "Have you participated in any robotics competition or events? If yes, please provide details.",
+        text: "What was your favourite childhood cartoon or YouTuber? 👀 ",
     },
     {
         id: "Q3",
-        text: "If you would have the opportunity to make any robot of your choice, what would it be? Describe it.",
+        text: "If you have one superpower. What would it be.",
     },
     {
         id: "Q4",
-        text: "What are your expectations from Robotics Society?",
+        text: "Be honest… did you like the Dino Game?",
     },
 ];
 
