@@ -1,7 +1,10 @@
 import {
     useEffect,
+    useRef,
     useState,
 } from "react";
+
+import DinoSubmitOverlay from "@/components/DinoSubmitOverlay";
 
 import {
     createApplicant,
@@ -130,6 +133,12 @@ export default function ApplicationForm() {
         submitting,
         setSubmitting,
     ] = useState(false);
+
+    const [submitted, setSubmitted] = useState(false);
+    const [submitError, setSubmitError] = useState(false);
+    const [showOverlay, setShowOverlay] = useState(false);
+    // Holds successful submit result until the overlay is dismissed
+    const pendingResultRef = useRef<typeof application>(null);
 
     const [
         savingPersonalInfo,
@@ -378,6 +387,7 @@ export default function ApplicationForm() {
                 );
 
             setSubmitting(true);
+            setShowOverlay(true);
 
             try {
                 const result =
@@ -406,13 +416,15 @@ export default function ApplicationForm() {
                             "We could not submit your application. Please try again."
                         );
                     }
-
+                    setSubmitError(true);
                     return;
                 }
 
-                setApplication(
-                    result.applicant
-                );
+                // Store result in ref — don't call setApplication yet.
+                // If we do it now, the component switches render branch and
+                // the overlay unmounts before the death animation plays.
+                pendingResultRef.current = result.applicant;
+                setSubmitted(true);
 
                 setForm({
                     name:
@@ -461,6 +473,7 @@ export default function ApplicationForm() {
                 setError(
                     "We could not submit your application. Please try again."
                 );
+                setSubmitError(true);
             } finally {
                 setSubmitting(
                     false
@@ -1044,12 +1057,29 @@ export default function ApplicationForm() {
      */
 
     return (
-        <form
-            onSubmit={
-                handleSubmit
-            }
-            className="mx-auto max-w-3xl space-y-8"
-        >
+        <>
+            {showOverlay && (
+                <DinoSubmitOverlay
+                    submitting={submitting}
+                    hasError={submitError}
+                    onClose={() => {
+                        // Now it's safe to apply the result — overlay is closing
+                        if (pendingResultRef.current) {
+                            setApplication(pendingResultRef.current);
+                            pendingResultRef.current = null;
+                        }
+                        setSubmitted(false);
+                        setSubmitError(false);
+                        setShowOverlay(false);
+                    }}
+                />
+            )}
+            <form
+                onSubmit={
+                    handleSubmit
+                }
+                className="mx-auto max-w-3xl space-y-8"
+            >
             {/* Personal Information */}
 
             <div className="rounded-xl border bg-white p-6 shadow-sm">
@@ -1376,6 +1406,7 @@ export default function ApplicationForm() {
                     : "Submit Application"}
             </button>
         </form>
+        </>
     );
 }
 
