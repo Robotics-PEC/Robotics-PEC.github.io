@@ -16,6 +16,7 @@ import ResourceEditor from "@/pages/admin/components/ResourceEditor";
 import BlogsEditor from "@/pages/admin/components/BlogsEditor";
 import RolesEditor from "@/pages/admin/components/Role";
 import FeatureFlags from "@/pages/admin/components/FeatureFlags";
+import TalkShowEditor from "@/pages/admin/components/TalkShowEditor";
 
 export enum TabValues {
     HERO="hero",
@@ -26,7 +27,8 @@ export enum TabValues {
     BLOGS = "blogs",
     RESOURCES="resources",
     ROLES="roles",
-    FEATURE_FLAGS="feature_flags"
+    FEATURE_FLAGS="feature_flags",
+    TALK_SHOW="talk_show"
 
 }
 
@@ -74,6 +76,11 @@ const tabComponentMap: Record<TabValues,React.ReactNode> = {
     [TabValues.FEATURE_FLAGS]: (
         <TabsContent value={TabValues.FEATURE_FLAGS} className="mt-0">
             <FeatureFlags />
+        </TabsContent>
+    ),
+    [TabValues.TALK_SHOW]: (
+        <TabsContent value={TabValues.TALK_SHOW} className="mt-0">
+            <TalkShowEditor />
         </TabsContent>
     ),
 }
@@ -124,6 +131,11 @@ const tabTriggerList: React.ReactNode[] = [
             <Book className="h-4 w-4" /> Feature Flags
         </TabsTrigger>
     ),
+    (
+        <TabsTrigger value={TabValues.TALK_SHOW} className="flex items-center gap-2">
+            <Book className="h-4 w-4" /> Talk Show Details
+        </TabsTrigger>
+    ),
 ]
 
 const titleMap: Record<TabValues, string> = {
@@ -136,6 +148,7 @@ const titleMap: Record<TabValues, string> = {
     [TabValues.RESOURCES]: "Add Resources",
     [TabValues.ROLES]: "Define Roles",
     [TabValues.FEATURE_FLAGS]: "Feature Flags",
+    [TabValues.TALK_SHOW]: "Talk Show",
 }
 
 const descriptionMap: Record<TabValues, string> = {
@@ -148,6 +161,7 @@ const descriptionMap: Record<TabValues, string> = {
     [TabValues.RESOURCES]:"Manage Resources and Links",
     [TabValues.ROLES]:"Manage Roles for different society members",
     [TabValues.FEATURE_FLAGS]: "Manage Enabling and Disabling Features",
+    [TabValues.TALK_SHOW]: "Manage Talk Show Details",
 }
 
 const Admin = () => {

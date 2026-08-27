@@ -37,9 +37,17 @@ interface Props {
   submitting: boolean;
   onClose: () => void;
   hasError?: boolean;
+  title?: string;
+  description?: string;
 }
 
-export default function DinoSubmitOverlay({ submitting, onClose, hasError = false }: Props) {
+export default function DinoSubmitOverlay({
+  submitting,
+  onClose,
+  hasError = false,
+  title = "Submitting your application…",
+  description = "Please wait while we process your details.",
+}: Props) {
   const [phase, setPhase] = useState<Phase>("running");
   const [runFrame, setRunFrame] = useState(0);
   const [deadFrame, setDeadFrame] = useState(0);
@@ -173,8 +181,8 @@ export default function DinoSubmitOverlay({ submitting, onClose, hasError = fals
                 <span className="inline-block h-2 w-2 rounded-full bg-slate-400 animate-bounce [animation-delay:-0.15s]" />
                 <span className="inline-block h-2 w-2 rounded-full bg-slate-400 animate-bounce" />
               </div>
-              <h3 className="text-base font-semibold text-slate-800">Submitting your application…</h3>
-              <p className="mt-1 text-sm text-muted-foreground">Please wait while we process your details.</p>
+              <h3 className="text-base font-semibold text-slate-800">{title}</h3>
+              <p className="mt-1 text-sm text-muted-foreground">{description}</p>
             </>
           )}
 

@@ -209,3 +209,65 @@ export interface FeatureFlagType {
     name: string;
     isEnabled: boolean;
 }
+
+export interface TechTalkDetails {
+    id: string;
+    societyName: string;
+    showName: string;
+    tagline: string;
+    episodeNumber: number;
+  
+    channelId: string;
+    channelUrl: string;
+    currentVideoId: string | null;
+  
+    challenge: {
+      week: number;
+      title: string;
+      brief: string;
+      deadline: string;
+    };
+  
+    socials: {
+      label: string;
+      href: string;
+    }[];
+  
+    created_at: string;
+};
+
+export interface TechTalkChallenge {
+    week: number;
+    title: string;
+    brief: string;
+    deadline: string;
+};
+
+export interface TechTalkSocial {
+    label: string;
+    href: string;
+};
+
+export interface TechTalkDetails {
+    id: string;
+    created_at: string;
+
+    societyName: string;
+    showName: string;
+    tagline: string;
+    episodeNumber: number;
+
+    channelId: string;
+    channelUrl: string;
+    currentVideoId: string | null;
+
+    challenge: TechTalkChallenge;
+    socials: TechTalkSocial[];
+};
+
+export type TechTalkDetailsInsert = Omit<
+  TechTalkDetails,
+  "id" | "created_at"
+>;
+
+export type TechTalkDetailsUpdate = Partial<TechTalkDetailsInsert>;

@@ -196,3 +196,18 @@ export const teamCategoryOptions = [
     { value: "electrical", label: "Electrical" },
     { value: "software", label: "Software" },
 ];
+
+export const getAuthHeaders = async () => {
+    const {
+      data: { session },
+    } = await client.auth.getSession();
+  
+    if (!session?.access_token) {
+      throw new Error("You must be logged in");
+    }
+  
+    return {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${session.access_token}`,
+    };
+  };
