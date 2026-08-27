@@ -7,6 +7,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import PageLayout from "@/components/layout/PageLayout";
 import { useRouter } from "next/router";
 import { AuthRoleProvider } from "@/lib/useAuthRole";
+import { Analytics } from '@vercel/analytics/next';
 
 const queryClient = new QueryClient();
 
@@ -19,6 +20,7 @@ export default function App({ Component, pageProps }: AppProps) {
                         <Toaster />
                         <Sonner />
                         <Component {...pageProps} />
+                        <Analytics />
                     </TooltipProvider>
                 </PageLayout>
             </AuthRoleProvider>
