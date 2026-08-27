@@ -1,5 +1,10 @@
 import { createClient } from "npm:@supabase/supabase-js@2";
 
+// Supabase Edge Runtime global used for background tasks.
+declare const EdgeRuntime: {
+    waitUntil(promise: Promise<unknown>): void;
+};
+
 const corsHeaders = {
     "Access-Control-Allow-Origin": "*",
     "Access-Control-Allow-Headers":
@@ -302,85 +307,175 @@ Deno.serve(async (req: Request) => {
                 }
             }
 
-            const googleResponse =
-                await fetch(
-                    googleScriptUrl,
-                    {
-                        method: "POST",
-                        headers: {
-                            "Content-Type":
-                                "application/json",
-                        },
-                        body: JSON.stringify({
-                            operation: "application",
+            /*
+             * -----------------------------------------------------
+             * Background Google Sheets synchronization
+             * -----------------------------------------------------
+             *
+             * IMPORTANT:
+             *
+             * The application is already safely stored in Supabase
+             * before this Edge Function is called.
+             *
+             * We therefore do NOT wait for Google Apps Script here.
+             *
+             * EdgeRuntime.waitUntil() keeps this promise running
+             * after the HTTP response has been sent, which removes
+             * the Google Sheets latency from the student's request.
+             *
+             * The Apps Script itself already contains the durable
+             * _sync_queue, so once the request reaches Apps Script
+             * the normal queue/retry flow takes over.
+             */
 
-                            applicationId:
-                                application.applicationId,
+            const syncApplicationToGoogleSheets =
+                async (): Promise<void> => {
+                    const maxAttempts = 3;
 
-                            name:
-                                application.name,
+                    for (
+                        let attempt = 1;
+                        attempt <= maxAttempts;
+                        attempt++
+                    ) {
+                        try {
+                            const googleResponse =
+                                await fetch(
+                                    googleScriptUrl,
+                                    {
+                                        method: "POST",
+                                        headers: {
+                                            "Content-Type":
+                                                "application/json",
+                                        },
+                                        body: JSON.stringify({
+                                            operation:
+                                                "application",
 
-                            phone:
-                                application.phone,
+                                            applicationId:
+                                                application.applicationId,
 
-                            sid:
-                                application.sid,
+                                            name:
+                                                application.name,
 
-                            branch:
-                                application.branch,
+                                            phone:
+                                                application.phone,
 
-                            q1:
-                                application.q1,
+                                            sid:
+                                                application.sid,
 
-                            q2:
-                                application.q2,
+                                            branch:
+                                                application.branch,
 
-                            q3:
-                                application.q3,
+                                            q1:
+                                                application.q1,
 
-                            q4:
-                                application.q4,
+                                            q2:
+                                                application.q2,
 
-                            secret:
-                                googleSheetsSecret,
+                                            q3:
+                                                application.q3,
 
-                            userId:
-                                user.id,
-                        }),
+                                            q4:
+                                                application.q4,
+
+                                            secret:
+                                                googleSheetsSecret,
+
+                                            userId:
+                                                user.id,
+                                        }),
+                                    }
+                                );
+
+                            let googleResult: {
+                                success?: boolean;
+                                duplicate?: boolean;
+                                error?: string;
+                            };
+
+                            try {
+                                googleResult =
+                                    await googleResponse.json();
+                            } catch {
+                                throw new Error(
+                                    `Google Apps Script returned an invalid response (HTTP ${googleResponse.status})`
+                                );
+                            }
+
+                            if (
+                                !googleResponse.ok ||
+                                !googleResult.success
+                            ) {
+                                throw new Error(
+                                    googleResult.error ||
+                                        `Google Sheets synchronization failed (HTTP ${googleResponse.status})`
+                                );
+                            }
+
+                            console.log(
+                                `Application ${application.applicationId} queued for Google Sheets synchronization`
+                            );
+
+                            return;
+                        } catch (error) {
+                            console.error(
+                                `Google Sheets synchronization attempt ${attempt}/${maxAttempts} failed:`,
+                                error
+                            );
+
+                            if (
+                                attempt <
+                                maxAttempts
+                            ) {
+                                /*
+                                 * Small exponential backoff:
+                                 *
+                                 * 250ms
+                                 * 500ms
+                                 *
+                                 * This is only for transient failures
+                                 * while handing the job to Apps Script.
+                                 */
+                                const delayMs =
+                                    250 *
+                                    Math.pow(
+                                        2,
+                                        attempt - 1
+                                    );
+
+                                await new Promise<void>(
+                                    (resolve) =>
+                                        setTimeout(
+                                            resolve,
+                                            delayMs
+                                        )
+                                );
+                            }
+                        }
                     }
-                );
 
-            let googleResult: {
-                success?: boolean;
-                duplicate?: boolean;
-                error?: string;
-            };
+                    console.error(
+                        `Google Sheets synchronization ultimately failed for application ${application.applicationId}`
+                    );
+                };
 
-            try {
-                googleResult =
-                    await googleResponse.json();
-            } catch {
-                throw new Error(
-                    `Google Apps Script returned an invalid response (HTTP ${googleResponse.status})`
-                );
-            }
-
-            if (
-                !googleResponse.ok ||
-                !googleResult.success
-            ) {
-                throw new Error(
-                    googleResult.error ||
-                        `Google Sheets synchronization failed (HTTP ${googleResponse.status})`
-                );
-            }
+            /*
+             * DO NOT await this.
+             *
+             * Supabase keeps the Edge Function worker alive for the
+             * background promise while the HTTP response returns
+             * immediately to the browser.
+             */
+            EdgeRuntime.waitUntil(
+                syncApplicationToGoogleSheets()
+            );
 
             return new Response(
                 JSON.stringify({
                     success: true,
-                    operation: "application",
-                    duplicate:
-                        googleResult.duplicate ?? false,
+                    operation:
+                        "application",
+                    queued: true,
                 }),
                 {
                     status: 200,
@@ -392,6 +487,7 @@ Deno.serve(async (req: Request) => {
                 }
             );
         }
+
 
         /*
          * ---------------------------------------------------------

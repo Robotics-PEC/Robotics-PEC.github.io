@@ -3,7 +3,7 @@ import { createClient } from "npm:@supabase/supabase-js@2";
 const corsHeaders = {
     "Access-Control-Allow-Origin": "*",
     "Access-Control-Allow-Headers":
-        "authorization, x-client-info, apikey, content-type",
+        "authorization, x-client-info, apikey, content-type, x-internal-secret",
     "Access-Control-Allow-Methods":
         "POST, OPTIONS",
 };
@@ -786,7 +786,26 @@ Deno.serve(
                     "Authorization"
                 );
 
+            const internalSecret =
+                Deno.env.get(
+                    "SCHEDULE_INTERNAL_SECRET"
+                );
+
+            const providedInternalSecret =
+                req.headers.get(
+                    "x-internal-secret"
+                );
+
+            const isInternalRequest =
+                Boolean(
+                    internalSecret &&
+                    providedInternalSecret &&
+                    providedInternalSecret ===
+                        internalSecret
+                );
+
             if (
+                !isInternalRequest &&
                 !authorization
             ) {
                 return new Response(
@@ -832,51 +851,66 @@ Deno.serve(
                 );
             }
 
-            const authenticatedClient =
-                createClient(
-                    supabaseUrl,
-                    supabaseAnonKey,
-                    {
-                        global: {
-                            headers: {
-                                Authorization:
-                                    authorization,
-                            },
-                        },
-                    }
-                );
-
-            const {
-                data: {
-                    user,
-                },
-                error:
-                    userError,
-            } =
-                await authenticatedClient
-                    .auth
-                    .getUser();
+            let user:
+                {
+                    id: string;
+                } | null =
+                null;
 
             if (
-                userError ||
-                !user
+                !isInternalRequest
             ) {
-                return new Response(
-                    JSON.stringify({
-                        success:
-                            false,
-                        error:
-                            "Invalid or expired Supabase session",
-                    }),
-                    {
-                        status: 401,
-                        headers: {
-                            ...corsHeaders,
-                            "Content-Type":
-                                "application/json",
-                        },
-                    }
-                );
+                const authenticatedClient =
+                    createClient(
+                        supabaseUrl,
+                        supabaseAnonKey,
+                        {
+                            global: {
+                                headers: {
+                                    Authorization:
+                                        authorization!,
+                                },
+                            },
+                        }
+                    );
+
+                const authResult =
+                    await authenticatedClient
+                        .auth
+                        .getUser();
+
+                user =
+                    authResult.data.user
+                        ? {
+                              id:
+                                  authResult
+                                      .data
+                                      .user
+                                      .id,
+                          }
+                        : null;
+
+                if (
+                    authResult.error ||
+                    !user
+                ) {
+                    return new Response(
+                        JSON.stringify({
+                            success:
+                                false,
+                            error:
+                                "Invalid or expired Supabase session",
+                        }),
+                        {
+                            status: 401,
+                            headers: {
+                                ...corsHeaders,
+                                "Content-Type":
+                                    "application/json",
+                            },
+                        }
+                    );
+                }
             }
 
             const adminClient =
@@ -1012,7 +1046,8 @@ Deno.serve(
                                 generatedAt,
 
                                 generatedBy:
-                                    user.id,
+                                    user?.id ??
+                                    "background-scheduler",
 
                                 rows:
                                     schedule.rows,

@@ -547,17 +547,6 @@ export const createApplicant =
             );
         }
 
-        /*
-         * Refresh interview schedule.
-         *
-         * The new applicant is now part of the PENDING
-         * pool and may change:
-         * - panel count
-         * - day count
-         * - priority ordering
-         */
-        await requestInterviewSchedule();
-
         return {
             success: true,
 
