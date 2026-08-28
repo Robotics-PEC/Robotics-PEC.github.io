@@ -1,20 +1,23 @@
-import FormField from '@/components/FormField';
 import { Loader } from '@/components/layout/Loader';
 import { Card } from '@/components/ui/card';
-import { HTMLToMarkdown } from '@/lib/utils';
 import { FormResourceType } from '@/types';
 import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from '@radix-ui/react-accordion';
 import { Save, Plus, Edit, Trash, Badge } from 'lucide-react';
 import React, { useEffect, useState } from 'react'
 import { Button } from '@/components/ui/button';
-import ReactMarkdown from 'react-markdown';
 import { toast } from '@/hooks/use-toast';
 import { deleteResource, getResourceData, updateResource, uploadResource } from '@/lib/supabase/actions/resources.actions';
+import {
+    DynamicForm,
+    FormConfigKey,
+    SectionKey,
+    FieldConfigKey,
+    FieldType,
+    SubmitConfigKey,
+    type FormConfig
+} from '@/lib/form-builder';
 
 const ResourceEditor = () => {
-
-
-
     const defaultData = {
         id: "",
         name: "",
@@ -23,7 +26,6 @@ const ResourceEditor = () => {
 
     const [loading, setLoading] = useState(false);
     const [editingId, setEditingId] = useState<string | null>(null);
-    const [newResource, setNewResource] = useState<FormResourceType>(defaultData);
     const [resources, setResources] = useState<FormResourceType[]>([]);
 
     useEffect(() => {
@@ -44,18 +46,10 @@ const ResourceEditor = () => {
         fetch();
     }, []);
 
-    const handleUpdateProject = async () => {
-        if (!editingId) return;
+    const handleAddResource = async (values: { name: string; url: string }) => {
+        const newResource = { ...defaultData, ...values };
 
-        setResources(prev =>
-            prev.map(resource =>
-                resource.id === editingId ? newResource : resource
-            )
-        );
-
-        const error = await updateResource(newResource);
-        setEditingId(null);
-        setNewResource(defaultData);
+        const error = await uploadResource(newResource);
 
         if (error) {
             toast({
@@ -63,33 +57,58 @@ const ResourceEditor = () => {
                 description: error.message,
                 variant: "destructive"
             });
+        } else {
+            toast({
+                title: "Success",
+                description: "Resource has been Uploaded"
+            });
+            setResources(prev => [...prev, newResource]);
         }
-        else {
+    };
+
+    const handleUpdateResource = async (values: { name: string; url: string }) => {
+        if (!editingId) return;
+
+        const updatedResource = { ...defaultData, id: editingId, ...values };
+
+        setResources(prev =>
+            prev.map(resource =>
+                resource.id === editingId ? updatedResource : resource
+            )
+        );
+
+        const error = await updateResource(updatedResource);
+        setEditingId(null);
+
+        if (error) {
+            toast({
+                title: error.name,
+                description: error.message,
+                variant: "destructive"
+            });
+        } else {
             toast({
                 title: "Success",
                 description: "Resource has been Updated"
             });
-
         }
     };
 
-    const handleEditResource = async (resource: FormResourceType) => {
-        setNewResource(resource);
+    const handleEditResource = (resource: FormResourceType) => {
         setEditingId(resource.id);
     };
 
-    const handleRemoveProject = async (resource: FormResourceType) => {
+    const handleRemoveResource = async (resource: FormResourceType) => {
         setResources(prev => prev.filter(pr => pr.id !== resource.id));
         const response = await deleteResource(resource);
         if (response.status == 204) {
             toast({
-                title: "Project Deleted Successfully",
+                title: "Resource Deleted Successfully",
                 description: `${resource.name} was successfully deleted`
             });
-        }
-        else {
+        } else {
             toast({
-                title: "Project Couldn't be deleted",
+                title: "Resource Couldn't be deleted",
                 description: `${resource.name} unable to be deleted`
             });
         }
@@ -99,42 +118,38 @@ const ResourceEditor = () => {
         localStorage.setItem("resourceData", JSON.stringify(resources));
         toast({
             title: "Changes saved",
-            description: "Projects have been updated successfully.",
+            description: "Resources have been updated successfully.",
         });
     };
 
-    const handleAddProject = async () => {
-        if (!newResource.name || !newResource.url) {
-            toast({
-                title: "Error",
-                description: "All fields are Required",
-                variant: "destructive",
-            });
-            return;
-        }
-
-        setResources(prev => [...prev, { ...newResource }]);
-        const error = await uploadResource(newResource);
-
-        if (error) {
-            toast({
-                title: error.name,
-                description: error.message,
-                variant: "destructive"
-            });
-        }
-        else {
-            toast({
-                title: "Success",
-                description: "Resource has been Uploaded"
-            });
-
-        }
-
-        setNewResource(defaultData);
+    const resourceFormConfig: FormConfig = {
+        [FormConfigKey.SECTIONS]: [
+            {
+                [SectionKey.FIELDS]: [
+                    {
+                        [FieldConfigKey.NAME]: "name",
+                        [FieldConfigKey.LABEL]: "Name",
+                        [FieldConfigKey.TYPE]: FieldType.TEXT,
+                        [FieldConfigKey.PLACEHOLDER]: "Robotics Repository",
+                        [FieldConfigKey.REQUIRED]: true,
+                    },
+                    {
+                        [FieldConfigKey.NAME]: "url",
+                        [FieldConfigKey.LABEL]: "URL",
+                        [FieldConfigKey.TYPE]: FieldType.URL,
+                        [FieldConfigKey.PLACEHOLDER]: "https://www.roboticspec.com",
+                        [FieldConfigKey.REQUIRED]: true,
+                    },
+                ],
+            },
+        ],
+        [FormConfigKey.SUBMIT]: {
+            [SubmitConfigKey.LABEL]: editingId ? "Update Resource" : "Add Resource",
+            [SubmitConfigKey.LOADING_LABEL]: editingId ? "Updating..." : "Adding...",
+        },
     };
 
-
+    const editingResource = editingId ? resources.find(r => r.id === editingId) : null;
 
     return (
         <Loader isLoading={loading}>
@@ -143,47 +158,28 @@ const ResourceEditor = () => {
                     <h3 className="text-lg font-medium mb-4">
                         {editingId ? "Edit Resource" : "Add New Resource"}
                     </h3>
-                    <div className="space-y-4">
-                        <FormField
-                            title="Name"
-                            id="name"
-                            value={newResource.name}
-                            onChange={setNewResource}
-                            placeholder="Robotics Repository"
-                            htmlFor="name"
-                            type="TEXT"
-                        />
-                        <FormField
-                            title="URL"
-                            id="url"
-                            value={newResource.url}
-                            onChange={setNewResource}
-                            placeholder="https://www.roboticspec.com"
-                            htmlFor="url"
-                            type="TEXT"
-                        />
-
-                        {editingId ? (
-                            <div className="flex gap-2">
-                                <Button onClick={handleUpdateProject} className="flex-1">
-                                    <Save className="h-4 w-4 mr-2" /> Update Resource
-                                </Button>
+                    <DynamicForm
+                        config={resourceFormConfig}
+                        onSubmit={editingId ? handleUpdateResource : handleAddResource}
+                        defaultValues={
+                            editingResource
+                                ? { name: editingResource.name, url: editingResource.url }
+                                : undefined
+                        }
+                        key={editingId || "new"} // Force re-render when switching between add/edit
+                        footer={
+                            editingId ? (
                                 <Button
-                                    variant="destructive"
-                                    onClick={() => {
-                                        setEditingId(null);
-                                        setNewResource(defaultData);
-                                    }}
+                                    type="button"
+                                    variant="outline"
+                                    onClick={() => setEditingId(null)}
+                                    className="w-full"
                                 >
                                     Cancel
                                 </Button>
-                            </div>
-                        ) : (
-                            <Button onClick={handleAddProject} className="w-full">
-                                <Plus className="h-4 w-4 mr-2" /> Add Resource
-                            </Button>
-                        )}
-                    </div>
+                            ) : null
+                        }
+                    />
                 </Card>
 
                 <div className="space-y-4">
@@ -219,9 +215,9 @@ const ResourceEditor = () => {
                                                 <Button
                                                     size="sm"
                                                     variant="destructive"
-                                                    onClick={() => handleRemoveProject(resource)}
+                                                    onClick={() => handleRemoveResource(resource)}
                                                 >
-                                                    <Trash className="h-4 w-4 mr-1 my-10" /> Delete
+                                                    <Trash className="h-4 w-4 mr-1" /> Delete
                                                 </Button>
                                             </div>
                                         </div>

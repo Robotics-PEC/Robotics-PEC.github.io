@@ -1,18 +1,23 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import Image from "next/image";
-import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Trash, Save } from "lucide-react";
+import { Trash, Save } from "lucide-react";
 import { deleteImage, getImagesFromFolder, uploadImage } from "@/lib/supabase/actions/storage.actions";
 import { Loader } from "@/components/layout/Loader";
 import { getHeroData, updateHeroData } from "@/lib/supabase/actions/hero.actions";
 import { HeroType, ImageObjectType } from "@/types";
 import Blob from "@/components/Blob";
-import FormField from "@/components/FormField";
-
+import {
+  DynamicForm,
+  FormConfigKey,
+  SectionKey,
+  FieldConfigKey,
+  FieldType,
+  SubmitConfigKey,
+  type FormConfig
+} from "@/lib/form-builder";
 
 const emptyData: HeroType = {
   heading: "",
@@ -26,8 +31,6 @@ const emptyImageObject: ImageObjectType = {
 }
 
 const HeroEditor = () => {
-
-
   const [loading, setLoading] = useState(true);
   const [heroData, setHeroData] = useState<HeroType>(emptyData);
   const [images, setImages] = useState<string[]>([]);
@@ -82,13 +85,11 @@ const HeroEditor = () => {
     });
   }
 
-  const handleSave = async () => {
-
+  const handleSave = async (values: { heading: string; description: string }) => {
     // pre update check to make sure data is different that what is currently stored
-
     const data = await getHeroData();
 
-    if (data.heading == heroData.heading && data.description == heroData.description && (image1FileName == "" && image2FileName == "" && image3FileName == "")) {
+    if (data.heading == values.heading && data.description == values.description && (image1FileName == "" && image2FileName == "" && image3FileName == "")) {
       toast({
         title: "Error",
         description: "Please make some changes",
@@ -101,7 +102,7 @@ const HeroEditor = () => {
     await saveImages("hero");
 
     // update the data base with the current record
-    const error = await updateHeroData(heroData);
+    const error = await updateHeroData(values);
 
     if (error) {
       toast({
@@ -116,35 +117,50 @@ const HeroEditor = () => {
         title: "Success",
         description: "Hero data updated successfully",
       });
+      setHeroData(values);
       location.reload();
     }
-
   };
 
   const handleRemoveImage = (index: number) => { };
 
+  const heroFormConfig: FormConfig = {
+    [FormConfigKey.SECTIONS]: [
+      {
+        [SectionKey.FIELDS]: [
+          {
+            [FieldConfigKey.NAME]: "heading",
+            [FieldConfigKey.LABEL]: "Heading",
+            [FieldConfigKey.TYPE]: FieldType.TEXT,
+            [FieldConfigKey.PLACEHOLDER]: "Enter Heading",
+            [FieldConfigKey.REQUIRED]: true,
+          },
+          {
+            [FieldConfigKey.NAME]: "description",
+            [FieldConfigKey.LABEL]: "Description",
+            [FieldConfigKey.TYPE]: FieldType.TEXTAREA,
+            [FieldConfigKey.PLACEHOLDER]: "Enter Description",
+            [FieldConfigKey.REQUIRED]: true,
+            [FieldConfigKey.ROWS]: 3,
+          },
+        ],
+      },
+    ],
+    [FormConfigKey.SUBMIT]: {
+      [SubmitConfigKey.LABEL]: "Save Changes",
+      [SubmitConfigKey.LOADING_LABEL]: "Saving...",
+    },
+  };
+
   return (
     <Loader isLoading={loading}>
       <div className="space-y-6">
-        <FormField
-          id="heading"
-          title="Heading"
-          htmlFor="heading"
-          onChange={setHeroData}
-          placeholder="Enter Heading"
-          type="TEXT"
-          value={heroData.heading}
+        <DynamicForm
+          config={heroFormConfig}
+          onSubmit={handleSave}
+          defaultValues={heroData}
         />
 
-        <FormField
-          id="description"
-          title="Description"
-          htmlFor="description"
-          onChange={setHeroData}
-          placeholder="Enter Description"
-          type="TEXT"
-          value={heroData.description}
-        />
         <div className="space-y-4">
           <Label>Background Images</Label>
 
@@ -190,12 +206,8 @@ const HeroEditor = () => {
             />
           </div>
         </div>
-
-        <Button onClick={handleSave} className="mt-6 w-full" size="lg">
-          <Save className="h-4 w-4 mr-2" /> Save Changes
-        </Button>
-      </ div>
-    </ Loader >
+      </div>
+    </Loader>
   );
 };
 
