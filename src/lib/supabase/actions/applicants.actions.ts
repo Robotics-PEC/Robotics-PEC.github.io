@@ -1142,12 +1142,6 @@ export const updateApplicantDecision =
             );
         }
 
-        /*
-         * Remove the applicant from the shared interview
-         * schedule because they are no longer PENDING.
-         */
-        await requestInterviewSchedule();
-
         return true;
     };
 
