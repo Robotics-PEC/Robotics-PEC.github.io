@@ -38,7 +38,8 @@ type UpdateApplicationOperation = {
 type ResultOperation = {
     operation: "result";
     applicationId: string;
-    status: "accepted" | "rejected";
+    status: "pending" | "accepted" | "rejected";
+    reviewScore?: any;
     remarks: string;
     reviewedBy: string;
     reviewedAt: string;
@@ -758,6 +759,9 @@ Deno.serve(async (req: Request) => {
 
                             result:
                                 result.status,
+
+                            reviewScore:
+                                result.reviewScore,
 
                             remarks:
                                 result.remarks || "",

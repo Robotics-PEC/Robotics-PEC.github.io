@@ -2,7 +2,7 @@ import { useState } from "react";
 
 import { useAuthRole } from "@/lib/useAuthRole";
 
-import { ApplicantType } from "@/types";
+import { ApplicantType, ReviewScore } from "@/types";
 
 import { Button } from "@/components/ui/button";
 
@@ -16,7 +16,7 @@ import ApplicantEditForm from "./ApplicantEditForm";
 
 import {
     updateApplicant,
-    updateApplicantDecision,
+    updateApplicantReview,
 } from "@/lib/supabase/actions/applicants.actions";
 
 import { APPLICATION_QUESTIONS } from "../ApplicationForm";
@@ -85,6 +85,9 @@ const ApplicantFormView = ({
                     responses:
                         editedApplicant.responses ||
                         {},
+
+                    reviewScore:
+                        editedApplicant.reviewScore,
                 }
             );
 
@@ -117,13 +120,11 @@ const ApplicantFormView = ({
 
     /*
      * ---------------------------------------------------------
-     * ACCEPT / REJECT
+     * SUBMIT REVIEW
      * ---------------------------------------------------------
      */
-    const handleSubmitDecision = async (
-        status:
-            | "accepted"
-            | "rejected",
+    const handleSubmitReview = async (
+        reviewScore: ReviewScore,
         remarks: string
     ) => {
         const reviewedBy =
@@ -132,24 +133,25 @@ const ApplicantFormView = ({
                 : "Panelist";
 
         const success =
-            await updateApplicantDecision(
+            await updateApplicantReview(
                 currentApplicant.id,
-                status,
+                currentApplicant.status,
+                reviewScore,
                 remarks,
                 reviewedBy
             );
 
         if (!success) {
             throw new Error(
-                "Failed to update applicant decision."
+                "Failed to submit applicant review."
             );
         }
 
         const updatedApplicant: ApplicantType =
             {
                 ...currentApplicant,
-
-                status,
+                
+                reviewScore,
 
                 remarks,
 
@@ -162,8 +164,6 @@ const ApplicantFormView = ({
         setCurrentApplicant(
             updatedApplicant
         );
-
-        setCurrentStatus(status);
 
         onStatusUpdate(
             updatedApplicant
@@ -464,29 +464,31 @@ const ApplicantFormView = ({
 
                         </div>
 
+                        <ApplicantDecision
+                            applicantId={
+                                currentApplicant.id
+                            }
+                            currentStatus={
+                                currentStatus
+                            }
+                            reviewScore={
+                                currentApplicant.reviewScore
+                            }
+                            remarks={
+                                currentApplicant.remarks
+                            }
+                            reviewedBy={
+                                currentApplicant.reviewedBy
+                            }
+                            onSubmitReview={
+                                handleSubmitReview
+                            }
+                        />
+
                     </div>
 
                 </div>
             )}
-
-            {/* Decision section */}
-            <ApplicantDecision
-                applicantId={
-                    currentApplicant.id
-                }
-                currentStatus={
-                    currentStatus
-                }
-                remarks={
-                    currentApplicant.remarks
-                }
-                reviewedBy={
-                    currentApplicant.reviewedBy
-                }
-                onSubmitDecision={
-                    handleSubmitDecision
-                }
-            />
 
         </div>
     );
