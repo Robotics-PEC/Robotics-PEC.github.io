@@ -294,49 +294,78 @@ const ApplicantFormView = ({
 
             {/* Applicant details */}
             {currentApplicant.isWalkin ? (
+                <div className="mb-6 flex-1 overflow-y-auto">
+                    <div className="rounded-lg border bg-gray-50 p-6">
 
-                <div className="mb-6 flex flex-1 flex-col items-center justify-center rounded-lg border bg-gray-50 p-8 text-center">
+                        <h3 className="mb-6 text-xl font-semibold">
+                            Walk-In Applicant
+                        </h3>
 
-                    <h3 className="mb-4 text-xl font-medium">
-                        Walk-In Applicant
-                    </h3>
+                        <div className="mb-8 grid gap-6 sm:grid-cols-2">
+                            <div>
+                                <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                                    Name
+                                </p>
+                                <p className="mt-1 text-sm font-medium">
+                                    {currentApplicant.name}
+                                </p>
+                            </div>
 
-                    <p className="mb-2 text-sm">
-                        Name:{" "}
-                        {currentApplicant.name}
-                    </p>
+                            <div>
+                                <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                                    SID
+                                </p>
+                                <p className="mt-1 text-sm font-medium">
+                                    {currentApplicant.sid}
+                                </p>
+                            </div>
 
-                    <p className="mb-2 text-sm">
-                        SID:{" "}
-                        {currentApplicant.sid}
-                    </p>
-
-                    {currentApplicant.phone && (
-                        <p className="text-sm">
-                            Phone:{" "}
-                            {
-                                currentApplicant.phone
-                            }
-                        </p>
-                    )}
-
-                    {currentApplicant.remarks && (
-                        <div className="mt-5 max-w-md rounded-md border bg-white p-4 text-left">
-
-                            <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                                Remarks
-                            </p>
-
-                            <p className="mt-1 whitespace-pre-wrap text-sm">
-                                {
-                                    currentApplicant.remarks
-                                }
-                            </p>
-
+                            {currentApplicant.phone && (
+                                <div>
+                                    <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                                        Phone
+                                    </p>
+                                    <p className="mt-1 text-sm font-medium">
+                                        {currentApplicant.phone}
+                                    </p>
+                                </div>
+                            )}
                         </div>
-                    )}
+
+                        {currentApplicant.remarks && (
+                            <div className="mb-8 rounded-lg border bg-white p-4">
+                                <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                                    Remarks
+                                </p>
+                                <p className="mt-1 whitespace-pre-wrap text-sm">
+                                    {currentApplicant.remarks}
+                                </p>
+                            </div>
+                        )}
+
+                    <ApplicantDecision
+                        applicantId={
+                            currentApplicant.id
+                        }
+                        currentStatus={
+                            currentStatus
+                        }
+                        reviewScore={
+                            currentApplicant.reviewScore
+                        }
+                        remarks={
+                            currentApplicant.remarks
+                        }
+                        reviewedBy={
+                            currentApplicant.reviewedBy
+                        }
+                        onSubmitReview={
+                            handleSubmitReview
+                        }
+                    />
 
                 </div>
+            </div>
 
             ) : (
 
