@@ -150,6 +150,14 @@ export interface TeamData {
     [key: string]: any;
 };
 
+export interface ReviewScore {
+    personality: number;
+    thinking: number;
+    priorExperience: number;
+    motivation: number;
+    curiosity: number;
+}
+
 export interface ApplicantType {
     id: string;
     userId?: string;
@@ -167,6 +175,7 @@ export interface ApplicantType {
 
     isWalkin: boolean;
     status: "pending" | "accepted" | "rejected";
+    reviewScore?: ReviewScore;
     remarks?: string;
     reviewedBy?: string;
     reviewedAt?: string;

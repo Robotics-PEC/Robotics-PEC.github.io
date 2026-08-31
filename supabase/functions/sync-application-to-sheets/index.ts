@@ -35,12 +35,34 @@ type UpdateApplicationOperation = {
     branch: string;
 };
 
+type ReviewScore = {
+    personality: number;
+    thinking: number;
+    priorExperience: number;
+    motivation: number;
+    curiosity: number;
+};
+
 type ResultOperation = {
+    /*
+     * "result" is retained as the operation name for compatibility
+     * with the existing frontend action.
+     *
+     * The review itself no longer changes an accept/reject result.
+     */
     operation: "result";
+
     applicationId: string;
-    status: "accepted" | "rejected";
+
+    /*
+     * Kept optional for compatibility with the current frontend.
+     * This value is intentionally ignored by this function.
+     */
+    status?: "pending" | "accepted" | "rejected";
+
+    reviewScore: ReviewScore;
     remarks: string;
-    reviewedBy: string;
+    reviewedBy?: string;
     reviewedAt: string;
 };
 
@@ -49,19 +71,17 @@ type RequestData =
     | UpdateApplicationOperation
     | ResultOperation;
 
+
 /*
- * ---------------------------------------------------------
- * Get authenticated user's display name
- * ---------------------------------------------------------
+ * =========================================================
+ * GET REVIEWER NAME
+ * =========================================================
  *
- * The frontend currently sends "Admin" / "Panelist" as
- * reviewedBy. We do not trust that value.
+ * The frontend may send "Panelist" / "Admin", but we do not
+ * trust that value.
  *
- * Instead, use the authenticated Supabase user's ID to
- * find the corresponding profile and obtain fullName.
- *
- * If the profile name is unavailable, fall back to the
- * name stored in the authenticated user's metadata.
+ * The authenticated Supabase user's profile is the source
+ * of truth for the reviewer's display name.
  */
 
 async function getReviewerName(
@@ -80,9 +100,13 @@ async function getReviewerName(
     if (
         !profileError &&
         profile?.fullName &&
-        String(profile.fullName).trim() !== ""
+        String(
+            profile.fullName
+        ).trim() !== ""
     ) {
-        return String(profile.fullName).trim();
+        return String(
+            profile.fullName
+        ).trim();
     }
 
     if (profileError) {
@@ -93,9 +117,9 @@ async function getReviewerName(
     }
 
     /*
-     * Fallback to the authenticated user's
-     * Google/Supabase metadata.
+     * Fallback to authenticated user's metadata.
      */
+
     const metadataName =
         user.user_metadata?.full_name ||
         user.user_metadata?.name ||
@@ -103,13 +127,90 @@ async function getReviewerName(
 
     if (
         metadataName &&
-        String(metadataName).trim() !== ""
+        String(
+            metadataName
+        ).trim() !== ""
     ) {
-        return String(metadataName).trim();
+        return String(
+            metadataName
+        ).trim();
     }
 
     return "Unknown Reviewer";
 }
+
+
+/*
+ * =========================================================
+ * VALIDATE REVIEW SCORES
+ * =========================================================
+ *
+ * Each score must be an integer from 1 through 10.
+ */
+
+function validateReviewScore(
+    reviewScore: ReviewScore
+): string | null {
+    const fields: (keyof ReviewScore)[] = [
+        "personality",
+        "thinking",
+        "priorExperience",
+        "motivation",
+        "curiosity",
+    ];
+
+    for (
+        const field of fields
+    ) {
+        const value =
+            reviewScore?.[field];
+
+        if (
+            typeof value !== "number" ||
+            !Number.isInteger(value) ||
+            value < 1 ||
+            value > 10
+        ) {
+            return (
+                `Invalid review score for ${field}: ` +
+                "expected an integer from 1 to 10"
+            );
+        }
+    }
+
+    return null;
+}
+
+
+/*
+ * =========================================================
+ * JSON RESPONSE HELPER
+ * =========================================================
+ */
+
+function jsonResponse(
+    body: Record<string, unknown>,
+    status = 200
+): Response {
+    return new Response(
+        JSON.stringify(body),
+        {
+            status,
+            headers: {
+                ...corsHeaders,
+                "Content-Type":
+                    "application/json",
+            },
+        }
+    );
+}
+
+
+/*
+ * =========================================================
+ * MAIN HANDLER
+ * =========================================================
+ */
 
 Deno.serve(async (req: Request) => {
     /*
@@ -118,127 +219,138 @@ Deno.serve(async (req: Request) => {
      * ---------------------------------------------------------
      */
 
-    if (req.method === "OPTIONS") {
-        return new Response("ok", {
-            headers: corsHeaders,
-        });
+    if (
+        req.method ===
+        "OPTIONS"
+    ) {
+        return new Response(
+            "ok",
+            {
+                headers:
+                    corsHeaders,
+            }
+        );
     }
 
-    if (req.method !== "POST") {
-        return new Response(
-            JSON.stringify({
-                success: false,
-                error: "Method not allowed",
-            }),
+    if (
+        req.method !==
+        "POST"
+    ) {
+        return jsonResponse(
             {
-                status: 405,
-                headers: {
-                    ...corsHeaders,
-                    "Content-Type": "application/json",
-                },
-            }
+                success: false,
+                error:
+                    "Method not allowed",
+            },
+            405
         );
     }
 
     try {
         /*
          * ---------------------------------------------------------
-         * 1. Authenticate Supabase user
+         * 1. AUTHENTICATE SUPABASE USER
          * ---------------------------------------------------------
          */
 
         const authorization =
-            req.headers.get("Authorization");
+            req.headers.get(
+                "Authorization"
+            );
 
-        if (!authorization) {
-            return new Response(
-                JSON.stringify({
-                    success: false,
-                    error: "Authentication required",
-                }),
+        if (
+            !authorization
+        ) {
+            return jsonResponse(
                 {
-                    status: 401,
-                    headers: {
-                        ...corsHeaders,
-                        "Content-Type": "application/json",
-                    },
-                }
+                    success: false,
+                    error:
+                        "Authentication required",
+                },
+                401
             );
         }
 
         const supabaseUrl =
-            Deno.env.get("SUPABASE_URL");
+            Deno.env.get(
+                "SUPABASE_URL"
+            );
 
         const supabaseAnonKey =
-            Deno.env.get("SUPABASE_ANON_KEY");
+            Deno.env.get(
+                "SUPABASE_ANON_KEY"
+            );
 
-        if (!supabaseUrl || !supabaseAnonKey) {
+        if (
+            !supabaseUrl ||
+            !supabaseAnonKey
+        ) {
             throw new Error(
                 "Supabase environment variables are missing"
             );
         }
 
-        const supabase = createClient(
-            supabaseUrl,
-            supabaseAnonKey,
-            {
-                global: {
-                    headers: {
-                        Authorization: authorization,
-                    },
-                },
-            }
-        );
-
-        const {
-            data: { user },
-            error: userError,
-        } = await supabase.auth.getUser();
-
-        if (userError || !user) {
-            return new Response(
-                JSON.stringify({
-                    success: false,
-                    error: "Invalid or expired Supabase session",
-                }),
+        const supabase =
+            createClient(
+                supabaseUrl,
+                supabaseAnonKey,
                 {
-                    status: 401,
-                    headers: {
-                        ...corsHeaders,
-                        "Content-Type": "application/json",
+                    global: {
+                        headers: {
+                            Authorization:
+                                authorization,
+                        },
                     },
                 }
+            );
+
+        const {
+            data: {
+                user,
+            },
+            error: userError,
+        } =
+            await supabase.auth.getUser();
+
+        if (
+            userError ||
+            !user
+        ) {
+            return jsonResponse(
+                {
+                    success: false,
+                    error:
+                        "Invalid or expired Supabase session",
+                },
+                401
             );
         }
 
         /*
          * ---------------------------------------------------------
-         * 2. Parse request
+         * 2. PARSE REQUEST
          * ---------------------------------------------------------
          */
 
         const data =
             (await req.json()) as RequestData;
 
-        if (!data.operation) {
-            return new Response(
-                JSON.stringify({
-                    success: false,
-                    error: "Missing operation",
-                }),
+        if (
+            !data.operation
+        ) {
+            return jsonResponse(
                 {
-                    status: 400,
-                    headers: {
-                        ...corsHeaders,
-                        "Content-Type": "application/json",
-                    },
-                }
+                    success: false,
+                    error:
+                        "Missing operation",
+                },
+                400
             );
         }
 
         /*
          * ---------------------------------------------------------
-         * 3. Google Apps Script configuration
+         * 3. GOOGLE APPS SCRIPT CONFIGURATION
          * ---------------------------------------------------------
          */
 
@@ -262,12 +374,15 @@ Deno.serve(async (req: Request) => {
         }
 
         /*
-         * ---------------------------------------------------------
+         * =========================================================
          * APPLICATION
-         * ---------------------------------------------------------
+         * =========================================================
          */
 
-        if (data.operation === "application") {
+        if (
+            data.operation ===
+            "application"
+        ) {
             const application =
                 data as ApplicationOperation;
 
@@ -283,58 +398,45 @@ Deno.serve(async (req: Request) => {
                 "q4",
             ] as const;
 
-            for (const field of requiredFields) {
+            for (
+                const field of
+                requiredFields
+            ) {
                 if (
-                    application[field] === undefined ||
-                    application[field] === null ||
-                    String(application[field]).trim() === ""
+                    application[field] ===
+                        undefined ||
+                    application[field] ===
+                        null ||
+                    String(
+                        application[field]
+                    ).trim() === ""
                 ) {
-                    return new Response(
-                        JSON.stringify({
+                    return jsonResponse(
+                        {
                             success: false,
                             error:
                                 `Missing required field: ${field}`,
-                        }),
-                        {
-                            status: 400,
-                            headers: {
-                                ...corsHeaders,
-                                "Content-Type":
-                                    "application/json",
-                            },
-                        }
+                        },
+                        400
                     );
                 }
             }
 
             /*
-             * -----------------------------------------------------
-             * Background Google Sheets synchronization
-             * -----------------------------------------------------
-             *
-             * IMPORTANT:
-             *
-             * The application is already safely stored in Supabase
-             * before this Edge Function is called.
-             *
-             * We therefore do NOT wait for Google Apps Script here.
-             *
-             * EdgeRuntime.waitUntil() keeps this promise running
-             * after the HTTP response has been sent, which removes
-             * the Google Sheets latency from the student's request.
-             *
-             * The Apps Script itself already contains the durable
-             * _sync_queue, so once the request reaches Apps Script
-             * the normal queue/retry flow takes over.
+             * Application synchronization happens in the
+             * background so the student's submission request
+             * does not wait for Google Sheets.
              */
 
             const syncApplicationToGoogleSheets =
                 async (): Promise<void> => {
-                    const maxAttempts = 3;
+                    const maxAttempts =
+                        3;
 
                     for (
                         let attempt = 1;
-                        attempt <= maxAttempts;
+                        attempt <=
+                            maxAttempts;
                         attempt++
                     ) {
                         try {
@@ -342,48 +444,54 @@ Deno.serve(async (req: Request) => {
                                 await fetch(
                                     googleScriptUrl,
                                     {
-                                        method: "POST",
+                                        method:
+                                            "POST",
+
                                         headers: {
                                             "Content-Type":
                                                 "application/json",
                                         },
-                                        body: JSON.stringify({
-                                            operation:
-                                                "application",
 
-                                            applicationId:
-                                                application.applicationId,
+                                        body:
+                                            JSON.stringify(
+                                                {
+                                                    operation:
+                                                        "application",
 
-                                            name:
-                                                application.name,
+                                                    applicationId:
+                                                        application.applicationId,
 
-                                            phone:
-                                                application.phone,
+                                                    name:
+                                                        application.name,
 
-                                            sid:
-                                                application.sid,
+                                                    phone:
+                                                        application.phone,
 
-                                            branch:
-                                                application.branch,
+                                                    sid:
+                                                        application.sid,
 
-                                            q1:
-                                                application.q1,
+                                                    branch:
+                                                        application.branch,
 
-                                            q2:
-                                                application.q2,
+                                                    q1:
+                                                        application.q1,
 
-                                            q3:
-                                                application.q3,
+                                                    q2:
+                                                        application.q2,
 
-                                            q4:
-                                                application.q4,
+                                                    q3:
+                                                        application.q3,
 
-                                            secret:
-                                                googleSheetsSecret,
+                                                    q4:
+                                                        application.q4,
 
-                                            userId:
-                                                user.id,
-                                        }),
+                                                    secret:
+                                                        googleSheetsSecret,
+
+                                                    userId:
+                                                        user.id,
+                                                }
+                                            ),
                                     }
                                 );
 
@@ -417,7 +525,9 @@ Deno.serve(async (req: Request) => {
                             );
 
                             return;
-                        } catch (error) {
+                        } catch (
+                            error
+                        ) {
                             console.error(
                                 `Google Sheets synchronization attempt ${attempt}/${maxAttempts} failed:`,
                                 error
@@ -427,24 +537,16 @@ Deno.serve(async (req: Request) => {
                                 attempt <
                                 maxAttempts
                             ) {
-                                /*
-                                 * Small exponential backoff:
-                                 *
-                                 * 250ms
-                                 * 500ms
-                                 *
-                                 * This is only for transient failures
-                                 * while handing the job to Apps Script.
-                                 */
                                 const delayMs =
                                     250 *
                                     Math.pow(
                                         2,
-                                        attempt - 1
+                                        attempt -
+                                            1
                                     );
 
                                 await new Promise<void>(
-                                    (resolve) =>
+                                    resolve =>
                                         setTimeout(
                                             resolve,
                                             delayMs
@@ -459,45 +561,27 @@ Deno.serve(async (req: Request) => {
                     );
                 };
 
-            /*
-             * DO NOT await this.
-             *
-             * Supabase keeps the Edge Function worker alive for the
-             * background promise while the HTTP response returns
-             * immediately to the browser.
-             */
             EdgeRuntime.waitUntil(
                 syncApplicationToGoogleSheets()
             );
 
-            return new Response(
-                JSON.stringify({
-                    success: true,
-                    operation:
-                        "application",
-                    queued: true,
-                }),
-                {
-                    status: 200,
-                    headers: {
-                        ...corsHeaders,
-                        "Content-Type":
-                            "application/json",
-                    },
-                }
-            );
+            return jsonResponse({
+                success: true,
+                operation:
+                    "application",
+                queued: true,
+            });
         }
 
 
         /*
-         * ---------------------------------------------------------
+         * =========================================================
          * UPDATE APPLICATION
-         * ---------------------------------------------------------
+         * =========================================================
          *
-         * Updates only:
-         * Name / Phone / SID / Branch
+         * Only Name / Phone / SID / Branch are editable.
          *
-         * Submitted answers are never changed.
+         * Submitted answers are not changed here.
          */
 
         if (
@@ -533,20 +617,13 @@ Deno.serve(async (req: Request) => {
                 applicantError ||
                 !applicant
             ) {
-                return new Response(
-                    JSON.stringify({
+                return jsonResponse(
+                    {
                         success: false,
                         error:
                             "Application not found or no longer editable",
-                    }),
-                    {
-                        status: 404,
-                        headers: {
-                            ...corsHeaders,
-                            "Content-Type":
-                                "application/json",
-                        },
-                    }
+                    },
+                    404
                 );
             }
 
@@ -558,26 +635,26 @@ Deno.serve(async (req: Request) => {
                 "branch",
             ] as const;
 
-            for (const field of requiredFields) {
+            for (
+                const field of
+                requiredFields
+            ) {
                 if (
-                    update[field] === undefined ||
-                    update[field] === null ||
-                    String(update[field]).trim() === ""
+                    update[field] ===
+                        undefined ||
+                    update[field] ===
+                        null ||
+                    String(
+                        update[field]
+                    ).trim() === ""
                 ) {
-                    return new Response(
-                        JSON.stringify({
+                    return jsonResponse(
+                        {
                             success: false,
                             error:
                                 `Missing required field: ${field}`,
-                        }),
-                        {
-                            status: 400,
-                            headers: {
-                                ...corsHeaders,
-                                "Content-Type":
-                                    "application/json",
-                            },
-                        }
+                        },
+                        400
                     );
                 }
             }
@@ -586,36 +663,42 @@ Deno.serve(async (req: Request) => {
                 await fetch(
                     googleScriptUrl,
                     {
-                        method: "POST",
+                        method:
+                            "POST",
+
                         headers: {
                             "Content-Type":
                                 "application/json",
                         },
-                        body: JSON.stringify({
-                            operation:
-                                "update_application",
 
-                            applicationId:
-                                update.applicationId,
+                        body:
+                            JSON.stringify(
+                                {
+                                    operation:
+                                        "update_application",
 
-                            name:
-                                update.name,
+                                    applicationId:
+                                        update.applicationId,
 
-                            phone:
-                                update.phone,
+                                    name:
+                                        update.name,
 
-                            sid:
-                                update.sid,
+                                    phone:
+                                        update.phone,
 
-                            branch:
-                                update.branch,
+                                    sid:
+                                        update.sid,
 
-                            secret:
-                                googleSheetsSecret,
+                                    branch:
+                                        update.branch,
 
-                            userId:
-                                user.id,
-                        }),
+                                    secret:
+                                        googleSheetsSecret,
+
+                                    userId:
+                                        user.id,
+                                }
+                            ),
                     }
                 );
 
@@ -643,39 +726,84 @@ Deno.serve(async (req: Request) => {
                 );
             }
 
-            return new Response(
-                JSON.stringify({
-                    success: true,
-                    operation:
-                        "update_application",
-                }),
-                {
-                    status: 200,
-                    headers: {
-                        ...corsHeaders,
-                        "Content-Type":
-                            "application/json",
-                    },
-                }
-            );
+            return jsonResponse({
+                success: true,
+                operation:
+                    "update_application",
+            });
         }
 
+
         /*
-         * ---------------------------------------------------------
-         * RESULT
-         * ---------------------------------------------------------
+         * =========================================================
+         * PANEL REVIEW
+         * =========================================================
          *
-         * The reviewer name is determined server-side from the
-         * authenticated Supabase user.
+         * The operation is still called "result" because the
+         * existing frontend already uses this operation name.
          *
-         * We intentionally do NOT use result.reviewedBy here.
-         * The frontend may send "Panelist", but the Edge Function
-         * replaces it with the authenticated user's actual name.
+         * This is NOT an accept/reject operation.
+         *
+         * Only the five review scores, remarks, reviewer identity,
+         * and review timestamp are synchronized.
          */
 
-        if (data.operation === "result") {
-            const result =
+        if (
+            data.operation ===
+            "result"
+        ) {
+            const review =
                 data as ResultOperation;
+
+            /*
+             * Validate the five score fields.
+             */
+
+            const reviewScoreError =
+                validateReviewScore(
+                    review.reviewScore
+                );
+
+            if (
+                reviewScoreError
+            ) {
+                return jsonResponse(
+                    {
+                        success: false,
+                        error:
+                            reviewScoreError,
+                    },
+                    400
+                );
+            }
+
+            /*
+             * Remarks are required by ApplicantDecision.
+             */
+
+            if (
+                typeof review.remarks !==
+                    "string" ||
+                review.remarks.trim() ===
+                    ""
+            ) {
+                return jsonResponse(
+                    {
+                        success: false,
+                        error:
+                            "Review remarks are required",
+                    },
+                    400
+                );
+            }
+
+            /*
+             * Fetch applicant information from the active
+             * applicants table.
+             *
+             * Branch continues to come from applicant_response,
+             * matching the existing database architecture.
+             */
 
             const {
                 data: applicant,
@@ -687,7 +815,7 @@ Deno.serve(async (req: Request) => {
                 )
                 .eq(
                     "id",
-                    result.applicationId
+                    review.applicationId
                 )
                 .single();
 
@@ -696,14 +824,12 @@ Deno.serve(async (req: Request) => {
                 !applicant
             ) {
                 throw new Error(
-                    "Could not fetch applicant for result sheet"
+                    "Could not fetch applicant for Results Sheet"
                 );
             }
 
             /*
-             * -----------------------------------------------------
-             * Get actual reviewer name
-             * -----------------------------------------------------
+             * Resolve the actual panelist/admin name server-side.
              */
 
             const reviewerName =
@@ -712,68 +838,84 @@ Deno.serve(async (req: Request) => {
                     user
                 );
 
+            /*
+             * Extract branch from applicant_response.
+             */
+
             const response =
                 (applicant as any)
                     .applicant_response;
 
             const responseData =
-                Array.isArray(response)
+                Array.isArray(
+                    response
+                )
                     ? response[0]
                     : response;
 
             const branch =
-                responseData?.branch || "";
+                responseData?.branch ||
+                "";
 
             /*
-             * -----------------------------------------------------
-             * Send result to Google Apps Script
-             * -----------------------------------------------------
+             * Send review data to Google Apps Script.
+             *
+             * IMPORTANT:
+             * There is deliberately NO result/status field.
              */
 
             const googleResponse =
                 await fetch(
                     googleScriptUrl,
                     {
-                        method: "POST",
+                        method:
+                            "POST",
+
                         headers: {
                             "Content-Type":
                                 "application/json",
                         },
-                        body: JSON.stringify({
-                            operation: "result",
 
-                            applicationId:
-                                result.applicationId,
+                        body:
+                            JSON.stringify(
+                                {
+                                    operation:
+                                        "result",
 
-                            name:
-                                applicant.name,
+                                    applicationId:
+                                        review.applicationId,
 
-                            phone:
-                                applicant.phone || "",
+                                    name:
+                                        applicant.name,
 
-                            sid:
-                                applicant.sid,
+                                    phone:
+                                        applicant.phone ||
+                                        "",
 
-                            branch,
+                                    sid:
+                                        applicant.sid,
 
-                            result:
-                                result.status,
+                                    branch,
 
-                            remarks:
-                                result.remarks || "",
+                                    reviewScore:
+                                        review.reviewScore,
 
-                            reviewedBy:
-                                reviewerName,
+                                    remarks:
+                                        review.remarks.trim(),
 
-                            reviewedAt:
-                                result.reviewedAt,
+                                    reviewedBy:
+                                        reviewerName,
 
-                            secret:
-                                googleSheetsSecret,
+                                    reviewedAt:
+                                        review.reviewedAt,
 
-                            userId:
-                                user.id,
-                        }),
+                                    secret:
+                                        googleSheetsSecret,
+
+                                    userId:
+                                        user.id,
+                                }
+                            ),
                     }
                 );
 
@@ -801,66 +943,48 @@ Deno.serve(async (req: Request) => {
                 );
             }
 
-            return new Response(
-                JSON.stringify({
-                    success: true,
-                    operation: "result",
-                    reviewedBy:
-                        reviewerName,
-                }),
-                {
-                    status: 200,
-                    headers: {
-                        ...corsHeaders,
-                        "Content-Type":
-                            "application/json",
-                    },
-                }
-            );
+            return jsonResponse({
+                success: true,
+                operation:
+                    "result",
+                reviewedBy:
+                    reviewerName,
+            });
         }
 
+
         /*
-         * ---------------------------------------------------------
-         * Unsupported operation
-         * ---------------------------------------------------------
+         * =========================================================
+         * UNSUPPORTED OPERATION
+         * =========================================================
          */
 
-        return new Response(
-            JSON.stringify({
-                success: false,
-                error: "Unsupported operation",
-            }),
+        return jsonResponse(
             {
-                status: 400,
-                headers: {
-                    ...corsHeaders,
-                    "Content-Type":
-                        "application/json",
-                },
-            }
+                success: false,
+                error:
+                    "Unsupported operation",
+            },
+            400
         );
-    } catch (error) {
+
+    } catch (
+        error
+    ) {
         console.error(
             "sync-application-to-sheets error:",
             error
         );
 
-        return new Response(
-            JSON.stringify({
+        return jsonResponse(
+            {
                 success: false,
                 error:
                     error instanceof Error
                         ? error.message
                         : "Unknown error",
-            }),
-            {
-                status: 500,
-                headers: {
-                    ...corsHeaders,
-                    "Content-Type":
-                        "application/json",
-                },
-            }
+            },
+            500
         );
     }
 });

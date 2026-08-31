@@ -1,5 +1,5 @@
 import { client } from "../supabase";
-import { ApplicantType } from "@/types";
+import { ApplicantType, ReviewScore } from "@/types";
 
 export type CreateApplicantResult =
     | {
@@ -851,6 +851,7 @@ export const updateApplicant =
                 string,
                 string
             >;
+            reviewScore?: ReviewScore;
         }
     ): Promise<
         ApplicantType | null
@@ -888,6 +889,14 @@ export const updateApplicant =
                     ? {
                           isHostellers:
                               data.isHostellers,
+                      }
+                    : {}),
+
+                ...(data.reviewScore !==
+                undefined
+                    ? {
+                          reviewScore:
+                              data.reviewScore,
                       }
                     : {}),
             })
@@ -1055,12 +1064,12 @@ export const updateApplicant =
  * from the interview schedule.
  */
 
-export const updateApplicantDecision =
+
+export const updateApplicantReview =
     async (
         applicantId: string,
-        status:
-            | "accepted"
-            | "rejected",
+        status: string,
+        reviewScore: ReviewScore,
         remarks: string,
         reviewedBy: string
     ): Promise<boolean> => {
@@ -1072,8 +1081,7 @@ export const updateApplicantDecision =
         } = await client
             .from("applicants")
             .update({
-                status:
-                    status.toUpperCase(),
+                reviewScore,
 
                 remarks,
 
@@ -1117,6 +1125,8 @@ export const updateApplicantDecision =
                                 applicantId,
 
                             status,
+                            
+                            reviewScore,
 
                             remarks,
 

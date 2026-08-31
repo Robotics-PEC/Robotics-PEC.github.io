@@ -252,14 +252,7 @@ const ApplicantList = () => {
      * STATUS SORTING
      * ---------------------------------------------------------
      */
-    const statusOrder: Record<
-        string,
-        number
-    > = {
-        pending: 1,
-        accepted: 2,
-        rejected: 3,
-    };
+
 
     /*
      * ---------------------------------------------------------
@@ -268,6 +261,7 @@ const ApplicantList = () => {
      */
     const filteredApplicants =
         applicants
+            .filter((app) => app.status === "pending")
             .filter(
                 (app) =>
                     app.name
@@ -280,17 +274,21 @@ const ApplicantList = () => {
                     )
             )
             .sort((a, b) => {
-                const orderA =
-                    statusOrder[
-                        a.status
-                    ] || 99;
+                const aReviewed = a.reviewScore !== null && a.reviewScore !== undefined;
+                const bReviewed = b.reviewScore !== null && b.reviewScore !== undefined;
 
-                const orderB =
-                    statusOrder[
-                        b.status
-                    ] || 99;
+                if (aReviewed !== bReviewed) {
+                    return aReviewed ? 1 : -1;
+                }
 
-                return orderA - orderB;
+                if (a.isWalkin !== b.isWalkin) {
+                    return a.isWalkin ? -1 : 1;
+                }
+
+                const nameCmp = (a.name || "").localeCompare(b.name || "");
+                if (nameCmp !== 0) return nameCmp;
+
+                return (a.sid || "").localeCompare(b.sid || "");
             });
 
     /*

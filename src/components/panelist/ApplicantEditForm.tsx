@@ -11,7 +11,24 @@ import {
     X,
 } from "lucide-react";
 
+import { Slider } from "@/components/ui/slider";
+import { ReviewScore } from "@/types";
+
 import { APPLICATION_QUESTIONS } from "../ApplicationForm";
+
+const PARAMETERS = [
+    { key: "personality", label: "Personality" },
+    { key: "thinking", label: "Thinking" },
+    { key: "priorExperience", label: "Prior Experience" },
+    { key: "motivation", label: "Motivation to join" },
+    { key: "curiosity", label: "Curiosity" },
+] as const;
+
+const getColorClass = (val: number) => {
+    if (val <= 3) return "text-red-600 bg-red-100 border-red-200";
+    if (val <= 6) return "text-amber-600 bg-amber-100 border-amber-200";
+    return "text-green-600 bg-green-100 border-green-200";
+};
 
 interface ApplicantEditFormProps {
     applicant: ApplicantType;
@@ -54,6 +71,16 @@ const ApplicantEditForm = ({
             applicant.responses || {}
         );
 
+    const [reviewScore, setReviewScore] = useState<ReviewScore>(
+        applicant.reviewScore || {
+            personality: 5,
+            thinking: 5,
+            priorExperience: 5,
+            motivation: 5,
+            curiosity: 5
+        }
+    );
+
     const [isSaving, setIsSaving] =
         useState(false);
 
@@ -74,6 +101,10 @@ const ApplicantEditForm = ({
         setResponses(
             applicant.responses || {}
         );
+
+        if (applicant.reviewScore) {
+            setReviewScore(applicant.reviewScore);
+        }
     }, [applicant]);
 
     const handleResponseChange = (
@@ -151,6 +182,8 @@ const ApplicantEditForm = ({
 
                               responses,
                           }),
+
+                    reviewScore,
                 };
 
             await onSave(
@@ -269,6 +302,46 @@ const ApplicantEditForm = ({
                             accepted/rejected status.
                         </p>
 
+                    </div>
+
+                    {/* =========================================
+                        REVIEW SCORE
+                        ========================================= */}
+                    <div className="mb-8">
+                        <h4 className="mb-6 text-lg font-semibold">
+                            Interview Review Score
+                        </h4>
+
+                        <div className="space-y-8">
+                            {PARAMETERS.map((param) => {
+                                const score = reviewScore[param.key];
+                                return (
+                                    <div key={param.key} className="space-y-3">
+                                        <div className="flex justify-between items-center">
+                                            <label className="block text-sm font-semibold text-slate-700">
+                                                {param.label}
+                                            </label>
+                                            <div className={`flex h-8 w-10 items-center justify-center rounded-md border text-sm font-bold transition-colors ${getColorClass(score)}`}>
+                                                {score}
+                                            </div>
+                                        </div>
+                                        <Slider
+                                            value={[score]}
+                                            onValueChange={([val]) => setReviewScore(prev => ({ ...prev, [param.key]: val }))}
+                                            min={1}
+                                            max={10}
+                                            step={1}
+                                            className="w-full"
+                                        />
+                                        <div className="flex justify-between text-xs font-medium text-slate-400">
+                                            <span>1</span>
+                                            <span>5</span>
+                                            <span>10</span>
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                        </div>
                     </div>
 
                     {/* Application responses */}

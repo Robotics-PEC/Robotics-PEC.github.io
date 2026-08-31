@@ -7,13 +7,7 @@ export interface ApplicantCardProps {
 }
 
 const ApplicantCard = ({ applicant, onClick }: ApplicantCardProps) => {
-    const getStatusColor = (status: string) => {
-        switch (status) {
-            case 'accepted': return 'bg-green-500 hover:bg-green-600 text-white';
-            case 'rejected': return 'bg-red-500 hover:bg-red-600 text-white';
-            default: return 'bg-yellow-500 hover:bg-yellow-600 text-white';
-        }
-    };
+    const isReviewed = applicant.reviewScore !== null && applicant.reviewScore !== undefined;
 
     return (
         <div 
@@ -28,8 +22,8 @@ const ApplicantCard = ({ applicant, onClick }: ApplicantCardProps) => {
                 <p className="text-sm text-muted-foreground">SID: {applicant.sid}</p>
             </div>
             <div>
-                <Badge className={getStatusColor(applicant.status)}>
-                    {applicant.status.charAt(0).toUpperCase() + applicant.status.slice(1)}
+                <Badge className={isReviewed ? 'bg-green-500 hover:bg-green-600 text-white' : 'bg-yellow-500 hover:bg-yellow-600 text-white'}>
+                    {isReviewed ? "Reviewed" : "Pending"}
                 </Badge>
             </div>
         </div>
