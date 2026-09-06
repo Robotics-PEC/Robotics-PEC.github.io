@@ -4,7 +4,6 @@ import DinoGame, { preloadDinoAssets } from "./DinoGame";
 import FeedbackForm, { FeedbackData } from "@/components/FeedbackForm";
 import { useAuthRole } from "@/lib/useAuthRole";
 import NotFound from "@/pages/404";
-import { client } from "@/lib/supabase/supabase";
 import { motion, AnimatePresence } from "framer-motion";
 
 export default function GamePage() {
@@ -14,8 +13,6 @@ export default function GamePage() {
   const [isGameEnabled, setIsGameEnabled] = useState<boolean | null>(null);
   const [isResultsPublished, setIsResultsPublished] = useState<boolean | null>(null);
   const [branchLeaderboard, setBranchLeaderboard] = useState<any[]>([]);
-  const [isToggling, setIsToggling] = useState(false);
-  const [isTogglingResults, setIsTogglingResults] = useState(false);
 
   const [feedbackData, setFeedbackData] = useState<FeedbackData | null>(null);
   const [leaderboard, setLeaderboard] = useState<any[]>([]);
@@ -232,56 +229,6 @@ export default function GamePage() {
     setGameKey(k => k + 1);
   };
 
-  const handleToggleGame = async () => {
-    setIsToggling(true);
-    try {
-      const { data: { session } } = await client.auth.getSession();
-      
-      const res = await fetch("/api/game/toggle", {
-        method: "POST",
-        headers: { 
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${session?.access_token || ""}`
-        },
-        body: JSON.stringify({ enabled: !isGameEnabled })
-      });
-      if (res.ok) {
-        setIsGameEnabled(!isGameEnabled);
-      } else {
-        console.error("Toggle failed with status:", res.status);
-      }
-    } catch (err) {
-      console.error("Failed to toggle game", err);
-    } finally {
-      setIsToggling(false);
-    }
-  };
-
-  const handleToggleResults = async () => {
-    setIsTogglingResults(true);
-    try {
-      const { data: { session } } = await client.auth.getSession();
-      
-      const res = await fetch("/api/game/toggle", {
-        method: "POST",
-        headers: { 
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${session?.access_token || ""}`
-        },
-        body: JSON.stringify({ action: "toggleResults", resultsPublished: !isResultsPublished })
-      });
-      if (res.ok) {
-        setIsResultsPublished(!isResultsPublished);
-      } else {
-        console.error("Toggle results failed with status:", res.status);
-      }
-    } catch (err) {
-      console.error("Failed to toggle results", err);
-    } finally {
-      setIsTogglingResults(false);
-    }
-  };
-
   if (isLoading || roleLoading) {
     return (
       <div className="min-h-screen bg-[#F6F6F7] flex items-center justify-center p-4">
@@ -295,7 +242,6 @@ export default function GamePage() {
     if (isResultsPublished) {
       return (
         <div className="min-h-screen bg-slate-50 relative">
-          <AdminControls />
           <ResultsView branchTop10={branchTop10} />
         </div>
       );
@@ -303,28 +249,24 @@ export default function GamePage() {
       if (!isPanelist) {
         return <NotFound />;
       }
-      // Panelist: game is disabled, results not yet published — show holding screen with controls
+      // Panelist: game is disabled, results not yet published — show holding screen
       return (
         <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-4 relative">
-          <AdminControls />
           <div className="text-center max-w-md mt-16">
             <div className="text-blue-600 font-mono text-xs tracking-[0.3em] uppercase mb-4 border border-blue-200 bg-blue-50 px-4 py-1.5 rounded-full inline-block">
               [ PANELIST VIEW ]
             </div>
             <h2 className="text-2xl font-bold text-slate-800 mb-2">Game is Disabled</h2>
-            <p className="text-slate-500 text-sm">Results are not published yet. Use the controls above to publish results when ready.</p>
+            <p className="text-slate-500 text-sm">Results are not published yet. Use the Developer Controls page to manage state.</p>
           </div>
         </div>
       );
     }
   }
 
-
-
   if (!feedbackData && !isReturningUser) {
     return (
       <div className="min-h-screen bg-[#F6F6F7] flex flex-col items-center justify-center p-4 relative">
-        <AdminControls />
         <div className="w-full max-w-3xl bg-white rounded-2xl shadow-sm border p-6 md:p-8 mt-16">
           <div className="text-center mb-8">
             <h1 className="text-3xl font-bold tracking-tight text-slate-900 mb-2">Play Dino Run</h1>
@@ -386,7 +328,6 @@ export default function GamePage() {
 
   return (
     <div className="min-h-screen bg-[#061820] flex flex-col items-center">
-      <AdminControls />
       <div className="w-full relative">
         <DinoGame key={gameKey} onGameOver={handleGameOver} needsCooldown={needsCooldown} onPlayAgain={handlePlayAgain} />
         
