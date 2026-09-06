@@ -100,6 +100,32 @@ const mapApplicant = (
 
 /*
  * ---------------------------------------------------------
+ * Get applicant by user ID
+ * ---------------------------------------------------------
+ */
+export const getApplicantByUserId = async (userId: string): Promise<ApplicantType | null> => {
+    const { data, error } = await client
+        .from("applicants")
+        .select(`
+            *,
+            applicant_response (
+                branch,
+                responses
+            )
+        `)
+        .eq("userId", userId)
+        .maybeSingle();
+
+    if (error || !data) {
+        if (error) console.error("Failed to fetch applicant by userId:", error);
+        return null;
+    }
+
+    return mapApplicant(data);
+};
+
+/*
+ * ---------------------------------------------------------
  * Fetch all applicants
  * ---------------------------------------------------------
  */
@@ -1279,3 +1305,27 @@ export const subscribeToApplicantUpdates =
             );
         };
     };
+
+export const batchUpdateApplicantStatuses = async (updates: {id: string, status: "accepted" | "rejected"}[]): Promise<{ success: boolean; updatedCount: number }> => {
+    try {
+        const results = await Promise.all(
+            updates.map(u => 
+                client.from("applicants").update({ status: u.status.toUpperCase() }).eq("id", u.id).select("id")
+            )
+        );
+        
+        let updatedCount = 0;
+        for (const result of results) {
+            if (result.error) {
+                console.error("Batch update error:", result.error);
+                return { success: false, updatedCount };
+            }
+            updatedCount += result.data?.length ?? 0;
+        }
+        
+        return { success: true, updatedCount };
+    } catch (e) {
+        console.error("Batch update failed:", e);
+        return { success: false, updatedCount: 0 };
+    }
+};

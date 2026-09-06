@@ -290,30 +290,6 @@ export default function GamePage() {
     );
   }
 
-  const AdminControls = () => {
-    if (!isPanelist || isGameEnabled === null) return null;
-    return (
-      <div className="absolute top-4 left-4 z-50 flex flex-col gap-3">
-        <button 
-          onClick={handleToggleGame}
-          disabled={isToggling}
-          className={`px-6 py-2 rounded-full font-bold text-white shadow-lg transition-opacity ${isToggling ? 'opacity-50' : ''} ${isGameEnabled ? 'bg-red-500 hover:bg-red-600' : 'bg-green-500 hover:bg-green-600'}`}
-        >
-          {isToggling ? "Toggling..." : isGameEnabled ? "Disable Game Globally" : "Enable Game Globally"}
-        </button>
-        {isGameEnabled === false && (
-          <button 
-            onClick={handleToggleResults}
-            disabled={isTogglingResults}
-            className={`px-6 py-2 rounded-full font-bold text-white shadow-lg transition-opacity ${isTogglingResults ? 'opacity-50' : ''} ${isResultsPublished ? 'bg-amber-600 hover:bg-amber-700' : 'bg-blue-500 hover:bg-blue-600'}`}
-          >
-            {isTogglingResults ? "Toggling..." : isResultsPublished ? "Hide Results View" : "Publish Results View"}
-          </button>
-        )}
-      </div>
-    );
-  };
-
   // Handle disabled game states
   if (isGameEnabled === false) {
     if (isResultsPublished) {

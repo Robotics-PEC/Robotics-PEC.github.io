@@ -39,3 +39,13 @@ export const getFeatureFlagByName = async (name: string): Promise<FeatureFlagTyp
 
     return data as FeatureFlagType;
 }
+
+export const updateFeatureFlagByName = async (name: string, isEnabled: boolean): Promise<boolean> => {
+    let flag = await getFeatureFlagByName(name);
+    if (!flag) {
+        const error = await createFeatureFlag({ name, isEnabled });
+        return !error;
+    }
+    const error = await updateFeatureFlag(flag.id, isEnabled);
+    return !error;
+}
