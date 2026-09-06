@@ -126,6 +126,47 @@ export const getApplicantByUserId = async (userId: string): Promise<ApplicantTyp
 
 /*
  * ---------------------------------------------------------
+ * Link unassigned applicant to user ID (for walk-ins)
+ * ---------------------------------------------------------
+ */
+export const linkApplicantToUser = async (sid: string, userId: string): Promise<ApplicantType | null> => {
+    // Normalize SID
+    const normalizedSid = sid.trim().toUpperCase();
+
+    // Try to find applicant by SID
+    const { data: fetch, error: fetchError } = await client
+        .from("applicants")
+        .select("id, userId")
+        .eq("sid", normalizedSid)
+        .maybeSingle();
+
+    if (fetchError || !fetch) {
+        return null;
+    }
+
+    if (fetch.userId && fetch.userId !== userId) {
+        // Already linked to someone else
+        return null;
+    }
+
+    if (!fetch.userId) {
+        // Link them
+        const { error: updateError } = await client
+            .from("applicants")
+            .update({ userId })
+            .eq("id", fetch.id);
+            
+        if (updateError) {
+            console.error("Failed to link applicant:", updateError);
+            return null;
+        }
+    }
+
+    return getApplicantByUserId(userId);
+};
+
+/*
+ * ---------------------------------------------------------
  * Fetch all applicants
  * ---------------------------------------------------------
  */

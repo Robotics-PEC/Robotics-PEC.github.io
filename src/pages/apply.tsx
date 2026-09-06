@@ -6,7 +6,7 @@ import ApplicationForm from "@/components/ApplicationForm";
 import { Button } from "@/components/ui/button";
 import { client } from "@/lib/supabase/supabase";
 import { getFeatureFlagByName } from "@/lib/supabase/actions/flags.actions";
-import { getApplicantByUserId } from "@/lib/supabase/actions/applicants.actions";
+import { getApplicantByUserId, linkApplicantToUser } from "@/lib/supabase/actions/applicants.actions";
 import FeatureDisabled from "@/components/FeatureDisabled";
 import { ApplicantType } from "@/types";
 import { ResultDashboard } from "@/components/apply/ResultDashboard";
@@ -23,6 +23,11 @@ export default function ApplyPage() {
     
     const [checksComplete, setChecksComplete] = useState(false);
     const [applicant, setApplicant] = useState<ApplicantType | null>(null);
+
+    // Walk-in linking states
+    const [walkinSid, setWalkinSid] = useState("");
+    const [isLinking, setIsLinking] = useState(false);
+    const [walkinAttempted, setWalkinAttempted] = useState(false);
 
     useEffect(() => {
         let active = true;
@@ -65,7 +70,20 @@ export default function ApplyPage() {
 
                 // If logged in and results are out, fetch their status
                 if (loggedIn && resultsOut) {
-                    const applicantData = await getApplicantByUserId(session.user.id);
+                    let applicantData = await getApplicantByUserId(session.user.id);
+                    
+                    if (!applicantData) {
+                        // Attempt auto-link for Walk-Ins
+                        const email = session.user.email || "";
+                        const fullName = session.user.user_metadata?.full_name || session.user.user_metadata?.name || "";
+                        const sidMatch = fullName.match(/\b(\d{8})\b/) || email.match(/\b(\d{8})\b/);
+                        
+                        if (sidMatch) {
+                            const potentialSid = sidMatch[1];
+                            applicantData = await linkApplicantToUser(potentialSid, session.user.id);
+                        }
+                    }
+                    
                     setApplicant(applicantData);
                 }
             } catch (error) {
@@ -116,11 +134,56 @@ export default function ApplyPage() {
     // RESULTS VIEW
     if (areResultsPublished) {
         if (!applicant) {
+            if (walkinAttempted) {
+                // Show rejection screen as per user request #3
+                return (
+                    <section className="py-24">
+                        <PageSection title="Interview Results" subtitle="You did not apply this time.">
+                            <div className="mx-auto max-w-3xl rounded-xl border bg-white p-8 text-center shadow-sm">
+                                <p className="text-gray-600 mb-4">
+                                    We couldn't find your interview results in our system. You can still attend the workshops and other various events to join the society later by contacting a core member.
+                                </p>
+                            </div>
+                        </PageSection>
+                    </section>
+                );
+            }
+
             return (
                 <section className="py-24">
-                    <PageSection title="Interview Results" subtitle="We couldn't find an application associated with your account.">
-                        <div className="mx-auto max-w-3xl rounded-xl border bg-white p-8 text-center shadow-sm">
-                            <p className="text-sm text-muted-foreground">If you applied as a walk-in or used a different email, please contact the administrators.</p>
+                    <PageSection title="Interview Results" subtitle="Looks like you were a Walk-In applicant or your account isn't linked.">
+                        <div className="mx-auto max-w-xl rounded-xl border bg-white p-8 text-center shadow-sm">
+                            <p className="text-sm text-muted-foreground mb-6">
+                                Please enter your Student ID (SID) to link your application and view your result.
+                            </p>
+                            <div className="flex gap-4 flex-col sm:flex-row items-center justify-center">
+                                <input 
+                                    type="text" 
+                                    placeholder="Enter your SID (e.g. 24105001)"
+                                    className="border border-gray-300 px-4 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500 max-w-xs w-full text-black"
+                                    value={walkinSid}
+                                    onChange={(e) => setWalkinSid(e.target.value)}
+                                />
+                                <Button 
+                                    onClick={async () => {
+                                        if (!walkinSid.trim()) return;
+                                        setIsLinking(true);
+                                        const { data: { session } } = await client.auth.getSession();
+                                        if (session) {
+                                            const linkedApp = await linkApplicantToUser(walkinSid, session.user.id);
+                                            if (linkedApp) {
+                                                setApplicant(linkedApp);
+                                            } else {
+                                                setWalkinAttempted(true);
+                                            }
+                                        }
+                                        setIsLinking(false);
+                                    }}
+                                    disabled={isLinking}
+                                >
+                                    {isLinking ? "Checking..." : "Check Status"}
+                                </Button>
+                            </div>
                         </div>
                     </PageSection>
                 </section>

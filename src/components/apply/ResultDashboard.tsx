@@ -8,12 +8,14 @@ import { useScrambleText } from "@/hooks/useScrambleText";
 import { XCircle } from "lucide-react";
 
 // --- CYBER DINO (Emerald / Accepted State) ---
-const CyberDino = () => {
+// --- CYBER DINO (Emerald / Accepted State) ---
+export const CyberDino = () => {
   return (
     <motion.div
-      animate={{ y: [-4, 4, -4] }}
+      // Antigravity floating physics
+      animate={{ y: [-8, 8, -8] }}
       transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-      className="relative z-10 drop-shadow-[0_0_12px_rgba(16,185,129,0.4)] inline-block"
+      className="drop-shadow-[0_0_15px_rgba(0,255,204,0.3)] inline-block relative z-10"
     >
       <svg 
         viewBox="0 0 24 24" 
@@ -30,6 +32,7 @@ const CyberDino = () => {
             </feMerge>
           </filter>
         </defs>
+
         <g fill="#1E293B">
           <rect x="14" y="2" width="7" height="1" />
           <rect x="14" y="3" width="8" height="1" />
@@ -45,23 +48,29 @@ const CyberDino = () => {
           <rect x="2" y="13" width="13" height="1" />
           <rect x="2" y="14" width="12" height="1" />
           <rect x="2" y="15" width="10" height="1" />
+          
           <rect x="16" y="0" width="1" height="2" />
           <rect x="17" y="1" width="1" height="1" />
+
           <rect x="6" y="16" width="3" height="2" />
           <rect x="11" y="16" width="3" height="2" />
+
           <rect x="15" y="10" width="3" height="1" />
           <rect x="17" y="11" width="1" height="1" />
         </g>
-        <g fill="#10b981" filter="url(#neonGlow)">
+
+        <g fill="#00FFCC" filter="url(#neonGlow)">
           <rect x="15" y="3" width="4" height="1" />
           <rect x="10" y="11" width="2" height="2" />
           <rect x="16" y="0" width="1" height="1" fill="#FF0055" />
         </g>
-        <g fill="#10b981" opacity="0.9" filter="url(#neonGlow)">
+
+        <g fill="#00FFCC" opacity="0.9" filter="url(#neonGlow)">
           <rect x="6.5" y="18" width="2" height="2" />
           <rect x="11.5" y="18" width="2" height="2" />
         </g>
-        <g fill="#10b981" opacity="0.4">
+        
+        <g fill="#00FFCC" opacity="0.4">
           <rect x="7" y="20" width="1" height="2" />
           <rect x="12" y="20" width="1" height="2" />
           <rect x="7" y="22" width="1" height="1" opacity="0.5" />
@@ -73,23 +82,19 @@ const CyberDino = () => {
 };
 
 // --- MALFUNCTION DINO (Rose Red / Rejected State) ---
-const MalfunctionDino = () => {
+export const MalfunctionDino = () => {
   return (
     <motion.div
-      // Sputtering, glitchy animation
-      animate={{ 
-        opacity: [1, 1, 0.8, 1, 0.3, 1, 1],
-        x: [0, 0, -1, 1, -2, 2, 0]
-      }}
+      animate={{ opacity: [1, 1, 0.8, 1, 0.3, 1, 1], x: [0, 0, -1, 1, -2, 2, 0] }}
       transition={{ duration: 3, repeat: Infinity, ease: "circInOut" }}
-      className="relative z-10 drop-shadow-[0_0_8px_rgba(225,29,72,0.5)] inline-block"
+      className="drop-shadow-[0_0_15px_rgba(255,0,85,0.3)] inline-block relative z-10"
     >
       <svg 
         viewBox="0 0 24 24" 
         className="w-10 h-10 sm:w-12 sm:h-12"
         xmlns="http://www.w3.org/2000/svg" 
         shapeRendering="crispEdges" 
-        style={{ transform: "scaleX(-1)" }} // Flipped to face inward
+        style={{ transform: "scaleX(-1)" }}
       >
         <defs>
           <filter id="neonRedGlow" x="-50%" y="-50%" width="200%" height="200%">
@@ -124,29 +129,16 @@ const MalfunctionDino = () => {
           <rect x="17" y="11" width="1" height="1" />
         </g>
 
-        {/* Dimmer, damaged red neon accents */}
-        <g fill="#e11d48" filter="url(#neonRedGlow)">
-          {/* Smashed Visor Eye */}
+        <g fill="#FF0055" filter="url(#neonRedGlow)">
           <rect x="15" y="3" width="2" height="1" />
-          {/* Flickering Chest Power Core */}
           <rect x="10" y="11" width="2" height="2" opacity="0.5" />
         </g>
         
-        {/* Ground shadow (since it's not floating) */}
         <rect x="4" y="19" width="12" height="1" fill="#cbd5e1" opacity="0.4" />
 
-        {/* Animated Sparks flying off the broken antenna */}
-        <g fill="#e11d48" filter="url(#neonRedGlow)">
-           <motion.rect 
-             animate={{ opacity: [0, 1, 0, 0], y: [0, -2, -4, -4], x: [0, 1, 2, 2] }} 
-             transition={{ duration: 1.2, repeat: Infinity }} 
-             x="18" y="-1" width="1" height="1" 
-           />
-           <motion.rect 
-             animate={{ opacity: [0, 0, 1, 0], y: [0, 0, -2, -3], x: [0, 0, -1, -2] }} 
-             transition={{ duration: 1.5, repeat: Infinity, delay: 0.4 }} 
-             x="16" y="-2" width="1" height="1" 
-           />
+        <g fill="#FF0055" filter="url(#neonRedGlow)">
+           <motion.rect animate={{ opacity: [0, 1, 0, 0], y: [0, -2, -4, -4], x: [0, 1, 2, 2] }} transition={{ duration: 1.2, repeat: Infinity }} x="18" y="-1" width="1" height="1" />
+           <motion.rect animate={{ opacity: [0, 0, 1, 0], y: [0, 0, -2, -3], x: [0, 0, -1, -2] }} transition={{ duration: 1.5, repeat: Infinity, delay: 0.4 }} x="16" y="-2" width="1" height="1" />
         </g>
       </svg>
     </motion.div>
