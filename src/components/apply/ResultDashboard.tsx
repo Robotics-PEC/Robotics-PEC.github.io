@@ -398,7 +398,7 @@ export const ResultDashboard = ({ applicant }: { applicant: ApplicantType }) => 
                           Your interview did not qualify but that doesn't mean you can't join! As long as you show enthusiasm towards the club and join in workshops and various events you can always apply again by consulting one of the core members. 
                         </p>
                         
-                        {/* Injeced Malfunction Dino for Rejected State */}
+                        {/* Injected Malfunction Dino for Rejected State */}
                         <div className="pt-6 border-t border-gray-100 flex flex-col items-center gap-4">
                            <MalfunctionDino />
                            <p className="text-sm font-bold text-rose-800 tracking-widest uppercase" style={{ fontFamily: "'Press Start 2P', monospace", fontSize: "10px" }}>
