@@ -1306,14 +1306,39 @@ export const subscribeToApplicantUpdates =
         };
     };
 
-export const batchUpdateApplicantStatuses = async (updates: {id: string, status: "accepted" | "rejected"}[]): Promise<{ success: boolean; updatedCount: number }> => {
+export const batchUpdateApplicantStatuses = async (
+    updates: { id: string; status: "accepted" | "rejected" }[]
+): Promise<{ success: boolean; updatedCount: number }> => {
     try {
-        const results = await Promise.all(
-            updates.map(u => 
-                client.from("applicants").update({ status: u.status.toUpperCase() }).eq("id", u.id).select("id")
-            )
-        );
-        
+        // 1. Separate the IDs into two arrays
+        const acceptedIds = updates.filter(u => u.status === "accepted").map(u => u.id);
+        const rejectedIds = updates.filter(u => u.status === "rejected").map(u => u.id);
+
+        const promises = [];
+
+        // 2. Fire exactly ONE request for all accepted applicants
+        if (acceptedIds.length > 0) {
+            promises.push(
+                client.from("applicants")
+                    .update({ status: "ACCEPTED" })
+                    .in("id", acceptedIds)
+                    .select("id")
+            );
+        }
+
+        // 3. Fire exactly ONE request for all rejected applicants
+        if (rejectedIds.length > 0) {
+            promises.push(
+                client.from("applicants")
+                    .update({ status: "REJECTED" })
+                    .in("id", rejectedIds)
+                    .select("id")
+            );
+        }
+
+        // 4. Await the 1 or 2 bulk requests concurrently
+        const results = await Promise.all(promises);
+
         let updatedCount = 0;
         for (const result of results) {
             if (result.error) {
@@ -1322,7 +1347,7 @@ export const batchUpdateApplicantStatuses = async (updates: {id: string, status:
             }
             updatedCount += result.data?.length ?? 0;
         }
-        
+
         return { success: true, updatedCount };
     } catch (e) {
         console.error("Batch update failed:", e);
