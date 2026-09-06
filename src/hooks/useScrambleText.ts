@@ -6,10 +6,11 @@ export function useScrambleText(targetText: string, delayMs = 0, durationMs = 15
     const [displayText, setDisplayText] = useState("");
     const [isComplete, setIsComplete] = useState(false);
 
-    useEffect(() => {
+useEffect(() => {
+        setIsComplete(false);
+        setDisplayText("");
         let startTime: number | null = null;
-        let animationFrameId: number;
-
+        let animationFrameId = 0;
         const animate = (timestamp: number) => {
             if (!startTime) startTime = timestamp;
             const elapsed = timestamp - startTime;
