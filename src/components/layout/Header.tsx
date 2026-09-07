@@ -97,12 +97,20 @@ const Header = () => {
                                 </Link>
                             ))}
                             {isPanelist && (
-                                <Link
-                                    href="/panelist/dashboard"
-                                    className="text-sm font-medium text-primary hover:text-foreground transition-colors"
-                                >
-                                    Interview
-                                </Link>
+                                <>
+                                    <Link
+                                        href="/panelist/dashboard"
+                                        className="text-sm font-medium text-primary hover:text-foreground transition-colors"
+                                    >
+                                        Interview
+                                    </Link>
+                                    <Link
+                                        href="/panelist/controls"
+                                        className="text-sm font-medium text-primary hover:text-foreground transition-colors"
+                                    >
+                                        Dev Control
+                                    </Link>
+                                </>
                             )}
                             {
                                 isAdmin && (
@@ -212,12 +220,20 @@ const Header = () => {
                                         </Link>
                                     ))}
                                     {isPanelist && (
-                                        <Link
-                                            href="/panelist/dashboard"
-                                            className="text-lg font-medium px-4 py-2 hover:bg-accent rounded-md transition-colors text-primary"
-                                        >
-                                            Interview
-                                        </Link>
+                                        <>
+                                            <Link
+                                                href="/panelist/dashboard"
+                                                className="text-lg font-medium px-4 py-2 hover:bg-accent rounded-md transition-colors text-primary"
+                                            >
+                                                Interview
+                                            </Link>
+                                            <Link
+                                                href="/panelist/controls"
+                                                className="text-lg font-medium px-4 py-2 hover:bg-accent rounded-md transition-colors text-primary"
+                                            >
+                                                Dev Control
+                                            </Link>
+                                        </>
                                     )}
                                 </div>
                             </SheetContent>

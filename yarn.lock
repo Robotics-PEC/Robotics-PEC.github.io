@@ -5252,6 +5252,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/papaparse@npm:^5.5.2":
+  version: 5.5.2
+  resolution: "@types/papaparse@npm:5.5.2"
+  dependencies:
+    "@types/node": "npm:*"
+  checksum: 10c0/27b097b6f8f204b20ade1f2cbf4798eb38caa5fbfa3180fd0faa5e3f9aea371c1786ae180d56f3287556463eefe3100c953e316ea6ee99d7ae1d04111cfc9e50
+  languageName: node
+  linkType: hard
+
 "@types/parse-json@npm:^4.0.0":
   version: 4.0.2
   resolution: "@types/parse-json@npm:4.0.2"
@@ -11637,6 +11646,7 @@ __metadata:
     "@tiptap/react": "npm:^2.11.5"
     "@tiptap/starter-kit": "npm:2.2.4"
     "@types/node": "npm:^20"
+    "@types/papaparse": "npm:^5.5.2"
     "@types/react": "npm:18"
     "@types/react-dom": "npm:18"
     "@types/react-syntax-highlighter": "npm:^15.5.13"
@@ -11664,6 +11674,7 @@ __metadata:
     next-sitemap: "npm:^4.2.3"
     next-themes: "npm:^0.3.0"
     node-appwrite: "npm:^15.0.0"
+    papaparse: "npm:^5.7.0"
     postcss: "npm:^8"
     react: "npm:18"
     react-day-picker: "npm:^8.10.1"
@@ -12239,6 +12250,13 @@ __metadata:
   version: 1.0.11
   resolution: "pako@npm:1.0.11"
   checksum: 10c0/86dd99d8b34c3930345b8bbeb5e1cd8a05f608eeb40967b293f72fe469d0e9c88b783a8777e4cc7dc7c91ce54c5e93d88ff4b4f060e6ff18408fd21030d9ffbe
+  languageName: node
+  linkType: hard
+
+"papaparse@npm:^5.7.0":
+  version: 5.7.0
+  resolution: "papaparse@npm:5.7.0"
+  checksum: 10c0/aeea2122ffa7abf33206ab9465e1adcb678ca0e9b08fbd3cea53bf6dc07d5903e69f387dc4dde2498e2478130ba3db79d1fd3956bf638c00be802f0d275e006d
   languageName: node
   linkType: hard
 

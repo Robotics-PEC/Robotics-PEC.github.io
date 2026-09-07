@@ -100,6 +100,73 @@ const mapApplicant = (
 
 /*
  * ---------------------------------------------------------
+ * Get applicant by user ID
+ * ---------------------------------------------------------
+ */
+export const getApplicantByUserId = async (userId: string): Promise<ApplicantType | null> => {
+    const { data, error } = await client
+        .from("applicants")
+        .select(`
+            *,
+            applicant_response (
+                branch,
+                responses
+            )
+        `)
+        .eq("userId", userId)
+        .maybeSingle();
+
+    if (error || !data) {
+        if (error) console.error("Failed to fetch applicant by userId:", error);
+        return null;
+    }
+
+    return mapApplicant(data);
+};
+
+/*
+ * ---------------------------------------------------------
+ * Link unassigned applicant to user ID (for walk-ins)
+ * ---------------------------------------------------------
+ */
+export const linkApplicantToUser = async (sid: string, userId: string): Promise<ApplicantType | null> => {
+    // Normalize SID
+    const normalizedSid = sid.trim().toUpperCase();
+
+    // Try to find applicant by SID
+    const { data: fetch, error: fetchError } = await client
+        .from("applicants")
+        .select("id, userId")
+        .eq("sid", normalizedSid)
+        .maybeSingle();
+
+    if (fetchError || !fetch) {
+        return null;
+    }
+
+    if (fetch.userId && fetch.userId !== userId) {
+        // Already linked to someone else
+        return null;
+    }
+
+    if (!fetch.userId) {
+        // Link them
+        const { error: updateError } = await client
+            .from("applicants")
+            .update({ userId })
+            .eq("id", fetch.id);
+            
+        if (updateError) {
+            console.error("Failed to link applicant:", updateError);
+            return null;
+        }
+    }
+
+    return getApplicantByUserId(userId);
+};
+
+/*
+ * ---------------------------------------------------------
  * Fetch all applicants
  * ---------------------------------------------------------
  */
@@ -1279,3 +1346,52 @@ export const subscribeToApplicantUpdates =
             );
         };
     };
+
+export const batchUpdateApplicantStatuses = async (
+    updates: { id: string; status: "accepted" | "rejected" }[]
+): Promise<{ success: boolean; updatedCount: number }> => {
+    try {
+        // 1. Separate the IDs into two arrays
+        const acceptedIds = updates.filter(u => u.status === "accepted").map(u => u.id);
+        const rejectedIds = updates.filter(u => u.status === "rejected").map(u => u.id);
+
+        const promises = [];
+
+        // 2. Fire exactly ONE request for all accepted applicants
+        if (acceptedIds.length > 0) {
+            promises.push(
+                client.from("applicants")
+                    .update({ status: "ACCEPTED" })
+                    .in("id", acceptedIds)
+                    .select("id")
+            );
+        }
+
+        // 3. Fire exactly ONE request for all rejected applicants
+        if (rejectedIds.length > 0) {
+            promises.push(
+                client.from("applicants")
+                    .update({ status: "REJECTED" })
+                    .in("id", rejectedIds)
+                    .select("id")
+            );
+        }
+
+        // 4. Await the 1 or 2 bulk requests concurrently
+        const results = await Promise.all(promises);
+
+        let updatedCount = 0;
+        for (const result of results) {
+            if (result.error) {
+                console.error("Batch update error:", result.error);
+                return { success: false, updatedCount };
+            }
+            updatedCount += result.data?.length ?? 0;
+        }
+
+        return { success: true, updatedCount };
+    } catch (e) {
+        console.error("Batch update failed:", e);
+        return { success: false, updatedCount: 0 };
+    }
+};

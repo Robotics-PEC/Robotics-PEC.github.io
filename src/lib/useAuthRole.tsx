@@ -54,12 +54,26 @@ export function AuthRoleProvider({ children }: { children: ReactNode }) {
   }, []);
 
   useEffect(() => {
-    void load();
-    const { data: sub } = client.auth.onAuthStateChange((event) => {
-      if (event === "SIGNED_IN" || event === "SIGNED_OUT" || event === "USER_UPDATED") {
+    let lastUserId: string | null | undefined = undefined;
+
+    const checkAndLoad = (newUserId: string | null) => {
+      if (newUserId !== lastUserId) {
+        lastUserId = newUserId;
         void load();
       }
+    };
+
+    // Initial check
+    client.auth.getSession().then(({ data: { session } }) => {
+      checkAndLoad(session?.user?.id ?? null);
     });
+
+    const { data: sub } = client.auth.onAuthStateChange((event, session) => {
+      if (event === "SIGNED_IN" || event === "SIGNED_OUT" || event === "USER_UPDATED") {
+        checkAndLoad(session?.user?.id ?? null);
+      }
+    });
+
     return () => sub.subscription.unsubscribe();
   }, [load]);
 
