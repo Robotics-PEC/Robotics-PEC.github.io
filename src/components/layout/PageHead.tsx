@@ -13,7 +13,7 @@ const PageHead: React.FC<PageHeadProps> = ({ title, description }) => {
     return (
         <Head>
             <title>{title}</title>
-            <link rel="icon" href="/favicon.png" />
+            {/* <link rel="icon" href="/favicon.png" /> */}
             {description && (
                 <>
                     <meta name="description" content={description} />

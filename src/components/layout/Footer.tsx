@@ -62,12 +62,12 @@ const About = () => {
 
 const QuickLinks = () => {
     const quickLinks = [
-        { href: "/projects", label: "Projects" },
+        { href: "/project", label: "Projects" },
         { href: "/activities", label: "Activities" },
         { href: "/events", label: "Events" },
         { href: "/contact", label: "Contact" },
         { href: "/Docify", label: "Docify" },
-        { href: "/pyq", label: "Previous Year Questions" }
+        // { href: "/pyq", label: "Previous Year Questions" }
     ];
     return (
         <div>
@@ -93,7 +93,7 @@ const QuickLinks = () => {
 const Resources = () => {
     const resources = [
         { href: "/activities", label: "Workshops", icon: BookOpen },
-        { href: "/#team", label: "Our Team", icon: Users },
+        { href: "/team", label: "Our Team", icon: Users },
         { href: "/events", label: "Upcoming Events", icon: Calendar },
         { href: "/resources", label: "Addition Resources", icon: Book }
     ];
