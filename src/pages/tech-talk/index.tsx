@@ -4,6 +4,7 @@ import  ChallengeCard  from "@/components/show/ChallengeCard";
 import DinoSubmitOverlay from "@/components/DinoSubmitOverlay";
 import { useEffect, useState } from "react";
 import { getTechTalkDetails } from "@/lib/supabase/actions/tech-talk.actions";
+import { getFeatureFlagByName } from "@/lib/supabase/actions/flags.actions";
 import { TechTalkDetails } from "@/types";
 import { VideoOff } from "lucide-react";
 
@@ -11,15 +12,22 @@ import { VideoOff } from "lucide-react";
 const TechTalkPage = () => {
 
     const [showConfig, setShowConfig] = useState<TechTalkDetails | null>(null);
+    const [challengeEnabled, setChallengeEnabled] = useState(false);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         const fetch = async () => {
             setLoading(true);
-            const talkShowDetails = await getTechTalkDetails("The Talk Show");
+            const [talkShowDetails, challengeFlag] = await Promise.all([
+                getTechTalkDetails("The Talk Show"),
+                getFeatureFlagByName("tech-talk-challenge")
+            ]);
 
             if(talkShowDetails) {
                 setShowConfig(talkShowDetails);
+            }
+            if(challengeFlag) {
+                setChallengeEnabled(challengeFlag.isEnabled);
             }
 
             setLoading(false);
@@ -69,7 +77,7 @@ const TechTalkPage = () => {
         <LiveChat showConfig={showConfig}/>
         </section>
 
-        {/* <ChallengeCard showConfig={showConfig}/> */}
+        {challengeEnabled && <ChallengeCard showConfig={showConfig}/>}
     </main>
     );
 }
