@@ -13,8 +13,6 @@ const LiveChat = ({showConfig} : {showConfig: TechTalkDetails}) => {
 
   const videoId = showConfig.currentVideoId;
 
-  console.log(`https://www.youtube.com/live_chat?v=${videoId}&embed_domain=${host}`);
-
   return (
     <div className={`flex flex-col overflow-hidden rounded-2xl border border-border bg-[#0f0f0f] transition-all duration-300 ${isCollapsed ? 'h-[60px]' : 'h-[420px] lg:h-full lg:min-h-[520px]'}`}>
       <div className="flex items-center gap-2 border-b border-border px-4 py-3">

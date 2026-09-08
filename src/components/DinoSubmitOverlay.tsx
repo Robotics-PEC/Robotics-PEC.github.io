@@ -48,6 +48,7 @@ export default function DinoSubmitOverlay({
   title = "Submitting your application…",
   description = "Please wait while we process your details.",
 }: Props) {
+  const [assetsReady, setAssetsReady] = useState(false);
   const [phase, setPhase] = useState<Phase>("running");
   const [runFrame, setRunFrame] = useState(0);
   const [deadFrame, setDeadFrame] = useState(0);
@@ -61,6 +62,30 @@ export default function DinoSubmitOverlay({
   const phaseRef = useRef<Phase>("running");
 
   useEffect(() => { phaseRef.current = phase; }, [phase]);
+
+  // Preload all sprite assets before starting animation
+  useEffect(() => {
+    let cancelled = false;
+    const allSrcs = [...RUN_SRCS, ...DEAD_SRCS, GROUND_SRC, ROCK_SRC];
+
+    Promise.all(
+      allSrcs.map(
+        (src) =>
+          new Promise<void>((resolve) => {
+            const img = new Image();
+            img.onload = () => resolve();
+            img.onerror = () => resolve();
+            img.src = src;
+          })
+      )
+    ).then(() => {
+      if (!cancelled) setAssetsReady(true);
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   // Trigger death when submission finishes — snap rock to dino position first
   useEffect(() => {
@@ -82,8 +107,10 @@ export default function DinoSubmitOverlay({
     }
   }, [submitting, hasError, phase]);
 
-  // Animation loop
+  // Animation loop — only starts once assets are preloaded
   useEffect(() => {
+    if (!assetsReady) return;
+
     const loop = (ts: number) => {
       const p = phaseRef.current;
 
@@ -122,7 +149,7 @@ export default function DinoSubmitOverlay({
 
     rafRef.current = requestAnimationFrame(loop);
     return () => { if (rafRef.current) cancelAnimationFrame(rafRef.current); };
-  }, []);
+  }, [assetsReady]);
 
   const isRunning = phase === "running";
   const isDying = phase === "dying";
@@ -138,37 +165,45 @@ export default function DinoSubmitOverlay({
 
         {/* ── Scene ─────────────────────────────────────── */}
         <div className="relative h-40 bg-[#F6F6F7] overflow-hidden select-none">
-          {/* Scrolling ground */}
-          <div
-            className="absolute bottom-0 left-0 flex"
-            style={{ transform: `translateX(${groundX}px)` }}
-          >
-            {[0, 1, 2].map((i) => (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img key={i} src={GROUND_SRC} alt="" className="h-10 object-cover" style={{ minWidth: "400px" }} draggable={false} />
-            ))}
-          </div>
+          {!assetsReady ? (
+            <div className="flex items-center justify-center h-full">
+              <span className="text-sm text-slate-400 animate-pulse">Loading…</span>
+            </div>
+          ) : (
+            <>
+              {/* Scrolling ground */}
+              <div
+                className="absolute bottom-0 left-0 flex"
+                style={{ transform: `translateX(${groundX}px)` }}
+              >
+                {[0, 1, 2].map((i) => (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img key={i} src={GROUND_SRC} alt="" className="h-10 object-cover" style={{ minWidth: "400px" }} draggable={false} />
+                ))}
+              </div>
 
-          {/* Dino sprite */}
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={sprite}
-            alt="dino"
-            className="absolute bottom-10 left-16 h-16 w-auto object-contain"
-            style={{ imageRendering: "pixelated" }}
-            draggable={false}
-          />
+              {/* Dino sprite */}
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={sprite}
+                alt="dino"
+                className="absolute bottom-10 left-16 h-16 w-auto object-contain"
+                style={{ imageRendering: "pixelated" }}
+                draggable={false}
+              />
 
-          {/* Rock — only during running */}
-          {isRunning && (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={ROCK_SRC}
-              alt=""
-              className="absolute bottom-10 h-10 w-auto object-contain"
-              style={{ left: `${rockX}%`, imageRendering: "pixelated" }}
-              draggable={false}
-            />
+              {/* Rock — only during running */}
+              {isRunning && (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={ROCK_SRC}
+                  alt=""
+                  className="absolute bottom-10 h-10 w-auto object-contain"
+                  style={{ left: `${rockX}%`, imageRendering: "pixelated" }}
+                  draggable={false}
+                />
+              )}
+            </>
           )}
         </div>
 
