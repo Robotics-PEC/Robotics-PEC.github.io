@@ -69,7 +69,7 @@ const TechTalkPage = () => {
         <LiveChat showConfig={showConfig}/>
         </section>
 
-        <ChallengeCard showConfig={showConfig}/>
+        {/* <ChallengeCard showConfig={showConfig}/> */}
     </main>
     );
 }

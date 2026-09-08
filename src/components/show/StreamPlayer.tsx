@@ -1,7 +1,7 @@
 import { TechTalkDetails } from "@/types";
 
 const StreamPlayer = ({showConfig} : {showConfig: TechTalkDetails}) => {
-  const src = `https://www.youtube.com/embed/live_stream?channel=${showConfig.channelId}&autoplay=0`;
+  const src = `https://www.youtube.com/embed/${showConfig.currentVideoId}`;
 
   return (
     <div className="overflow-hidden rounded-2xl border border-border bg-card shadow-[0_0_60px_-20px_var(--color-primary)]">
