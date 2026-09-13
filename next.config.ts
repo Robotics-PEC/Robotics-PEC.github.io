@@ -41,6 +41,15 @@ const nextConfig: NextConfig = {
                 source: "/Cha-Ching/:path*",
                 destination: "https://robotics-pec.github.io/Cha-Ching/:path*",
             },
+
+            {
+                source: "/pyq",
+                destination: "https://robotics-pec.github.io/pyq/",
+            },
+            {
+                source: "/pyq/:path*",
+                destination: "https://robotics-pec.github.io/pyq/:path*",
+            },
         ];
     },
 };

@@ -280,3 +280,16 @@ export type TechTalkDetailsInsert = Omit<
 >;
 
 export type TechTalkDetailsUpdate = Partial<TechTalkDetailsInsert>;
+
+export interface TechTalkSubmission {
+    id: string;
+    created_at: string;
+    name: string;
+    episodeNumber: number;
+    link: string;
+};
+
+export type TechTalkSubmissionInsert = Omit<
+  TechTalkSubmission,
+  "id" | "created_at"
+>;
