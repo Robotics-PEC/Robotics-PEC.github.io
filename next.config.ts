@@ -57,7 +57,7 @@ const nextConfig: NextConfig = {
             {
                 // Ensure it ignores internal Next.js assets, otherwise everything breaks
                 source: "/:path((?!_next|api|favicon.ico).*)",
-                destination: "https://robotics-pec.github.io/:path((?!_next|api|favicon.ico).*)",
+                destination: "https://robotics-pec.github.io/:path*",
             },
         ],
         }
