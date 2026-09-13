@@ -25,34 +25,7 @@ const nextConfig: NextConfig = {
     trailingSlash: true, 
     async rewrites() {
         return {
-            afterFiles: [
-                {
-                    source: "/Docify",
-                    destination: "https://robotics-pec.github.io/Docify/",
-                },
-                {
-                    source: "/Docify/:path*",
-                    destination: "https://robotics-pec.github.io/Docify/:path*",
-                },
-    
-                {
-                    source: "/Cha-Ching",
-                    destination: "https://robotics-pec.github.io/Cha-Ching/",
-                },
-                {
-                    source: "/Cha-Ching/:path*",
-                    destination: "https://robotics-pec.github.io/Cha-Ching/:path*",
-                },
-    
-                {
-                    source: "/pyq",
-                    destination: "https://robotics-pec.github.io/pyq/",
-                },
-                {
-                    source: "/pyq/:path*",
-                    destination: "https://robotics-pec.github.io/pyq/:path*",
-                },
-            ],
+            
         fallback: [
             {
                 // Ensure it ignores internal Next.js assets, otherwise everything breaks
