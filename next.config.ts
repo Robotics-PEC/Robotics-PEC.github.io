@@ -23,34 +23,42 @@ const nextConfig: NextConfig = {
         ignoreDuringBuilds: true,
     },
     async rewrites() {
-        return [
+        return {
+            afterFiles: [
+                {
+                    source: "/Docify",
+                    destination: "https://robotics-pec.github.io/Docify/",
+                },
+                {
+                    source: "/Docify/:path*",
+                    destination: "https://robotics-pec.github.io/Docify/:path*",
+                },
+    
+                {
+                    source: "/Cha-Ching",
+                    destination: "https://robotics-pec.github.io/Cha-Ching/",
+                },
+                {
+                    source: "/Cha-Ching/:path*",
+                    destination: "https://robotics-pec.github.io/Cha-Ching/:path*",
+                },
+    
+                {
+                    source: "/pyq",
+                    destination: "https://robotics-pec.github.io/pyq/",
+                },
+                {
+                    source: "/pyq/:path*",
+                    destination: "https://robotics-pec.github.io/pyq/:path*",
+                },
+            ],
+        fallback: [
             {
-                source: "/Docify",
-                destination: "https://robotics-pec.github.io/Docify/",
+                source: "/:path*",
+                destination: "https://robotics-pec.github.io/:path*",
             },
-            {
-                source: "/Docify/:path*",
-                destination: "https://robotics-pec.github.io/Docify/:path*",
-            },
-
-            {
-                source: "/Cha-Ching",
-                destination: "https://robotics-pec.github.io/Cha-Ching/",
-            },
-            {
-                source: "/Cha-Ching/:path*",
-                destination: "https://robotics-pec.github.io/Cha-Ching/:path*",
-            },
-
-            {
-                source: "/pyq",
-                destination: "https://robotics-pec.github.io/pyq/",
-            },
-            {
-                source: "/pyq/:path*",
-                destination: "https://robotics-pec.github.io/pyq/:path*",
-            },
-        ];
+        ],
+        }
     },
 };
 
