@@ -1132,6 +1132,33 @@ export const updateApplicant =
  */
 
 
+/*
+ * ---------------------------------------------------------
+ * Update applicant status (Accept/Reject)
+ * ---------------------------------------------------------
+ */
+export const updateApplicantStatus = async (
+    applicantId: string,
+    status: "ACCEPTED" | "REJECTED"
+): Promise<boolean> => {
+    const { error } = await client
+        .from("applicants")
+        .update({ status })
+        .eq("id", applicantId);
+
+    if (error) {
+        console.error("Error updating applicant status:", error);
+        return false;
+    }
+
+    /*
+     * Keep the shared interview schedule synchronized
+     */
+    await requestInterviewSchedule();
+
+    return true;
+};
+
 export const updateApplicantReview =
     async (
         applicantId: string,

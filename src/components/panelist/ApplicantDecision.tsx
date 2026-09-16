@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { ReviewScore } from "@/types";
 import { Slider } from "@/components/ui/slider";
+import { Button } from "@/components/ui/button";
+import { updateApplicantStatus } from "@/lib/supabase/actions/applicants.actions";
 
 export interface ApplicantDecisionProps {
     applicantId: string;
@@ -37,7 +39,18 @@ const ApplicantDecision = ({
     onSubmitReview,
 }: ApplicantDecisionProps) => {
     const [isExpanded, setIsExpanded] = useState(false);
-    
+    const [status, setStatus] = useState<"pending" | "accepted" | "rejected">(currentStatus);
+    const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
+
+    const handleStatusChange = async (newStatus: "accepted" | "rejected") => {
+        setIsUpdatingStatus(true);
+        const success = await updateApplicantStatus(applicantId, newStatus.toUpperCase() as "ACCEPTED" | "REJECTED");
+        if (success) {
+            setStatus(newStatus);
+        }
+        setIsUpdatingStatus(false);
+    };
+
     // Default all scores to 5 so sliders have a valid initial state
     const [reviewScore, setReviewScore] = useState<ReviewScore>({
         personality: 5,
@@ -54,7 +67,29 @@ const ApplicantDecision = ({
     if (initialReviewScore || initialRemarks) {
         return (
             <div className="border rounded-lg p-6 bg-slate-50 mt-8">
-                <h3 className="font-semibold mb-4 text-lg">Interview Review</h3>
+                <div className="flex justify-between items-center mb-4">
+                    <h3 className="font-semibold text-lg">Interview Review</h3>
+                    <div className="flex gap-2">
+                        <Button
+                            onClick={() => handleStatusChange("accepted")}
+                            disabled={isUpdatingStatus || status === "accepted"}
+                            variant={status === "accepted" ? "default" : "outline"}
+                            className={status === "accepted" ? "bg-green-600 hover:bg-green-700" : ""}
+                            size="sm"
+                        >
+                            Accept
+                        </Button>
+                        <Button
+                            onClick={() => handleStatusChange("rejected")}
+                            disabled={isUpdatingStatus || status === "rejected"}
+                            variant={status === "rejected" ? "default" : "outline"}
+                            className={status === "rejected" ? "bg-red-600 hover:bg-red-700" : ""}
+                            size="sm"
+                        >
+                            Reject
+                        </Button>
+                    </div>
+                </div>
                 <div className="mb-6 space-y-4">
                     {PARAMETERS.map((param) => {
                         const score = initialReviewScore?.[param.key] || 0;
@@ -119,9 +154,31 @@ const ApplicantDecision = ({
 
     return (
         <div className="border rounded-lg p-6 bg-slate-50 mt-8 animate-in slide-in-from-top-4 fade-in duration-300">
-            <h3 className="font-semibold mb-6 text-xl text-slate-800">
-                Interview Review
-            </h3>
+            <div className="flex justify-between items-center mb-6">
+                <h3 className="font-semibold text-xl text-slate-800">
+                    Interview Review
+                </h3>
+                <div className="flex gap-2">
+                    <Button
+                        onClick={() => handleStatusChange("accepted")}
+                        disabled={isUpdatingStatus || status === "accepted"}
+                        variant={status === "accepted" ? "default" : "outline"}
+                        className={status === "accepted" ? "bg-green-600 hover:bg-green-700" : ""}
+                        size="sm"
+                    >
+                        Accept
+                    </Button>
+                    <Button
+                        onClick={() => handleStatusChange("rejected")}
+                        disabled={isUpdatingStatus || status === "rejected"}
+                        variant={status === "rejected" ? "default" : "outline"}
+                        className={status === "rejected" ? "bg-red-600 hover:bg-red-700" : ""}
+                        size="sm"
+                    >
+                        Reject
+                    </Button>
+                </div>
+            </div>
 
             <div className="space-y-8 mb-8">
                 {PARAMETERS.map((param) => {
