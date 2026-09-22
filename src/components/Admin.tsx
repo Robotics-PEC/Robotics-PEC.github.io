@@ -17,7 +17,7 @@ import BlogsEditor from "@/pages/admin/components/BlogsEditor";
 import RolesEditor from "@/pages/admin/components/Role";
 import FeatureFlags from "@/pages/admin/components/FeatureFlags";
 import TalkShowEditor from "@/pages/admin/components/TalkShowEditor";
-import { EventsFormEditor } from "@/pages/admin/components/EventsFormEditor";
+import EventsFormEditor  from "@/pages/admin/components/EventsFormEditor";
 
 
 export enum TabValues {

@@ -21,7 +21,7 @@ interface Props {
     onSave: (config: FormConfig) => void;
 }
 
-export const FormBuilder = ({ initialConfig, onSave }: Props) => {
+const FormBuilder = ({ initialConfig, onSave }: Props) => {
     const [config, setConfig] = useState<FormConfig>(initialConfig || {
         [FormConfigKey.SECTIONS]: [{ [SectionKey.FIELDS]: [] }],
         [FormConfigKey.SUBMIT]: { [SubmitConfigKey.LABEL]: "Submit" },
@@ -123,3 +123,5 @@ export const FormBuilder = ({ initialConfig, onSave }: Props) => {
         </div>
     );
 };
+
+export default FormBuilder;

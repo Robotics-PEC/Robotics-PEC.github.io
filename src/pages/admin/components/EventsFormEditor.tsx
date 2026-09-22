@@ -2,12 +2,12 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { getEvents, updateEvent } from "@/lib/supabase/actions/events.actions";
 import { FormEventType } from "@/types";
-import { FormBuilder } from "./FormBuilder";
+import FormBuilder  from "./FormBuilder";
 import { useToast } from "@/hooks/use-toast";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { FormConfig } from "@/lib/form-builder";
 
-export const EventsFormEditor = () => {
+const EventsFormEditor = () => {
     const [events, setEvents] = useState<FormEventType[]>([]);
     const [selectedEventId, setSelectedEventId] = useState<string>("");
     const { toast } = useToast();
@@ -58,3 +58,6 @@ export const EventsFormEditor = () => {
         </div>
     );
 };
+
+
+export default EventsFormEditor;
