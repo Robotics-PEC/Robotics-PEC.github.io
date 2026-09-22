@@ -10,6 +10,7 @@ import { format } from "date-fns";
 import clsx from "clsx";
 import { HTMLToMarkdown } from "@/lib/utils";
 import ReactMarkdown from "react-markdown";
+import { useRouter } from "next/router";
 
 interface EventCalendarProps {
     events: EventType[];
@@ -18,6 +19,7 @@ interface EventCalendarProps {
 const EventCalendar: React.FC<EventCalendarProps> = ({ events }) => {
     const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
     const { toast } = useToast();
+    const router = useRouter();
 
     // Format events for calendar display
     const eventDates = events?.reduce((acc: Record<string, EventType[]>, event) => {
@@ -87,39 +89,39 @@ const EventCalendar: React.FC<EventCalendarProps> = ({ events }) => {
     };
 
     return (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:auto-rows-min md:items-stretch">
             <motion.div
                 className="md:col-span-1"
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ duration: 0.5 }}
             >
-                <Card className="p-4 bg-white shadow-md rounded-lg w-full">
+                <Card className="p-4 bg-white shadow-md rounded-lg w-full h-full flex flex-col">
                     <Calendar
                         mode="single"
                         selected={selectedDate}
                         onSelect={setSelectedDate}
-                        className="h-full w-full flex"
+                        className="w-full"
                         classNames={{
                             months:
                                 "flex w-full flex-col sm:flex-row space-y-4 sm:space-x-4 sm:space-y-0 flex-1",
                             month: "space-y-4 w-full flex flex-col",
-                            table: "w-full h-full border-collapse space-y-1",
+                            table: "w-full border-collapse space-y-1",
                             head_row: "",
                             row: "w-full mt-2",
                         }}
-
                         modifiers={{
                             hasEvent: (date) => isDayWithEvent(date)
                         }}
                         modifiersStyles={{
-                            selected: {
-                                backgroundColor: "#2563eb"
-                            },
                             hasEvent: {
                                 backgroundColor: "#e0f2fe",
                                 borderRadius: "0.375rem",
                                 fontWeight: "bold",
+                                color: "#000000",
+                            },
+                            selected: {
+                                backgroundColor: "#2563eb"
                             }
                         }}
                     />
@@ -138,23 +140,20 @@ const EventCalendar: React.FC<EventCalendarProps> = ({ events }) => {
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ duration: 0.5, delay: 0.2 }}
             >
-                <div className="bg-white p-6 rounded-lg shadow-md">
-                    <h2 className="text-xl font-semibold mb-4">
+                <Card className="bg-white p-6 rounded-lg shadow-md flex flex-col min-h-0 h-[334px]">
+                    <h2 className="text-xl font-semibold mb-4 flex-shrink-0">
                         {selectedDate ? format(selectedDate, "dd MMMM , yyyy") : "Select a date"}
                     </h2>
 
                     {eventsOnSelectedDate.length > 0 ? (
-                        <div className="space-y-4">
+                        <div className="space-y-4 overflow-y-auto flex-1 min-h-0 pr-2">
                             {eventsOnSelectedDate.map((event) => (
-                                <motion.div
+                                <div
                                     key={event?.id}
-                                    initial={{ opacity: 0, y: 10 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    transition={{ duration: 0.3 }}
                                     className="border border-gray-200 rounded-lg p-4"
                                 >
                                     <h3 className="text-lg font-medium mb-2">{event?.title}</h3>
-                                    <div className="sm:text-lg prose">
+                                    <div className="sm:text-lg prose mb-3">
                                         <ReactMarkdown>
                                             {HTMLToMarkdown(event?.description)}
                                         </ReactMarkdown>
@@ -173,14 +172,22 @@ const EventCalendar: React.FC<EventCalendarProps> = ({ events }) => {
                                             <span>Capacity: {event?.capacity}</span>
                                         </div>
                                     </div>
-                                    <div className="grid grid-row max-sm:gap-6 md:flex md:space-x-2 lg:flex lg:space-x-2">
+                                    <div className="grid grid-row max-sm:gap-2 md:flex md:space-x-2">
                                         <Button
                                             size="sm"
-                                            className=" text-white"
+                                            className="text-white"
+                                            onClick={() => router.push(`/events/register/${event.id}`)}
+                                        >
+                                            <PlusCircle className="h-4 w-4 mr-2" />
+                                            Register
+                                        </Button>
+                                        <Button
+                                            size="sm"
+                                            className="text-white"
                                             onClick={() => addToGoogleCalendar(event)}
                                         >
                                             <PlusCircle className="h-4 w-4 mr-2" />
-                                            Google Calendar
+                                            Google
                                         </Button>
                                         <Button
                                             size="sm"
@@ -188,18 +195,26 @@ const EventCalendar: React.FC<EventCalendarProps> = ({ events }) => {
                                             onClick={() => addToAppleCalendar(event)}
                                         >
                                             <PlusCircle className="h-4 w-4 mr-2" />
-                                            Apple Calendar
+                                            Apple
+                                        </Button>
+                                        <Button
+                                            size="sm"
+                                            variant="outline"
+                                            onClick={() => router.push(`/events/${event.id}/attendance`)}
+                                        >
+                                            <Users className="h-4 w-4 mr-2" />
+                                            Attendance
                                         </Button>
                                     </div>
-                                </motion.div>
+                                </div>
                             ))}
                         </div>
                     ) : (
-                        <div className="text-center py-8 text-gray-500">
+                        <div className="text-center py-8 text-gray-500 flex-1 min-h-0 content-center">
                             {selectedDate ? "No events scheduled for this date" : "Select a date to view events"}
                         </div>
                     )}
-                </div>
+                </Card>
             </motion.div>
         </div>
     );

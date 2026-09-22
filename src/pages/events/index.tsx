@@ -56,15 +56,15 @@ const Events = () => {
                                         transition={{ duration: 0.5 }}
                                         whileHover={{ y: -5 }}
                                     >
-                                        <Card className="overflow-hidden hover:shadow-lg transition-all duration-300">
-                                            <div className="p-6">
+                                        <Card className="overflow-hidden hover:shadow-lg transition-all duration-300 flex flex-col h-full">
+                                            <div className="p-6 flex-grow flex flex-col">
                                                 <h3 className="text-xl font-semibold mb-3">{event.title}</h3>
-                                                <div className="sm:text-lg prose">
+                                                <div className="sm:text-lg prose flex-grow overflow-y-auto mb-4 break-words" style={{ maxHeight: '200px' }}>
                                                     <ReactMarkdown>
                                                         {HTMLToMarkdown(event.description)}
                                                     </ReactMarkdown>
                                                 </div>
-                                                <div className="space-y-2 mb-4">
+                                                <div className="space-y-2 mt-auto">
                                                     <div className="flex items-center text-sm text-gray-500">
                                                         <Calendar className="h-4 w-4 mr-2" />
                                                         <span>{event.date}</span>

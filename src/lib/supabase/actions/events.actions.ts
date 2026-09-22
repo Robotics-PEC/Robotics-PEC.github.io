@@ -37,3 +37,11 @@ export const updateEvent = async (event: FormEventType) => {
     }
     return error;
 };
+
+export const updateEventAttendance = async (id: string, attendanceOpen: boolean) => {
+    const { error } = await client.from("events").update({ attendanceOpen }).eq("id", id);
+    return error;
+};
+
+
+

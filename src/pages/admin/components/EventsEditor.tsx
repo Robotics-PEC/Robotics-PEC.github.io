@@ -7,7 +7,10 @@ import { Card } from "@/components/ui/card";
 import ReactMarkdown from "react-markdown";
 import { FormEventType } from "@/types";
 import { Loader } from "@/components/layout/Loader";
-import { deleteEvent, getEvents, updateEvent, uploadEvent } from "@/lib/supabase/actions/events.actions";
+import { deleteEvent, getEvents, updateEvent, uploadEvent, updateEventAttendance } from "@/lib/supabase/actions/events.actions";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
+import { Download } from "lucide-react";
 import { isEndTimeAfterStartTime, TimeValue } from "@/lib/utils";
 import TimeField from "@/components/TimeField";
 import { formatDate } from "date-fns";
@@ -205,6 +208,39 @@ const EventsEditor = () => {
         }
     };
 
+    const handleToggleAttendance = async (id: string, currentStatus: boolean) => {
+        const newStatus = !currentStatus;
+        const error = await updateEventAttendance(id, newStatus);
+
+        if (error) {
+            toast({
+                title: "Error",
+                description: error.message,
+                variant: "destructive",
+            });
+            return;
+        }
+
+        setEvents(prev =>
+            prev.map(event =>
+                event.id === id ? { ...event, attendanceOpen: newStatus } : event
+            )
+        );
+        toast({
+            title: "Success",
+            description: `Attendance is now ${newStatus ? "open" : "closed"}.`,
+        });
+    };
+
+    const handleExportRegistrations = (eventId: string) => {
+        // Placeholder for export functionality
+        toast({
+            title: "Exporting...",
+            description: "Exporting for " + eventId,
+        });
+    };
+
+
     const eventFormConfig: FormConfig = {
         [FormConfigKey.SECTIONS]: [
             {
@@ -360,7 +396,19 @@ const EventsEditor = () => {
                                                 </div>
                                             </div>
 
+                                            <div className="flex items-center gap-2 p-2 border rounded-md">
+                                                <Switch
+                                                    id={`attendance-${event.id}`}
+                                                    checked={event.attendanceOpen || false}
+                                                    onCheckedChange={() => handleToggleAttendance(event.id, !!event.attendanceOpen)}
+                                                />
+                                                <Label htmlFor={`attendance-${event.id}`}>Attendance Window Open</Label>
+                                            </div>
+
                                             <div className="flex gap-2 justify-end">
+                                                <Button size="sm" variant="outline" onClick={() => handleExportRegistrations(event.id)}>
+                                                    <Download className="h-4 w-4 mr-1" /> Export CSV
+                                                </Button>
                                                 <Button
                                                     size="sm"
                                                     variant="outline"

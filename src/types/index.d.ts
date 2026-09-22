@@ -93,6 +93,8 @@ export interface FormEventType {
     time: string;
     location: string;
     capacity: string;
+    attendanceOpen?: boolean;
+    formConfigJson?: any;
 };
 
 export interface BlogUserType {
