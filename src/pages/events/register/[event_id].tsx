@@ -43,19 +43,16 @@ const RegisterEvent = () => {
     }, [event_id, router, toast]);
 
     const handleRegister = async (values: any) => {
-        const screenshotFile = values.paymentScreenshot;
-        if (!screenshotFile) {
-            toast({ title: "Error", description: "Payment screenshot is required", variant: "destructive" });
-            return;
-        }
-
         setIsSubmitting(true);
         setSubmitError(false);
 
-        const screenshotBase64 = await fileToBase64(screenshotFile);
+        let screenshotBase64 = null;
+        if (values.paymentScreenshot) {
+            screenshotBase64 = await fileToBase64(values.paymentScreenshot);
+        }
         const { paymentScreenshot, ...formValues } = values;
 
-        const { error } = await registerForEvent(event_id as string, formValues, screenshotBase64);
+        const { error } = await registerForEvent(event_id as string, formValues, screenshotBase64 || "");
 
         if (error) {
             toast({ title: "Error", description: error, variant: "destructive" });

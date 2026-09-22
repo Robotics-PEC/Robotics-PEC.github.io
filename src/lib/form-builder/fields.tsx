@@ -112,6 +112,21 @@ export function FieldRenderer({ field, form }: FieldRendererProps) {
  * Individual field renderers
  * ================================================================ */
 
+/* ================================================================
+ * Helper utilities
+ * ================================================================ */
+
+function FieldLabel({ config }: { config: FieldConfig }) {
+    return (
+        <FormLabel>
+            {config[FieldConfigKey.LABEL]}
+            {config[FieldConfigKey.REQUIRED] && (
+                <span className="text-destructive ml-1">*</span>
+            )}
+        </FormLabel>
+    );
+}
+
 function TextFieldRenderer({
     config,
     formField,
@@ -123,7 +138,7 @@ function TextFieldRenderer({
 
     return (
         <FormItem className={config[FieldConfigKey.CLASS_NAME]}>
-            <FormLabel>{config[FieldConfigKey.LABEL]}</FormLabel>
+            <FieldLabel config={config} />
             <FormControl>
                 <div className="relative">
                     {config[FieldConfigKey.ICON] && (
@@ -166,7 +181,7 @@ function EmailFieldRenderer({
 }) {
     return (
         <FormItem className={config[FieldConfigKey.CLASS_NAME]}>
-            <FormLabel>{config[FieldConfigKey.LABEL]}</FormLabel>
+            <FieldLabel config={config} />
             <FormControl>
                 <div className="relative">
                     {config[FieldConfigKey.ICON] && (
@@ -201,7 +216,7 @@ function TelFieldRenderer({
 }) {
     return (
         <FormItem className={config[FieldConfigKey.CLASS_NAME]}>
-            <FormLabel>{config[FieldConfigKey.LABEL]}</FormLabel>
+            <FieldLabel config={config} />
             <FormControl>
                 <div className="relative">
                     {config[FieldConfigKey.ICON] && (
@@ -239,7 +254,7 @@ function PasswordFieldRenderer({
 
     return (
         <FormItem className={config[FieldConfigKey.CLASS_NAME]}>
-            <FormLabel>{config[FieldConfigKey.LABEL]}</FormLabel>
+            <FieldLabel config={config} />
             <FormControl>
                 <div className="relative">
                     {config[FieldConfigKey.ICON] && (
@@ -313,7 +328,7 @@ function UrlFieldRenderer({
 }) {
     return (
         <FormItem className={config[FieldConfigKey.CLASS_NAME]}>
-            <FormLabel>{config[FieldConfigKey.LABEL]}</FormLabel>
+            <FieldLabel config={config} />
             <FormControl>
                 <div className="relative">
                     {config[FieldConfigKey.ICON] && (
@@ -349,7 +364,7 @@ function SelectFieldRenderer({
 
     return (
         <FormItem className={config[FieldConfigKey.CLASS_NAME]}>
-            <FormLabel>{config[FieldConfigKey.LABEL]}</FormLabel>
+            <FieldLabel config={config} />
             <Select onValueChange={formField.onChange} value={formField.value}>
                 <FormControl>
                     <SelectTrigger disabled={config[FieldConfigKey.DISABLED]}>
@@ -383,7 +398,7 @@ function TextareaFieldRenderer({
 }) {
     return (
         <FormItem className={config[FieldConfigKey.CLASS_NAME]}>
-            <FormLabel>{config[FieldConfigKey.LABEL]}</FormLabel>
+            <FieldLabel config={config} />
             <FormControl>
                 <Textarea
                     {...formField}
@@ -414,7 +429,7 @@ function CheckboxGroupFieldRenderer({
     return (
         <FormItem className={config[FieldConfigKey.CLASS_NAME]}>
             <div className="mb-4">
-                <FormLabel>{config[FieldConfigKey.LABEL]}</FormLabel>
+                <FieldLabel config={config} />
                 {config[FieldConfigKey.DESCRIPTION] && (
                     <FormDescription>{config[FieldConfigKey.DESCRIPTION]}</FormDescription>
                 )}
@@ -460,7 +475,7 @@ function RadioGroupFieldRenderer({
     return (
         <FormItem className={config[FieldConfigKey.CLASS_NAME]}>
             <div className="mb-4">
-                <FormLabel>{config[FieldConfigKey.LABEL]}</FormLabel>
+                <FieldLabel config={config} />
                 {config[FieldConfigKey.DESCRIPTION] && (
                     <FormDescription>{config[FieldConfigKey.DESCRIPTION]}</FormDescription>
                 )}
@@ -504,7 +519,7 @@ function RatingFieldRenderer({
 
     return (
         <FormItem className={config[FieldConfigKey.CLASS_NAME]}>
-            <FormLabel>{config[FieldConfigKey.LABEL]}</FormLabel>
+            <FieldLabel config={config} />
             <FormControl>
                 <div className="flex gap-2">
                     {Array.from({ length: maxCount }, (_, i) => i + 1).map((rating) => (
@@ -551,7 +566,7 @@ function MarkdownFieldRenderer({
 }) {
     return (
         <FormItem className={config[FieldConfigKey.CLASS_NAME]}>
-            <FormLabel>{config[FieldConfigKey.LABEL]}</FormLabel>
+            <FieldLabel config={config} />
             <FormControl>
                 <MarkdownEditor
                     value={formField.value || ""}
@@ -585,7 +600,7 @@ function ImageFieldRenderer({
 
     return (
         <FormItem className={config[FieldConfigKey.CLASS_NAME]}>
-            <FormLabel>{config[FieldConfigKey.LABEL]}</FormLabel>
+            <FieldLabel config={config} />
             <FormControl>
                 <Blob
                     id={config[FieldConfigKey.NAME]}
@@ -618,7 +633,7 @@ function DateFieldRenderer({
 }) {
     return (
         <FormItem className={config[FieldConfigKey.CLASS_NAME]}>
-            <FormLabel>{config[FieldConfigKey.LABEL]}</FormLabel>
+            <FieldLabel config={config} />
             <FormControl>
                 <DatePicker
                     date={formField.value}
@@ -645,7 +660,7 @@ function CategoryFieldRenderer({
 
     return (
         <FormItem className={config[FieldConfigKey.CLASS_NAME]}>
-            <FormLabel>{config[FieldConfigKey.LABEL]}</FormLabel>
+            <FieldLabel config={config} />
             <FormControl>
                 <SelectSearch
                     options={options}
