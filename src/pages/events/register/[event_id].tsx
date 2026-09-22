@@ -89,10 +89,14 @@ const RegisterEvent = () => {
                         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
                             <Card className="p-6">
                                 <h1 className="text-2xl font-bold mb-4">{event.title} Registration</h1>
-                                <DynamicForm
-                                    config={event.formConfigJson ?? {}}
-                                    onSubmit={handleRegister}
-                                />
+                                {event.formConfigJson?.sections ? (
+                                    <DynamicForm
+                                        config={event.formConfigJson}
+                                        onSubmit={handleRegister}
+                                    />
+                                ) : (
+                                    <p className="text-gray-500">Registration for this event is not open yet.</p>
+                                )}
                             </Card>
                         </motion.div>
                     </section>
