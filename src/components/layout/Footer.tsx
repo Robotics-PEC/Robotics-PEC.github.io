@@ -67,7 +67,7 @@ const QuickLinks = () => {
         { href: "/events", label: "Events" },
         { href: "/contact", label: "Contact" },
         { href: "https://www.roboticspec.com/Docify/", label: "Docify" },
-        // { href: "/pyq", label: "Previous Year Questions" }
+        { href: "https://www.roboticspec.com/pyq/", label: "Previous Year Questions" }
     ];
     return (
         <div>
