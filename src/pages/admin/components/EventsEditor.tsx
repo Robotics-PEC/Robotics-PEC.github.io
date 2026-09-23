@@ -8,6 +8,7 @@ import ReactMarkdown from "react-markdown";
 import { FormEventType } from "@/types";
 import { Loader } from "@/components/layout/Loader";
 import { deleteEvent, getEvents, updateEvent, uploadEvent, updateEventAttendance } from "@/lib/supabase/actions/events.actions";
+import { getRegistrations } from "@/lib/supabase/actions/registrations.actions";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Download } from "lucide-react";
@@ -232,12 +233,38 @@ const EventsEditor = () => {
         });
     };
 
-    const handleExportRegistrations = (eventId: string) => {
-        // Placeholder for export functionality
-        toast({
-            title: "Exporting...",
-            description: "Exporting for " + eventId,
-        });
+    const handleExportRegistrations = async (eventId: string) => {
+        const { data, error } = await getRegistrations(eventId);
+
+        if (error) {
+            toast({ title: "Error", description: error, variant: "destructive" });
+            return;
+        }
+
+        if (!data || data.length === 0) {
+            toast({ title: "No data", description: "No registrations found" });
+            return;
+        }
+
+        // Simple CSV generation
+        const headers = ["Name", "Email", "Response Data"];
+        const rows = data.map(r => [
+            (r as any).profiles?.name || "N/A",
+            (r as any).profiles?.email || "N/A",
+            JSON.stringify(r.responseJson).replace(/"/g, '""') // Escape quotes
+        ]);
+
+        const csvContent = [headers, ...rows]
+            .map(e => `"${e.join('","')}"`)
+            .join("\n");
+
+        const blob = new Blob([csvContent], { type: 'text/csv' });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `registrations-${eventId}.csv`;
+        a.click();
+        window.URL.revokeObjectURL(url);
     };
 
 

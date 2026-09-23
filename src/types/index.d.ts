@@ -23,6 +23,7 @@ export interface EventType {
     time: string;
     location: string;
     capacity: number;
+    attendanceOpen: boolean;
 };
 
 export interface ActivityType {

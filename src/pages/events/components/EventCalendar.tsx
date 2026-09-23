@@ -14,9 +14,10 @@ import { useRouter } from "next/router";
 
 interface EventCalendarProps {
     events: EventType[];
+    registeredEvents: string[];
 }
 
-const EventCalendar: React.FC<EventCalendarProps> = ({ events }) => {
+const EventCalendar: React.FC<EventCalendarProps> = ({ events, registeredEvents }) => {
     const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
     const { toast } = useToast();
     const router = useRouter();
@@ -177,9 +178,10 @@ const EventCalendar: React.FC<EventCalendarProps> = ({ events }) => {
                                             size="sm"
                                             className="text-white"
                                             onClick={() => router.push(`/events/register/${event.id}`)}
+                                            disabled={registeredEvents.includes(event.id)}
                                         >
                                             <PlusCircle className="h-4 w-4 mr-2" />
-                                            Register
+                                            {registeredEvents.includes(event.id) ? "Registered" : "Register"}
                                         </Button>
                                         <Button
                                             size="sm"
@@ -197,14 +199,19 @@ const EventCalendar: React.FC<EventCalendarProps> = ({ events }) => {
                                             <PlusCircle className="h-4 w-4 mr-2" />
                                             Apple
                                         </Button>
-                                        <Button
-                                            size="sm"
-                                            variant="outline"
-                                            onClick={() => router.push(`/events/${event.id}/attendance`)}
-                                        >
-                                            <Users className="h-4 w-4 mr-2" />
-                                            Attendance
-                                        </Button>
+                                        {
+                                            event.attendanceOpen && (
+                                            <Button
+                                                size="sm"
+                                                variant="outline"
+                                                onClick={() => router.push(`/events/${event.id}/attendance`)}
+                                            >
+                                                <Users className="h-4 w-4 mr-2" />
+                                                Attendance
+                                            </Button>
+                                            )
+                                        }
+                                        
                                     </div>
                                 </div>
                             ))}
