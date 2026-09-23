@@ -74,17 +74,25 @@ const QuickLinks = () => {
             <FooterSection
                 title="Quick Links"
             >
-                {quickLinks.map(({ href, label }, index) => (
-                    <li key={index}>
-                        <Link
-                            href={href}
-                            className="text-sm text-muted-foreground hover:text-foreground transition-colors flex items-center"
-                        >
+                {quickLinks.map(({ href, label }, index) => {
+                    const isExternal = href.startsWith("http");
+                    const className = "text-sm text-muted-foreground hover:text-foreground transition-colors flex items-center";
+                    return (
+                        <li key={index}>
+                        {isExternal ? (
+                            <a href={href} className={className}>
                             <ChevronRight className="h-4 w-4 mr-1" />
                             {label}
-                        </Link>
-                    </li>
-                ))}
+                            </a>
+                        ) : (
+                            <Link href={href} className={className}>
+                            <ChevronRight className="h-4 w-4 mr-1" />
+                            {label}
+                            </Link>
+                        )}
+                        </li>
+                    );
+                })}
             </FooterSection>
         </div>
     );
