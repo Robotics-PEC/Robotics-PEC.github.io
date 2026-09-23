@@ -40,7 +40,7 @@ export const registerForEvent = async (eventId: string, responseJson: any, scree
 export const getRegistrations = async (eventId: string) => {
     const { data, error } = await client
         .from("registrations")
-        .select(`*, profiles(name, email)`)
+        .select(`*, profiles("fullName", email)`)
         .eq("eventId", eventId);
 
     if (error) return { error: error.message };

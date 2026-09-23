@@ -236,6 +236,8 @@ const EventsEditor = () => {
     const handleExportRegistrations = async (eventId: string) => {
         const { data, error } = await getRegistrations(eventId);
 
+        console.log({data});
+
         if (error) {
             toast({ title: "Error", description: error, variant: "destructive" });
             return;
@@ -248,11 +250,14 @@ const EventsEditor = () => {
 
         // Simple CSV generation
         const headers = ["Name", "Email", "Response Data"];
-        const rows = data.map(r => [
-            (r as any).profiles?.name || "N/A",
-            (r as any).profiles?.email || "N/A",
-            JSON.stringify(r.responseJson).replace(/"/g, '""') // Escape quotes
-        ]);
+        const rows = data.map(r => {
+            const profile = Array.isArray((r as any).profiles) ? (r as any).profiles[0] : (r as any).profiles;
+            return [
+                profile?.fullName || "N/A",
+                profile?.email || "N/A",
+                JSON.stringify(r.responseJson).replace(/"/g, '""') // Escape quotes
+            ];
+        });
 
         const csvContent = [headers, ...rows]
             .map(e => `"${e.join('","')}"`)
