@@ -24,6 +24,7 @@ export interface EventType {
     location: string;
     capacity: number;
     attendanceOpen: boolean;
+    registrationOpen: boolean;
 };
 
 export interface ActivityType {
@@ -96,6 +97,7 @@ export interface FormEventType {
     capacity: string;
     attendanceOpen?: boolean;
     formConfigJson?: any;
+    registrationOpen?: boolean;
 };
 
 export interface BlogUserType {

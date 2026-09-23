@@ -174,15 +174,20 @@ const EventCalendar: React.FC<EventCalendarProps> = ({ events, registeredEvents 
                                         </div>
                                     </div>
                                     <div className="grid grid-row max-sm:gap-2 md:flex md:space-x-2">
-                                        <Button
-                                            size="sm"
-                                            className="text-white"
-                                            onClick={() => router.push(`/events/register/${event.id}`)}
-                                            disabled={registeredEvents.includes(event.id)}
-                                        >
-                                            <PlusCircle className="h-4 w-4 mr-2" />
-                                            {registeredEvents.includes(event.id) ? "Registered" : "Register"}
-                                        </Button>
+                                        {
+                                            event.registrationOpen && (
+                                                <Button
+                                                    size="sm"
+                                                    className="text-white"
+                                                    onClick={() => router.push(`/events/register/${event.id}`)}
+                                                    disabled={registeredEvents.includes(event.id)}
+                                                >
+                                                    <PlusCircle className="h-4 w-4 mr-2" />
+                                                    {registeredEvents.includes(event.id) ? "Registered" : "Register"}
+                                                </Button>
+                                            )
+                                        }
+                                        
                                         <Button
                                             size="sm"
                                             className="text-white"

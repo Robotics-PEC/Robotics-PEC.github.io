@@ -43,6 +43,11 @@ export const updateEventAttendance = async (id: string, attendanceOpen: boolean)
     return error;
 };
 
+export const updateEventRegistration = async (id: string, registrationOpen: boolean) => {
+    const { error } = await client.from("events").update({ registrationOpen }).eq("id", id);
+    return error;
+};
+
 export const getEventById = async (id: string) => {
     return await client.from("events").select("*").eq("id", id).single();
 };

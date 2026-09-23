@@ -7,7 +7,7 @@ import { Card } from "@/components/ui/card";
 import ReactMarkdown from "react-markdown";
 import { FormEventType } from "@/types";
 import { Loader } from "@/components/layout/Loader";
-import { deleteEvent, getEvents, updateEvent, uploadEvent, updateEventAttendance } from "@/lib/supabase/actions/events.actions";
+import { deleteEvent, getEvents, updateEvent, uploadEvent, updateEventAttendance, updateEventRegistration } from "@/lib/supabase/actions/events.actions";
 import { getRegistrations } from "@/lib/supabase/actions/registrations.actions";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
@@ -233,6 +233,30 @@ const EventsEditor = () => {
         });
     };
 
+    const handleToggleRegistration = async (id: string, currentStatus: boolean) => {
+        const newStatus = !currentStatus;
+        const error = await updateEventRegistration(id, newStatus);
+
+        if (error) {
+            toast({
+                title: "Error",
+                description: error.message,
+                variant: "destructive",
+            });
+            return;
+        }
+
+        setEvents(prev =>
+            prev.map(event =>
+                event.id === id ? { ...event, registrationOpen: newStatus } : event
+            )
+        );
+        toast({
+            title: "Success",
+            description: `Registration is now ${newStatus ? "open" : "closed"}.`,
+        });
+    }
+
     const handleExportRegistrations = async (eventId: string) => {
         const { data, error } = await getRegistrations(eventId);
 
@@ -435,6 +459,14 @@ const EventsEditor = () => {
                                                     onCheckedChange={() => handleToggleAttendance(event.id, !!event.attendanceOpen)}
                                                 />
                                                 <Label htmlFor={`attendance-${event.id}`}>Attendance Window Open</Label>
+                                            </div>
+                                            <div className="flex items-center gap-2 p-2 border rounded-md">
+                                                <Switch
+                                                    id={`registration-${event.id}`}
+                                                    checked={event.registrationOpen || false}
+                                                    onCheckedChange={() => handleToggleRegistration(event.id, !!event.registrationOpen)}
+                                                />
+                                                <Label htmlFor={`attendance-${event.id}`}>Registration Window Open</Label>
                                             </div>
 
                                             <div className="flex gap-2 justify-end">
