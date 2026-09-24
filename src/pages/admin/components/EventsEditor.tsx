@@ -7,7 +7,7 @@ import { Card } from "@/components/ui/card";
 import ReactMarkdown from "react-markdown";
 import { FormEventType } from "@/types";
 import { Loader } from "@/components/layout/Loader";
-import { deleteEvent, getEvents, updateEvent, uploadEvent, updateEventAttendance, updateEventRegistration } from "@/lib/supabase/actions/events.actions";
+import { deleteEvent, getEvents, updateEvent, uploadEvent, updateEventAttendance, updateEventRegistration, getEventById } from "@/lib/supabase/actions/events.actions";
 import { getRegistrations } from "@/lib/supabase/actions/registrations.actions";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
@@ -258,12 +258,11 @@ const EventsEditor = () => {
     }
 
     const handleExportRegistrations = async (eventId: string) => {
+        const { data: eventData, error: eventError } = await getEventById(eventId);
         const { data, error } = await getRegistrations(eventId);
 
-        console.log({data});
-
-        if (error) {
-            toast({ title: "Error", description: error, variant: "destructive" });
+        if (eventError || error) {
+            toast({ title: "Error", description: eventError?.message || error, variant: "destructive" });
             return;
         }
 
@@ -272,15 +271,45 @@ const EventsEditor = () => {
             return;
         }
 
-        // Simple CSV generation
-        const headers = ["Name", "Email", "Response Data"];
+        const formConfig = eventData?.formConfigJson;
+
+        // map internal names to human-readable labels
+        const labelMap: Record<string, string> = {};
+        const fieldLabels: string[] = [];
+
+        if (formConfig && formConfig.sections) {
+            formConfig.sections.forEach((section: any) => {
+                if (section.fields) {
+                    section.fields.forEach((field: any) => {
+                        labelMap[field.name] = field.label;
+                        fieldLabels.push(field.label);
+                    });
+                }
+            });
+        }
+
+        // CSV headers
+        const headers = ["Name", "Email", ...fieldLabels];
+
         const rows = data.map(r => {
             const profile = Array.isArray((r as any).profiles) ? (r as any).profiles[0] : (r as any).profiles;
-            return [
+            const responseData = r.responseJson || {};
+
+            const row = [
                 profile?.fullName || "N/A",
-                profile?.email || "N/A",
-                JSON.stringify(r.responseJson).replace(/"/g, '""') // Escape quotes
+                profile?.email || "N/A"
             ];
+
+            // Add fields based on labels
+            fieldLabels.forEach(label => {
+                // find the field name corresponding to this label
+                const fieldName = Object.keys(labelMap).find(key => labelMap[key] === label);
+                const value = fieldName ? responseData[fieldName] : "N/A";
+                // # ponytail: naive CSV escape, change to proper library if commas in data break files.
+                row.push((value !== undefined && value !== null ? String(value) : "N/A").replace(/"/g, '""'));
+            });
+
+            return row;
         });
 
         const csvContent = [headers, ...rows]
