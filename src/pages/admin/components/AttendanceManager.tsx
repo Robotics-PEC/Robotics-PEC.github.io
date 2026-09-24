@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { addWalkInAttendance } from "@/lib/supabase/actions/attendance.actions";
 
-export const AttendanceManager = ({ eventId, eventTitle }: { eventId: string; eventTitle: string }) => {
+const AttendanceManager = ({ eventId, eventTitle }: { eventId: string; eventTitle: string }) => {
     const { toast } = useToast();
     const [name, setName] = useState("");
     const [studentId, setStudentId] = useState("");
@@ -59,3 +59,6 @@ export const AttendanceManager = ({ eventId, eventTitle }: { eventId: string; ev
         </Card>
     );
 };
+
+
+export default AttendanceManager;

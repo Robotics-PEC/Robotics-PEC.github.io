@@ -1,4 +1,4 @@
-import { AttendanceManager } from "./AttendanceManager";
+import AttendanceManager  from "./AttendanceManager";
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
