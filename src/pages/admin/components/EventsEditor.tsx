@@ -1,3 +1,4 @@
+import { AttendanceManager } from "./AttendanceManager";
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
@@ -489,6 +490,7 @@ const EventsEditor = () => {
                                                 />
                                                 <Label htmlFor={`attendance-${event.id}`}>Attendance Window Open</Label>
                                             </div>
+                                            <AttendanceManager eventId={event.id} eventTitle={event.title} />
                                             <div className="flex items-center gap-2 p-2 border rounded-md">
                                                 <Switch
                                                     id={`registration-${event.id}`}

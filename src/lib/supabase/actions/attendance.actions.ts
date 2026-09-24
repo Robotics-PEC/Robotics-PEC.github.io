@@ -1,4 +1,5 @@
 import { client } from "../supabase";
+import { getProfileFromUserId } from "./profiles.actions";
 
 export const getAttendanceForEvent = async (eventId: string) => {
     const { data, error } = await client
@@ -23,4 +24,22 @@ export const addWalkInAttendance = async (eventId: string, name: string, student
     return error;
 };
 
-// ... TODO: Add TOTP validation and self-mark actions
+export const submitAttendance = async (eventId: string, responseJson: any) => {
+    const { data: { user } } = await client.auth.getUser();
+    if (!user) return { error: "Not authenticated" };
+
+    const { data: profile } = await getProfileFromUserId(user.id);
+    if (!profile) return { error: "Profile not found" };
+
+    const { error } = await client
+        .from("attendance")
+        .insert({
+            eventId,
+            userId: profile.id,
+            recordType: 'registered_attendee',
+            responseJson,
+            markedBy: 'self'
+        });
+
+    return { error };
+};

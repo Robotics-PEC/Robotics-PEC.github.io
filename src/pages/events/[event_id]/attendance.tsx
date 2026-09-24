@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
-import { motion } from "framer-motion";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
@@ -9,6 +8,8 @@ import { getRegistrations } from "@/lib/supabase/actions/registrations.actions";
 import { getProfileFromUserId } from "@/lib/supabase/actions/profiles.actions";
 import { client } from "@/lib/supabase/supabase";
 import PageHead from "@/components/layout/PageHead";
+import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
+import { Loader } from "@/components/layout/Loader";
 
 const AttendancePage = () => {
     const router = useRouter();
@@ -17,8 +18,35 @@ const AttendancePage = () => {
 
     const [event, setEvent] = useState<any>(null);
     const [registration, setRegistration] = useState<any>(null);
+    const [code, setCode] = useState("");
+    const [isValidating, setIsValidating] = useState(false);
     const [loading, setLoading] = useState(true);
-    const [marking, setMarking] = useState(false);
+
+    const validateAttendanceCode = async () => {
+        if (!registration?.userId) return;
+        setIsValidating(true);
+        const { data: { session } } = await client.auth.getSession();
+        const response = await fetch('/api/validate-attendance', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${session?.access_token}`,
+            },
+            body: JSON.stringify({
+                eventId: event_id,
+                code,
+                userId: registration.userId
+            }),
+        });
+        const { isValid, error } = await response.json();
+        if (isValid) {
+            toast({ title: "Success", description: "Attendance marked successfully!" });
+            setRegistration({ ...registration, attendedAt: new Date().toISOString() });
+        } else {
+            toast({ title: "Error", description: error || "Invalid code", variant: "destructive" });
+        }
+        setIsValidating(false);
+    };
 
     useEffect(() => {
         if (!event_id || typeof event_id !== 'string') return;
@@ -57,30 +85,10 @@ const AttendancePage = () => {
         fetchData();
     }, [event_id, router, toast]);
 
-    const markAttendance = async () => {
-        if (!event || !registration || typeof event_id !== 'string') return;
-
-        setMarking(true);
-        // Using RPC as mentioned in handoff, but keeping it inside component as per existing style
-        // If there's an action for this, it should be used here.
-        const { error } = await client.rpc("mark_self_present", {
-            p_event_id: event_id,
-            p_user_id: registration.userId
-        });
-
-        if (error) {
-            toast({ title: "Error", description: error.message, variant: "destructive" });
-        } else {
-            toast({ title: "Success", description: "Attendance marked successfully" });
-            setRegistration({ ...registration, attendedAt: new Date().toISOString() });
-        }
-        setMarking(false);
-    };
-
-    if (loading) return <div>Loading...</div>;
+    if (loading) return <Loader isLoading={true}><></></Loader>;
 
     return (
-        <>
+        <Loader isLoading={false}>
             <PageHead
                 title={`Mark Attendance - ${event.title}`}
                 description={`Mark your attendance for ${event.title}`}
@@ -93,19 +101,27 @@ const AttendancePage = () => {
                             Attendance marked at: {new Date(registration.attendedAt).toLocaleString()}
                         </p>
                     ) : event.attendanceOpen ? (
-                        <Button
-                            onClick={markAttendance}
-                            disabled={marking}
-                            className="w-full"
-                        >
-                            {marking ? "Marking..." : "Mark Presence"}
-                        </Button>
+                        <div className="space-y-4 flex flex-col justify-between">
+                            <InputOTP maxLength={6} value={code} onChange={setCode}>
+                                <InputOTPGroup className="flex flex-row justify-between">
+                                    <InputOTPSlot index={0} />
+                                    <InputOTPSlot index={1} />
+                                    <InputOTPSlot index={2} />
+                                    <InputOTPSlot index={3} />
+                                    <InputOTPSlot index={4} />
+                                    <InputOTPSlot index={5} />
+                                </InputOTPGroup>
+                            </InputOTP>
+                            <Button onClick={validateAttendanceCode} disabled={isValidating || code.length < 6} className="w-full">
+                                {isValidating ? "Validating..." : "Mark Presence"}
+                            </Button>
+                        </div>
                     ) : (
                         <p className="text-red-500">Attendance is not currently open.</p>
                     )}
                 </Card>
             </section>
-        </>
+        </Loader>
     );
 };
 

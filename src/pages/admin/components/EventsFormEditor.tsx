@@ -7,7 +7,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { FormConfig } from "@/lib/form-builder";
 
-const EventsFormEditor = () => {
+const EventsFormEditor = ({ attendance = false }: { attendance?: boolean }) => {
     const [events, setEvents] = useState<FormEventType[]>([]);
     const [selectedEventId, setSelectedEventId] = useState<string>("");
     const { toast } = useToast();
@@ -25,7 +25,9 @@ const EventsFormEditor = () => {
     const handleSaveConfig = async (config: FormConfig) => {
         if (!selectedEvent) return;
 
-        const updatedEvent = { ...selectedEvent, formConfigJson: config };
+        const updatedEvent = attendance
+            ? { ...selectedEvent, attendanceFormConfigJson: config }
+            : { ...selectedEvent, formConfigJson: config };
         const error = await updateEvent(updatedEvent);
 
         if (error) {
@@ -51,13 +53,12 @@ const EventsFormEditor = () => {
             {selectedEvent && (
                 <FormBuilder
                     key={selectedEvent.id}
-                    initialConfig={selectedEvent.formConfigJson}
+                    initialConfig={attendance ? selectedEvent.attendanceFormConfigJson : selectedEvent.formConfigJson}
                     onSave={handleSaveConfig}
                 />
             )}
         </div>
     );
 };
-
 
 export default EventsFormEditor;

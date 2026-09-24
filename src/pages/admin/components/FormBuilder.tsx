@@ -22,10 +22,12 @@ interface Props {
 }
 
 const FormBuilder = ({ initialConfig, onSave }: Props) => {
-    const [config, setConfig] = useState<FormConfig>(initialConfig || {
-        [FormConfigKey.SECTIONS]: [{ [SectionKey.FIELDS]: [] }],
-        [FormConfigKey.SUBMIT]: { [SubmitConfigKey.LABEL]: "Submit" },
-    });
+    const [config, setConfig] = useState<FormConfig>(
+        (initialConfig && initialConfig[FormConfigKey.SECTIONS]) ? initialConfig : {
+            [FormConfigKey.SECTIONS]: [{ [SectionKey.FIELDS]: [] }],
+            // Removed forced SUBMIT key to match existing flexible pattern
+        } as unknown as FormConfig
+    );
 
     const addField = (sectionIndex: number) => {
         const newConfig = { ...config };
@@ -119,7 +121,11 @@ const FormBuilder = ({ initialConfig, onSave }: Props) => {
                     </Button>
                 </Card>
             ))}
-            <Button onClick={() => onSave(config)}>Save Form Config</Button>
+            <Button onClick={() => {
+                const configToSave = { ...config } as any;
+                delete configToSave[FormConfigKey.SUBMIT];
+                onSave(configToSave as FormConfig);
+            }}>Save Form Config</Button>
         </div>
     );
 };

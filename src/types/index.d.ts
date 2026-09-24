@@ -98,6 +98,7 @@ export interface FormEventType {
     attendanceOpen?: boolean;
     formConfigJson?: any;
     registrationOpen?: boolean;
+    attendanceFormConfigJson?: any;
 };
 
 export interface BlogUserType {

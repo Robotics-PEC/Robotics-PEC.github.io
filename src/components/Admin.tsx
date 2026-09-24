@@ -31,7 +31,8 @@ export enum TabValues {
     ROLES="roles",
     FEATURE_FLAGS="feature_flags",
     TALK_SHOW="talk_show",
-    EVENTS_FORM="events_form"
+    EVENTS_FORM="events_form",
+    ATTENDANCE_FORM="attendance_form"
 }
 
 const tabComponentMap: Record<TabValues,React.ReactNode> = {
@@ -58,6 +59,11 @@ const tabComponentMap: Record<TabValues,React.ReactNode> = {
     [TabValues.EVENTS_FORM]: (
         <TabsContent value={TabValues.EVENTS_FORM} className="mt-0">
             <EventsFormEditor />
+        </TabsContent>
+    ),
+    [TabValues.ATTENDANCE_FORM]: (
+        <TabsContent value={TabValues.ATTENDANCE_FORM} className="mt-0">
+            <EventsFormEditor attendance={true} />
         </TabsContent>
     ),
     [TabValues.TEAM]: (
@@ -148,6 +154,11 @@ const tabTriggerList: React.ReactNode[] = [
             <Calendar className="h-4 w-4" /> Events Form Builder
         </TabsTrigger>
     ),
+    (
+        <TabsTrigger value={TabValues.ATTENDANCE_FORM} className="flex items-center gap-2">
+            <Calendar className="h-4 w-4" /> Attendance Form Builder
+        </TabsTrigger>
+    ),
 ]
 
 const titleMap: Record<TabValues, string> = {
@@ -162,6 +173,7 @@ const titleMap: Record<TabValues, string> = {
     [TabValues.FEATURE_FLAGS]: "Feature Flags",
     [TabValues.TALK_SHOW]: "Talk Show",
     [TabValues.EVENTS_FORM]: "Events Form Builder",
+    [TabValues.ATTENDANCE_FORM]: "Attendance Form Builder"
 }
 
 const descriptionMap: Record<TabValues, string> = {
@@ -176,6 +188,7 @@ const descriptionMap: Record<TabValues, string> = {
     [TabValues.FEATURE_FLAGS]: "Manage Enabling and Disabling Features",
     [TabValues.TALK_SHOW]: "Manage Talk Show Details",
     [TabValues.EVENTS_FORM]: "Configure registration forms for events",
+    [TabValues.ATTENDANCE_FORM]: "Configure attendance forms for events",
 }
 
 

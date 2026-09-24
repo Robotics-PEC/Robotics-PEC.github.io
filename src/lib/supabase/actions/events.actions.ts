@@ -2,7 +2,10 @@ import { client } from "../supabase";
 import { FormEventType } from "@/types";
 
 export const getEvents = async () => {
-    const { data, error } = await client.from("events").select("*");
+    const { data, error } = await client
+        .from("events")
+        .select("*")
+        .order("created_at", { ascending: false });
 
     if (error) {
         console.log(error);
