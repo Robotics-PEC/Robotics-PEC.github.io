@@ -4,6 +4,9 @@ import { motion } from "framer-motion";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
+import { getEventById } from "@/lib/supabase/actions/events.actions";
+import { getRegistrations } from "@/lib/supabase/actions/registrations.actions";
+import { getProfileFromUserId } from "@/lib/supabase/actions/profiles.actions";
 import { client } from "@/lib/supabase/supabase";
 import PageHead from "@/components/layout/PageHead";
 
@@ -18,7 +21,7 @@ const AttendancePage = () => {
     const [marking, setMarking] = useState(false);
 
     useEffect(() => {
-        if (!event_id) return;
+        if (!event_id || typeof event_id !== 'string') return;
 
         const fetchData = async () => {
             const { data: { user } } = await client.auth.getUser();
@@ -27,37 +30,39 @@ const AttendancePage = () => {
                 return;
             }
 
-            const { data: eventData, error: eventError } = await client
-                .from("events")
-                .select("*")
-                .eq("id", event_id)
-                .single();
+            const { data: profile, error: profileError } = await getProfileFromUserId(user.id);
 
-            const { data: regData, error: regError } = await client
-                .from("registrations")
-                .select("*")
-                .eq("eventId", event_id)
-                .eq("userId", user.id)
-                .single();
+            if (profileError || !profile) {
+                toast({ title: "Error", description: "Profile not found", variant: "destructive" });
+                router.push("/events");
+                return;
+            }
 
-            if (eventError || regError) {
+            const { data: eventData, error: eventError } = await getEventById(event_id);
+            const { data: regData, error: regError } = await getRegistrations(event_id);
+
+            // Filter for current user's registration
+            const userRegistration = regData?.find(r => r.userId === profile.id);
+
+            if (eventError || !eventData || !userRegistration) {
                 toast({ title: "Error", description: "Event/Registration not found", variant: "destructive" });
                 router.push("/events");
                 return;
             }
 
             setEvent(eventData);
-            setRegistration(regData);
+            setRegistration(userRegistration);
             setLoading(false);
         };
         fetchData();
     }, [event_id, router, toast]);
 
     const markAttendance = async () => {
-        if (!event || !registration) return;
+        if (!event || !registration || typeof event_id !== 'string') return;
 
         setMarking(true);
-        // Assuming RPC implementation exists
+        // Using RPC as mentioned in handoff, but keeping it inside component as per existing style
+        // If there's an action for this, it should be used here.
         const { error } = await client.rpc("mark_self_present", {
             p_event_id: event_id,
             p_user_id: registration.userId

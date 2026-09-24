@@ -1,14 +1,11 @@
 import { client } from "../supabase";
+import { getProfileFromUserId } from "./profiles.actions";
 
 export const registerForEvent = async (eventId: string, responseJson: any, screenshotBase64: string) => {
     const { data: { user } } = await client.auth.getUser();
     if (!user) return { error: "Not authenticated" };
 
-    const { data: profile, error: profileError } = await client
-        .from("profiles")
-        .select("id")
-        .eq("userId", user.id)
-        .single();
+    const { data: profile, error: profileError } = await getProfileFromUserId(user.id);
 
     if (profileError || !profile) return { error: "Profile not found" };
 
@@ -52,11 +49,7 @@ export const checkRegistration = async (eventId: string) => {
     const { data: { user } } = await client.auth.getUser();
     if (!user) return { data: false, error: null };
 
-    const { data: profile, error: profileError } = await client
-        .from("profiles")
-        .select("id")
-        .eq("userId", user.id)
-        .single();
+    const { data: profile, error: profileError } = await getProfileFromUserId(user.id);
 
     if (profileError || !profile) return { data: false, error: null };
 
@@ -73,11 +66,7 @@ export const getRegistrationsForUser = async () => {
     const { data: { user } } = await client.auth.getUser();
     if (!user) return { data: [], error: null };
 
-    const { data: profile, error: profileError } = await client
-        .from("profiles")
-        .select("id")
-        .eq("userId", user.id)
-        .single();
+    const { data: profile, error: profileError } = await getProfileFromUserId(user.id);
 
     if (profileError || !profile) return { data: [], error: null };
 
