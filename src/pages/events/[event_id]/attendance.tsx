@@ -9,6 +9,8 @@ import { getProfileFromUserId } from "@/lib/supabase/actions/profiles.actions";
 import { client } from "@/lib/supabase/supabase";
 import PageHead from "@/components/layout/PageHead";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
+import { DynamicForm } from "@/lib/form-builder";
+import { submitAttendance } from "@/lib/supabase/actions/attendance.actions";
 import { Loader } from "@/components/layout/Loader";
 
 const AttendancePage = () => {
@@ -20,6 +22,7 @@ const AttendancePage = () => {
     const [registration, setRegistration] = useState<any>(null);
     const [code, setCode] = useState("");
     const [isValidating, setIsValidating] = useState(false);
+    const [isVerified, setIsVerified] = useState(false);
     const [loading, setLoading] = useState(true);
 
     const validateAttendanceCode = async () => {
@@ -40,10 +43,23 @@ const AttendancePage = () => {
         });
         const { isValid, error } = await response.json();
         if (isValid) {
-            toast({ title: "Success", description: "Attendance marked successfully!" });
-            setRegistration({ ...registration, attendedAt: new Date().toISOString() });
+            setIsVerified(true);
+            toast({ title: "Success", description: "Code verified!" });
         } else {
             toast({ title: "Error", description: error || "Invalid code", variant: "destructive" });
+        }
+        setIsValidating(false);
+    };
+
+    const handleFormSubmit = async (values: any) => {
+        if (!registration?.userId) return;
+        setIsValidating(true);
+        const { error } = await submitAttendance(event_id as string, registration.userId, values);
+        if (error) {
+            toast({ title: "Error", description: error.message, variant: "destructive" });
+        } else {
+            toast({ title: "Success", description: "Attendance marked successfully!" });
+            setRegistration({ ...registration, attendedAt: new Date().toISOString() });
         }
         setIsValidating(false);
     };
@@ -101,21 +117,28 @@ const AttendancePage = () => {
                             Attendance marked at: {new Date(registration.attendedAt).toLocaleString()}
                         </p>
                     ) : event.attendanceOpen ? (
-                        <div className="space-y-4 flex flex-col justify-between">
-                            <InputOTP maxLength={6} value={code} onChange={setCode}>
-                                <InputOTPGroup className="flex flex-row justify-between">
-                                    <InputOTPSlot index={0} />
-                                    <InputOTPSlot index={1} />
-                                    <InputOTPSlot index={2} />
-                                    <InputOTPSlot index={3} />
-                                    <InputOTPSlot index={4} />
-                                    <InputOTPSlot index={5} />
-                                </InputOTPGroup>
-                            </InputOTP>
-                            <Button onClick={validateAttendanceCode} disabled={isValidating || code.length < 6} className="w-full">
-                                {isValidating ? "Validating..." : "Mark Presence"}
-                            </Button>
-                        </div>
+                        !isVerified ? (
+                            <div className="space-y-4 items-center justify-center">
+                                <InputOTP maxLength={6} value={code} onChange={setCode} containerClassName="justify-center">
+                                    <InputOTPGroup className="space-x-2">
+                                        <InputOTPSlot index={0} className="h-14 w-14 rounded-md border-2 border-black" />
+                                        <InputOTPSlot index={1} className="h-14 w-14 rounded-md border-2 border-black" />
+                                        <InputOTPSlot index={2} className="h-14 w-14 rounded-md border-2 border-black" />
+                                        <InputOTPSlot index={3} className="h-14 w-14 rounded-md border-2 border-black" />
+                                        <InputOTPSlot index={4} className="h-14 w-14 rounded-md border-2 border-black" />
+                                        <InputOTPSlot index={5} className="h-14 w-14 rounded-md border-2 border-black" />
+                                    </InputOTPGroup>
+                                </InputOTP>
+                                <Button onClick={validateAttendanceCode} disabled={isValidating || code.length < 6} className="w-full">
+                                    {isValidating ? "Validating..." : "Verify Code"}
+                                </Button>
+                            </div>
+                        ) : (
+                            <DynamicForm
+                                config={event.attendanceFormConfigJson}
+                                onSubmit={handleFormSubmit}
+                            />
+                        )
                     ) : (
                         <p className="text-red-500">Attendance is not currently open.</p>
                     )}

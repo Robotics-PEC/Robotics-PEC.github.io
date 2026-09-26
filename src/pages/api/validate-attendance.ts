@@ -33,8 +33,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     try {
         const { eventId, code, userId } = req.body;
 
-        console.log({eventId, code, userId});
-
         if (!userId) return res.status(400).json({ error: "User ID required" });
 
         const supabase = getSupabaseClient(req);
@@ -52,23 +50,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             return res.status(400).json({ error: "Invalid code" });
         }
 
-        // 2. Validate & Mark Registration
-        const { data: registration, error: regError } = await supabase
-            .from("registrations")
-            .update({
-                attendedAt: new Date().toISOString(),
-                markedBy: 'self'
-            })
-            .eq("eventId", eventId)
-            .eq("userId", userId)
-            .select("id")
-            .single();
-
-        if (regError || !registration) {
-            console.log({regError,registration});
-            return res.status(401).json({ error: "User not registered for this event" });
-        }
-
+        // Just validate, return success
         res.status(200).json({ isValid: true });
     } catch (error: any) {
         res.status(500).json({ error: error.message });

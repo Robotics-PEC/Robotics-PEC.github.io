@@ -1,6 +1,11 @@
 import { client } from "../supabase";
 import { getProfileFromUserId } from "./profiles.actions";
 
+enum AttendanceMarkType {
+    SELF = 'self',
+    ADMIN= 'admin_override'
+}
+
 export const getAttendanceForEvent = async (eventId: string) => {
     const { data, error } = await client
         .from("attendance")
@@ -24,22 +29,16 @@ export const addWalkInAttendance = async (eventId: string, name: string, student
     return error;
 };
 
-export const submitAttendance = async (eventId: string, responseJson: any) => {
-    const { data: { user } } = await client.auth.getUser();
-    if (!user) return { error: "Not authenticated" };
-
-    const { data: profile } = await getProfileFromUserId(user.id);
-    if (!profile) return { error: "Profile not found" };
-
+export const submitAttendance = async (eventId: string, userId: string, responseJson: any) => {
     const { error } = await client
-        .from("attendance")
-        .insert({
-            eventId,
-            userId: profile.id,
-            recordType: 'registered_attendee',
-            responseJson,
-            markedBy: 'self'
-        });
+        .from("registrations")
+        .update({
+            attendanceResponseJson: responseJson,
+            attendedAt: new Date().toISOString(),
+            markedBy: AttendanceMarkType.SELF
+        })
+        .eq("eventId", eventId)
+        .eq("userId", userId);
 
     return { error };
 };
