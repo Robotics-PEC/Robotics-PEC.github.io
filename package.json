@@ -72,6 +72,7 @@
     "next-sitemap": "^4.2.3",
     "next-themes": "^0.3.0",
     "node-appwrite": "^15.0.0",
+    "otpauth": "^9.5.2",
     "papaparse": "^5.7.0",
     "react": "18",
     "react-day-picker": "^8.10.1",

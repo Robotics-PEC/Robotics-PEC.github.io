@@ -23,6 +23,8 @@ export interface EventType {
     time: string;
     location: string;
     capacity: number;
+    attendanceOpen: boolean;
+    registrationOpen: boolean;
 };
 
 export interface ActivityType {
@@ -93,6 +95,10 @@ export interface FormEventType {
     time: string;
     location: string;
     capacity: string;
+    attendanceOpen?: boolean;
+    formConfigJson?: any;
+    registrationOpen?: boolean;
+    attendanceFormConfigJson?: any;
 };
 
 export interface BlogUserType {

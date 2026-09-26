@@ -117,11 +117,11 @@ export function DynamicForm<TValues extends Record<string, unknown> = Record<str
                     <Button
                         type="submit"
                         disabled={disabled || isSubmitting}
-                        className={submitConfig[SubmitConfigKey.CLASS_NAME]}
+                        className={submitConfig?.[SubmitConfigKey.CLASS_NAME] ?? ""}
                     >
                         {isSubmitting
-                            ? (submitConfig[SubmitConfigKey.LOADING_LABEL] ?? "Submitting...")
-                            : submitConfig[SubmitConfigKey.LABEL]}
+                            ? (submitConfig?.[SubmitConfigKey.LOADING_LABEL] ?? "Submitting...")
+                            : (submitConfig?.[SubmitConfigKey.LABEL] ?? "Submit")}
                     </Button>
                 </div>
             </form>

@@ -7,6 +7,7 @@ import PageSection from "@/components/layout/PageSection";
 import PageHead from "@/components/layout/PageHead";
 import { useEffect, useState } from "react";
 import { getEvents } from "@/lib/supabase/actions/events.actions";
+import { getRegistrationsForUser } from "@/lib/supabase/actions/registrations.actions";
 import { Loader } from "@/components/layout/Loader";
 import { HTMLToMarkdown } from "@/lib/utils";
 import ReactMarkdown from "react-markdown";
@@ -15,16 +16,19 @@ import { EventType } from "@/types";
 const Events = () => {
 
     const [upcomingEvents, setUpcomingEvents] = useState<EventType[]>([]);
+    const [registeredEvents, setRegisteredEvents] = useState<string[]>([]);
     const [loading, setIsLoading] = useState(true);
     useEffect(() => {
         const fetch = async () => {
             const data = await getEvents();
-            setUpcomingEvents(data!);
+            const { data: regs } = await getRegistrationsForUser();
+            setUpcomingEvents(data || []);
+            setRegisteredEvents(regs || []);
             setIsLoading(false);
         }
 
         fetch();
-    });
+    }, []);
 
     return (
         <Loader isLoading={loading}>
@@ -38,7 +42,7 @@ const Events = () => {
                     title="Upcoming Events"
                     subtitle="Join us at our upcoming events and be part of our community."
                 >
-                    <EventCalendar events={upcomingEvents} />
+                    <EventCalendar events={upcomingEvents} registeredEvents={registeredEvents} />
 
                     {upcomingEvents.length > 0 && (
                         <motion.div
@@ -56,15 +60,15 @@ const Events = () => {
                                         transition={{ duration: 0.5 }}
                                         whileHover={{ y: -5 }}
                                     >
-                                        <Card className="overflow-hidden hover:shadow-lg transition-all duration-300">
-                                            <div className="p-6">
+                                        <Card className="overflow-hidden hover:shadow-lg transition-all duration-300 flex flex-col h-full">
+                                            <div className="p-6 flex-grow flex flex-col">
                                                 <h3 className="text-xl font-semibold mb-3">{event.title}</h3>
-                                                <div className="sm:text-lg prose">
+                                                <div className="sm:text-lg prose flex-grow overflow-y-auto mb-4 break-words" style={{ maxHeight: '200px' }}>
                                                     <ReactMarkdown>
                                                         {HTMLToMarkdown(event.description)}
                                                     </ReactMarkdown>
                                                 </div>
-                                                <div className="space-y-2 mb-4">
+                                                <div className="space-y-2 mt-auto">
                                                     <div className="flex items-center text-sm text-gray-500">
                                                         <Calendar className="h-4 w-4 mr-2" />
                                                         <span>{event.date}</span>

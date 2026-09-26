@@ -60,3 +60,7 @@ export const loginWithGoogle = async (redirectPath = "/") => {
 
   return data;
 };
+
+export const getCurrentUser = async () => {
+    return await client.auth.getSession();
+};

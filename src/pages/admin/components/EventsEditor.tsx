@@ -7,7 +7,11 @@ import { Card } from "@/components/ui/card";
 import ReactMarkdown from "react-markdown";
 import { FormEventType } from "@/types";
 import { Loader } from "@/components/layout/Loader";
-import { deleteEvent, getEvents, updateEvent, uploadEvent } from "@/lib/supabase/actions/events.actions";
+import { deleteEvent, getEvents, updateEvent, uploadEvent, updateEventAttendance, updateEventRegistration, getEventById } from "@/lib/supabase/actions/events.actions";
+import { getRegistrations } from "@/lib/supabase/actions/registrations.actions";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
+import { Download } from "lucide-react";
 import { isEndTimeAfterStartTime, TimeValue } from "@/lib/utils";
 import TimeField from "@/components/TimeField";
 import { formatDate } from "date-fns";
@@ -205,6 +209,123 @@ const EventsEditor = () => {
         }
     };
 
+    const handleToggleAttendance = async (id: string, currentStatus: boolean) => {
+        const newStatus = !currentStatus;
+        const error = await updateEventAttendance(id, newStatus);
+
+        if (error) {
+            toast({
+                title: "Error",
+                description: error.message,
+                variant: "destructive",
+            });
+            return;
+        }
+
+        setEvents(prev =>
+            prev.map(event =>
+                event.id === id ? { ...event, attendanceOpen: newStatus } : event
+            )
+        );
+        toast({
+            title: "Success",
+            description: `Attendance is now ${newStatus ? "open" : "closed"}.`,
+        });
+    };
+
+    const handleToggleRegistration = async (id: string, currentStatus: boolean) => {
+        const newStatus = !currentStatus;
+        const error = await updateEventRegistration(id, newStatus);
+
+        if (error) {
+            toast({
+                title: "Error",
+                description: error.message,
+                variant: "destructive",
+            });
+            return;
+        }
+
+        setEvents(prev =>
+            prev.map(event =>
+                event.id === id ? { ...event, registrationOpen: newStatus } : event
+            )
+        );
+        toast({
+            title: "Success",
+            description: `Registration is now ${newStatus ? "open" : "closed"}.`,
+        });
+    }
+
+    const handleExportRegistrations = async (eventId: string) => {
+        const { data: eventData, error: eventError } = await getEventById(eventId);
+        const { data, error } = await getRegistrations(eventId);
+
+        if (eventError || error) {
+            toast({ title: "Error", description: eventError?.message || error, variant: "destructive" });
+            return;
+        }
+
+        if (!data || data.length === 0) {
+            toast({ title: "No data", description: "No registrations found" });
+            return;
+        }
+
+        const formConfig = eventData?.formConfigJson;
+
+        // map internal names to human-readable labels
+        const labelMap: Record<string, string> = {};
+        const fieldLabels: string[] = [];
+
+        if (formConfig && formConfig.sections) {
+            formConfig.sections.forEach((section: any) => {
+                if (section.fields) {
+                    section.fields.forEach((field: any) => {
+                        labelMap[field.name] = field.label;
+                        fieldLabels.push(field.label);
+                    });
+                }
+            });
+        }
+
+        // CSV headers
+        const headers = ["Name", "Email", ...fieldLabels];
+
+        const rows = data.map(r => {
+            const profile = Array.isArray((r as any).profiles) ? (r as any).profiles[0] : (r as any).profiles;
+            const responseData = r.responseJson || {};
+
+            const row = [
+                profile?.fullName || "N/A",
+                profile?.email || "N/A"
+            ];
+
+            // Add fields based on labels
+            fieldLabels.forEach(label => {
+                // find the field name corresponding to this label
+                const fieldName = Object.keys(labelMap).find(key => labelMap[key] === label);
+                const value = fieldName ? responseData[fieldName] : "N/A";
+                // # ponytail: naive CSV escape, change to proper library if commas in data break files.
+                row.push((value !== undefined && value !== null ? String(value) : "N/A").replace(/"/g, '""'));
+            });
+
+            return row;
+        });
+
+        const csvContent = [headers, ...rows]
+            .map(e => `"${e.join('","')}"`)
+            .join("\n");
+
+        const blob = new Blob([csvContent], { type: 'text/csv' });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `registrations-${eventId}.csv`;
+        a.click();
+        window.URL.revokeObjectURL(url);
+    };
+
+
     const eventFormConfig: FormConfig = {
         [FormConfigKey.SECTIONS]: [
             {
@@ -360,7 +481,27 @@ const EventsEditor = () => {
                                                 </div>
                                             </div>
 
+                                            <div className="flex items-center gap-2 p-2 border rounded-md">
+                                                <Switch
+                                                    id={`attendance-${event.id}`}
+                                                    checked={event.attendanceOpen || false}
+                                                    onCheckedChange={() => handleToggleAttendance(event.id, !!event.attendanceOpen)}
+                                                />
+                                                <Label htmlFor={`attendance-${event.id}`}>Attendance Window Open</Label>
+                                            </div>
+                                            <div className="flex items-center gap-2 p-2 border rounded-md">
+                                                <Switch
+                                                    id={`registration-${event.id}`}
+                                                    checked={event.registrationOpen || false}
+                                                    onCheckedChange={() => handleToggleRegistration(event.id, !!event.registrationOpen)}
+                                                />
+                                                <Label htmlFor={`attendance-${event.id}`}>Registration Window Open</Label>
+                                            </div>
+
                                             <div className="flex gap-2 justify-end">
+                                                <Button size="sm" variant="outline" onClick={() => handleExportRegistrations(event.id)}>
+                                                    <Download className="h-4 w-4 mr-1" /> Export CSV
+                                                </Button>
                                                 <Button
                                                     size="sm"
                                                     variant="outline"

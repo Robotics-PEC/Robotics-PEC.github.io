@@ -17,6 +17,8 @@ import BlogsEditor from "@/pages/admin/components/BlogsEditor";
 import RolesEditor from "@/pages/admin/components/Role";
 import FeatureFlags from "@/pages/admin/components/FeatureFlags";
 import TalkShowEditor from "@/pages/admin/components/TalkShowEditor";
+import EventsFormEditor  from "@/pages/admin/components/EventsFormEditor";
+
 
 export enum TabValues {
     HERO="hero",
@@ -28,8 +30,9 @@ export enum TabValues {
     RESOURCES="resources",
     ROLES="roles",
     FEATURE_FLAGS="feature_flags",
-    TALK_SHOW="talk_show"
-
+    TALK_SHOW="talk_show",
+    EVENTS_FORM="events_form",
+    ATTENDANCE_FORM="attendance_form"
 }
 
 const tabComponentMap: Record<TabValues,React.ReactNode> = {
@@ -51,6 +54,16 @@ const tabComponentMap: Record<TabValues,React.ReactNode> = {
     [TabValues.EVENTS]: (
         <TabsContent value={TabValues.EVENTS} className="mt-0">
             <EventsEditor />
+        </TabsContent>
+    ),
+    [TabValues.EVENTS_FORM]: (
+        <TabsContent value={TabValues.EVENTS_FORM} className="mt-0">
+            <EventsFormEditor />
+        </TabsContent>
+    ),
+    [TabValues.ATTENDANCE_FORM]: (
+        <TabsContent value={TabValues.ATTENDANCE_FORM} className="mt-0">
+            <EventsFormEditor attendance={true} />
         </TabsContent>
     ),
     [TabValues.TEAM]: (
@@ -136,6 +149,16 @@ const tabTriggerList: React.ReactNode[] = [
             <Book className="h-4 w-4" /> Talk Show Details
         </TabsTrigger>
     ),
+    (
+        <TabsTrigger value={TabValues.EVENTS_FORM} className="flex items-center gap-2">
+            <Calendar className="h-4 w-4" /> Events Form Builder
+        </TabsTrigger>
+    ),
+    (
+        <TabsTrigger value={TabValues.ATTENDANCE_FORM} className="flex items-center gap-2">
+            <Calendar className="h-4 w-4" /> Attendance Form Builder
+        </TabsTrigger>
+    ),
 ]
 
 const titleMap: Record<TabValues, string> = {
@@ -149,6 +172,8 @@ const titleMap: Record<TabValues, string> = {
     [TabValues.ROLES]: "Define Roles",
     [TabValues.FEATURE_FLAGS]: "Feature Flags",
     [TabValues.TALK_SHOW]: "Talk Show",
+    [TabValues.EVENTS_FORM]: "Events Form Builder",
+    [TabValues.ATTENDANCE_FORM]: "Attendance Form Builder"
 }
 
 const descriptionMap: Record<TabValues, string> = {
@@ -162,7 +187,10 @@ const descriptionMap: Record<TabValues, string> = {
     [TabValues.ROLES]:"Manage Roles for different society members",
     [TabValues.FEATURE_FLAGS]: "Manage Enabling and Disabling Features",
     [TabValues.TALK_SHOW]: "Manage Talk Show Details",
+    [TabValues.EVENTS_FORM]: "Configure registration forms for events",
+    [TabValues.ATTENDANCE_FORM]: "Configure attendance forms for events",
 }
+
 
 const Admin = () => {
     const [activeTab, setActiveTab] = useState(TabValues.HERO);
@@ -187,7 +215,7 @@ const Admin = () => {
 
                             <Tabs defaultValue={TabValues.HERO} value={activeTab} onValueChange={(value: unknown) => setActiveTab(value as TabValues)} className="w-full mb-12">
                                 <div className="overflow-x-auto pb-2">
-                                    <TabsList className="mb-8">
+                                    <TabsList>
                                         {tabTriggerList}
                                     </TabsList>
                                 </div>
