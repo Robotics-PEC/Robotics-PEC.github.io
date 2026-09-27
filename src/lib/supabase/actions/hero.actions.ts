@@ -10,6 +10,11 @@ export const getHeroData = async () => {
 
     if (!data) throw new Error("Could not fetch data for hero section");
 
+    if(data.length === 0) return {
+        heading: "Robotics Society Temp Heading",
+        description: "Placeholder Description"
+    }
+
     return {
         heading: data[0].heading,
         description: data[0].description

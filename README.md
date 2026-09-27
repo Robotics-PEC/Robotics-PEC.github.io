@@ -75,3 +75,7 @@ The website includes an **Admin Portal** that allows content updates via **Supab
 For any issues or inquiries, contact: **[robotics@pec.edu.in](mailto:robotics@pec.edu.in)**
 
 ![Site Map](https://bkbmdjdypixbskuvrkxi.supabase.co/storage/v1/object/public/media/sitemap/sitemap.jpg)
+
+## Documentation
+  - [Getting Started](GETTING_STARTED.md) — dev setup guide
+  - [Supabase Guide](SUPABASE.md) — database migrations & auth setup

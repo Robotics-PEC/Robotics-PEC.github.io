@@ -17,20 +17,27 @@ const TechTalkPage = () => {
 
     useEffect(() => {
         const fetch = async () => {
-            setLoading(true);
-            const [talkShowDetails, challengeFlag] = await Promise.all([
-                getTechTalkDetails("The Talk Show"),
-                getFeatureFlagByName("tech-talk-challenge")
-            ]);
-
-            if(talkShowDetails) {
-                setShowConfig(talkShowDetails);
+            try {
+                setLoading(true);
+                const [talkShowDetails, challengeFlag] = await Promise.all([
+                    getTechTalkDetails("The Talk Show"),
+                    getFeatureFlagByName("tech-talk-challenge")
+                ]);
+    
+                if(talkShowDetails) {
+                    setShowConfig(talkShowDetails);
+                }
+                if(challengeFlag) {
+                    setChallengeEnabled(challengeFlag.isEnabled);
+                }
+    
             }
-            if(challengeFlag) {
-                setChallengeEnabled(challengeFlag.isEnabled);
+            catch(error) {
+                
             }
-
-            setLoading(false);
+            finally {
+                setLoading(false);
+            }
         }
 
         fetch();

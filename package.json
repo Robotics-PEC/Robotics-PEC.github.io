@@ -8,7 +8,13 @@
     "start": "next start",
     "lint": "next lint",
     "storybook": "storybook dev -p 6006",
-    "postbuild": "next-sitemap"
+    "postbuild": "next-sitemap",
+    "db:new": "supabase db diff -f",
+    "db:push": "supabase db push",
+    "db:reset": "supabase db reset",
+    "db:pull": "supabase db pull",
+    "db:start": "supabase start",
+    "db:stop": "supabase stop"
   },
   "resolutions": {
     "character-entities": "2.0.2"
