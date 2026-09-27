@@ -17,6 +17,7 @@ export default function AuthCallback() {
 
         const query = router.asPath.split("?")[1] ?? "";
         const redirectValue = new URLSearchParams(query).get("redirect");
+
         return sanitizeRedirectPath(redirectValue);
     }, [router.asPath, router.isReady]);
 
