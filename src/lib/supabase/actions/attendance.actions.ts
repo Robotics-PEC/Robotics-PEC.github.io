@@ -29,7 +29,18 @@ export const addWalkInAttendance = async (eventId: string, name: string, student
     return error;
 };
 
-export const submitAttendance = async (eventId: string, userId: string, responseJson: any) => {
+export const submitAttendance = async (eventId: string, userId: string, responseJson: any, userGeoLocation?: { lat: number, lng: number }) => {
+    if (userGeoLocation) {
+        const { data: isNearby, error: rpcError } = await client.rpc('check_attendance_location', {
+            p_event_id: eventId,
+            p_user_lat: userGeoLocation.lat,
+            p_user_lng: userGeoLocation.lng
+        });
+        if (rpcError || !isNearby) {
+            return { error: { message: "Attendance could not be captured due to location mismatch or error. Please contact Admin for assistance" } };
+        }
+    }
+
     const { error } = await client
         .from("registrations")
         .update({

@@ -225,3 +225,32 @@ export const getAuthHeaders = async () => {
       Authorization: `Bearer ${session.access_token}`,
     };
   };
+
+const EWKB_SRID_FLAG = 0x20000000;
+const WKB_POINT = 1;
+
+export function parseEWKBPoint(hex: string): Record<string,number> {
+    if (hex.length % 2 !== 0 || !/^[0-9a-fA-F]+$/.test(hex)) {
+        throw new Error("Invalid hex string");
+    }
+
+    const bytes = new Uint8Array(hex.length / 2);
+    for (let i = 0; i < bytes.length; i++) {
+        bytes[i] = parseInt(hex.slice(i * 2, i * 2 + 2), 16);
+    }
+
+    const view = new DataView(bytes.buffer);
+    const littleEndian = view.getUint8(0) === 1;
+    const type = view.getUint32(1, littleEndian);
+
+    if ((type & 0xff) !== WKB_POINT) {
+        throw new Error(`Not a Point geometry (type=${type & 0xff})`);
+    }
+
+    const offset = 5 + ((type & EWKB_SRID_FLAG) !== 0 ? 4 : 0);
+
+    return {
+        lng: view.getFloat64(offset, littleEndian),
+        lat: view.getFloat64(offset + 8, littleEndian),
+    };
+}

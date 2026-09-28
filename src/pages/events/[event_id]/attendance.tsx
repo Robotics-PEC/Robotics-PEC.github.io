@@ -54,12 +54,25 @@ const AttendancePage = () => {
     const handleFormSubmit = async (values: any) => {
         if (!registration?.userId) return;
         setIsValidating(true);
-        const { error } = await submitAttendance(event_id as string, registration.userId, values);
-        if (error) {
-            toast({ title: "Error", description: error.message, variant: "destructive" });
-        } else {
-            toast({ title: "Success", description: "Attendance marked successfully!" });
-            setRegistration({ ...registration, attendedAt: new Date().toISOString() });
+
+        try {
+            const position = await new Promise<GeolocationPosition>((resolve, reject) => {
+                navigator.geolocation.getCurrentPosition(resolve, reject);
+            });
+
+            const { error } = await submitAttendance(event_id as string, registration.userId, values, {
+                lat: position.coords.latitude,
+                lng: position.coords.longitude
+            });
+
+            if (error) {
+                toast({ title: "Error", description: error.message, variant: "destructive" });
+            } else {
+                toast({ title: "Success", description: "Attendance marked successfully!" });
+                setRegistration({ ...registration, attendedAt: new Date().toISOString() });
+            }
+        } catch (err) {
+            toast({ title: "Error", description: "Could not get your location. Please ensure location permissions are enabled.", variant: "destructive" });
         }
         setIsValidating(false);
     };

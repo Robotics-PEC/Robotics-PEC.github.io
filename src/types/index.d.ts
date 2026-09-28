@@ -94,11 +94,14 @@ export interface FormEventType {
     date: string;
     time: string;
     location: string;
+    latitude?: number;
+    longitude?: number;
     capacity: string;
     attendanceOpen?: boolean;
     formConfigJson?: any;
     registrationOpen?: boolean;
     attendanceFormConfigJson?: any;
+    event_geo_location?: string;
 };
 
 export interface BlogUserType {

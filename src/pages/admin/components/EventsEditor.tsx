@@ -12,7 +12,7 @@ import { getRegistrations } from "@/lib/supabase/actions/registrations.actions";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Download } from "lucide-react";
-import { isEndTimeAfterStartTime, TimeValue } from "@/lib/utils";
+import { isEndTimeAfterStartTime, parseEWKBPoint, TimeValue } from "@/lib/utils";
 import TimeField from "@/components/TimeField";
 import { formatDate } from "date-fns";
 import {
@@ -40,6 +40,8 @@ type EventFormValues = {
     description: string;
     date: Date;
     location: string;
+    latitude: number;
+    longitude: number;
     capacity: string;
 };
 
@@ -93,11 +95,14 @@ const EventsEditor = () => {
         const stTime = `${(startTime.hours < 10) ? "0" + startTime.hours : startTime.hours}:${(startTime.minutes < 10) ? "0" + startTime.minutes : startTime.minutes} ${startTime.period}`;
         const enTime = `${(endTime.hours < 10) ? "0" + endTime.hours : endTime.hours}:${(endTime.minutes < 10) ? "0" + endTime.minutes : endTime.minutes} ${endTime.period}`;
 
+        const { latitude, longitude, ...restValues } = values;
+
         const newEvent = {
             ...emptyData,
-            ...values,
+            ...restValues,
             time: `${stTime}-${enTime}`,
-            date: formatDate(values.date, "dd/MM/yyyy")
+            date: formatDate(values.date, "dd/MM/yyyy"),
+            event_geo_location: `SRID=4326;POINT(${longitude} ${latitude})`
         };
 
         const error = await uploadEvent(newEvent);
@@ -136,12 +141,16 @@ const EventsEditor = () => {
         const stTime = `${(startTime.hours < 10) ? "0" + startTime.hours : startTime.hours}:${(startTime.minutes < 10) ? "0" + startTime.minutes : startTime.minutes} ${startTime.period}`;
         const enTime = `${(endTime.hours < 10) ? "0" + endTime.hours : endTime.hours}:${(endTime.minutes < 10) ? "0" + endTime.minutes : endTime.minutes} ${endTime.period}`;
 
+        const {longitude, latitude, ...rest} = values;
+
         const updatedEvent = {
             id: editingId,
-            ...values,
+            ...rest,
             time: `${stTime}-${enTime}`,
-            date: formatDate(values.date, "dd/MM/yyyy")
+            date: formatDate(values.date, "dd/MM/yyyy"),
+            event_geo_location: `SRID=4326;POINT(${values.longitude} ${values.latitude})`
         };
+
 
         const error = await updateEvent(updatedEvent);
 
@@ -344,11 +353,23 @@ const EventsEditor = () => {
                         [FieldConfigKey.PLACEHOLDER]: "Detailed Description (Markdown)",
                         [FieldConfigKey.REQUIRED]: true,
                     },
+                ],
+            },
+            {
+                [SectionKey.COLUMNS]: 2,
+                [SectionKey.FIELDS]: [
                     {
                         [FieldConfigKey.NAME]: "date",
                         [FieldConfigKey.LABEL]: "Date",
                         [FieldConfigKey.TYPE]: FieldType.DATE,
                         [FieldConfigKey.PLACEHOLDER]: "Select date",
+                        [FieldConfigKey.REQUIRED]: true,
+                    },
+                    {
+                        [FieldConfigKey.NAME]: "location",
+                        [FieldConfigKey.LABEL]: "Location",
+                        [FieldConfigKey.TYPE]: FieldType.TEXT,
+                        [FieldConfigKey.PLACEHOLDER]: "NAB L-27",
                         [FieldConfigKey.REQUIRED]: true,
                     },
                 ],
@@ -357,12 +378,23 @@ const EventsEditor = () => {
                 [SectionKey.COLUMNS]: 2,
                 [SectionKey.FIELDS]: [
                     {
-                        [FieldConfigKey.NAME]: "location",
-                        [FieldConfigKey.LABEL]: "Location",
+                        [FieldConfigKey.NAME]: "latitude",
+                        [FieldConfigKey.LABEL]: "Latitude",
                         [FieldConfigKey.TYPE]: FieldType.TEXT,
-                        [FieldConfigKey.PLACEHOLDER]: "NAB L-27",
+                        [FieldConfigKey.PLACEHOLDER]: "30.7677",
                         [FieldConfigKey.REQUIRED]: true,
                     },
+                    {
+                        [FieldConfigKey.NAME]: "longitude",
+                        [FieldConfigKey.LABEL]: "Longitude",
+                        [FieldConfigKey.TYPE]: FieldType.TEXT,
+                        [FieldConfigKey.PLACEHOLDER]: "76.7766",
+                        [FieldConfigKey.REQUIRED]: true,
+                    },
+                ],
+            },
+            {
+                [SectionKey.FIELDS]: [
                     {
                         [FieldConfigKey.NAME]: "capacity",
                         [FieldConfigKey.LABEL]: "Capacity",
@@ -380,6 +412,17 @@ const EventsEditor = () => {
     };
 
     const editingEvent = editingId ? events.find(e => e.id === editingId) : null;
+    const eventGeoLocation = editingEvent?.event_geo_location;
+    let latitude = undefined;
+    let longitude = undefined;
+    if (eventGeoLocation) {
+        console.log({eventGeoLocation});
+        const {lat,lng} = parseEWKBPoint(eventGeoLocation);
+
+        latitude = lat;
+        longitude = lng;
+    }
+
     const defaultValues = editingEvent ? {
         title: editingEvent.title,
         description: editingEvent.description,
@@ -387,6 +430,8 @@ const EventsEditor = () => {
             ? new Date(`${editingEvent.date.split("/")[2]}-${editingEvent.date.split("/")[1]}-${editingEvent.date.split("/")[0]}`)
             : undefined,
         location: editingEvent.location,
+        latitude: latitude ?? editingEvent.latitude,
+        longitude: longitude ?? editingEvent.longitude,
         capacity: editingEvent.capacity,
     } : undefined;
 
