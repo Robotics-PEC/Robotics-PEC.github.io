@@ -1,1 +1,14 @@
+#!/bin/sh
+
+echo '🏗️ Formatting project before committing...'
+
 yarn format
+
+if ! git diff --quiet; then
+    echo ''
+    echo '❌ Commit aborted: Prettier formatted some files.'
+    echo 'Review the changes, stage them, and commit again.'
+    exit 1
+fi
+
+echo 'Everything is formatted. Committing... ✅'

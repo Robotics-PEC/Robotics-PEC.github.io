@@ -98,7 +98,7 @@ export default function GamePage() {
                 console.error("Failed to preload Dino assets:", error);
 
                 if (!cancelled) {
-                    setAssetsReady(false)
+                    setAssetsReady(false);
                     setAssetLoadError(true);
                 }
             }
@@ -109,7 +109,7 @@ export default function GamePage() {
         return () => {
             cancelled = true;
         };
-    }, [isLoading, roleLoading, isGameEnabled])
+    }, [isLoading, roleLoading, isGameEnabled]);
 
     useEffect(() => {
         let timeoutId: NodeJS.Timeout;
