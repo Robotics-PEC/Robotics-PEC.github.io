@@ -98,8 +98,8 @@ export default function GamePage() {
                 console.error("Failed to preload Dino assets:", error);
 
                 if (!cancelled) {
-                    setAssetsReady(false);
-                    setAssetLoadError(true);
+                    setAssetsReady(false)
+                    setAssetLoadError(true)
                 }
             }
         };
