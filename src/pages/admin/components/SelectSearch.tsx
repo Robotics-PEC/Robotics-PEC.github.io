@@ -10,7 +10,7 @@ export interface SelectOption {
 interface SelectSearchProps {
     options: SelectOption[];
     value: string;
-    onChange: ((value: SetStateAction<string>) => void)
+    onChange: (value: SetStateAction<string>) => void;
     placeholder?: string;
     className?: string;
 }
@@ -30,7 +30,7 @@ const SelectSearch = ({
 
     // Filter options based on search term
     const filteredOptions = options?.filter((option) =>
-        option.label.toLowerCase().includes(searchTerm.toLowerCase())
+        option.label.toLowerCase().includes(searchTerm.toLowerCase()),
     );
 
     // Handle clicking outside to close dropdown
@@ -86,10 +86,7 @@ const SelectSearch = ({
     return (
         <div
             ref={selectRef}
-            className={cn(
-                "relative font-sans w-full max-w-sm",
-                className
-            )}
+            className={cn("relative font-sans w-full max-w-sm", className)}
             onKeyDown={handleKeyDown}
         >
             {/* Select header */}
@@ -98,7 +95,8 @@ const SelectSearch = ({
                     "select-trigger flex items-center justify-between w-full px-4 py-2.5 text-sm rounded-xl bg-white border border-[#eeeeee] cursor-pointer transition-all duration-300 ease-out",
                     "hover:border-[#dddddd] focus:outline-none",
                     "shadow-[0_2px_10px_rgba(0,0,0,0.02)]",
-                    isOpen && "border-[#dddddd] shadow-[0_4px_20px_rgba(0,0,0,0.06)]"
+                    isOpen &&
+                        "border-[#dddddd] shadow-[0_4px_20px_rgba(0,0,0,0.06)]",
                 )}
                 onClick={toggleDropdown}
                 tabIndex={0}
@@ -106,11 +104,20 @@ const SelectSearch = ({
                 aria-expanded={isOpen}
                 aria-haspopup="listbox"
             >
-                <span className={cn("truncate", !selectedOption && "text-[#8E9196]")}>
+                <span
+                    className={cn(
+                        "truncate",
+                        !selectedOption && "text-[#8E9196]",
+                    )}
+                >
                     {selectedOption ? selectedOption.label : placeholder}
                 </span>
                 <div className="text-[#8E9196]">
-                    {isOpen ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
+                    {isOpen ? (
+                        <ChevronUp size={18} />
+                    ) : (
+                        <ChevronDown size={18} />
+                    )}
                 </div>
             </div>
 
@@ -121,7 +128,7 @@ const SelectSearch = ({
                     "transition-all duration-300 ease-out origin-top",
                     isOpen
                         ? "opacity-100 scale-y-100 translate-y-0"
-                        : "opacity-0 scale-y-95 -translate-y-2 pointer-events-none"
+                        : "opacity-0 scale-y-95 -translate-y-2 pointer-events-none",
                 )}
             >
                 {/* Search input */}
@@ -153,7 +160,8 @@ const SelectSearch = ({
                                 key={option.value}
                                 className={cn(
                                     "py-2.5 px-4 cursor-pointer text-sm transition-colors duration-150 hover:bg-[#f9f9f9]",
-                                    option.value === value && "bg-[#f5f5f5] font-medium"
+                                    option.value === value &&
+                                        "bg-[#f5f5f5] font-medium",
                                 )}
                                 onClick={() => handleSelect(option)}
                                 role="option"

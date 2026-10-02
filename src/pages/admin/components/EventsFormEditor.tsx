@@ -2,9 +2,15 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { getEvents, updateEvent } from "@/lib/supabase/actions/events.actions";
 import { FormEventType } from "@/types";
-import FormBuilder  from "./FormBuilder";
+import FormBuilder from "./FormBuilder";
 import { useToast } from "@/hooks/use-toast";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select";
 import { FormConfig } from "@/lib/form-builder";
 
 const EventsFormEditor = ({ attendance = false }: { attendance?: boolean }) => {
@@ -20,7 +26,7 @@ const EventsFormEditor = ({ attendance = false }: { attendance?: boolean }) => {
         fetch();
     }, []);
 
-    const selectedEvent = events.find(e => e.id === selectedEventId);
+    const selectedEvent = events.find((e) => e.id === selectedEventId);
 
     const handleSaveConfig = async (config: FormConfig) => {
         if (!selectedEvent) return;
@@ -31,7 +37,11 @@ const EventsFormEditor = ({ attendance = false }: { attendance?: boolean }) => {
         const error = await updateEvent(updatedEvent);
 
         if (error) {
-            toast({ title: "Error", description: error.message, variant: "destructive" });
+            toast({
+                title: "Error",
+                description: error.message,
+                variant: "destructive",
+            });
         } else {
             toast({ title: "Success", description: "Form config saved" });
         }
@@ -44,8 +54,10 @@ const EventsFormEditor = ({ attendance = false }: { attendance?: boolean }) => {
                     <SelectValue placeholder="Select an event" />
                 </SelectTrigger>
                 <SelectContent>
-                    {events.map(event => (
-                        <SelectItem key={event.id} value={event.id}>{event.title}</SelectItem>
+                    {events.map((event) => (
+                        <SelectItem key={event.id} value={event.id}>
+                            {event.title}
+                        </SelectItem>
                     ))}
                 </SelectContent>
             </Select>
@@ -53,7 +65,11 @@ const EventsFormEditor = ({ attendance = false }: { attendance?: boolean }) => {
             {selectedEvent && (
                 <FormBuilder
                     key={selectedEvent.id}
-                    initialConfig={attendance ? selectedEvent.attendanceFormConfigJson : selectedEvent.formConfigJson}
+                    initialConfig={
+                        attendance
+                            ? selectedEvent.attendanceFormConfigJson
+                            : selectedEvent.formConfigJson
+                    }
                     onSave={handleSaveConfig}
                 />
             )}

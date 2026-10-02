@@ -12,7 +12,7 @@ export interface ApplicantDecisionProps {
     reviewedBy?: string;
     onSubmitReview: (
         reviewScore: ReviewScore,
-        remarks: string
+        remarks: string,
     ) => Promise<void>;
 }
 
@@ -39,12 +39,17 @@ const ApplicantDecision = ({
     onSubmitReview,
 }: ApplicantDecisionProps) => {
     const [isExpanded, setIsExpanded] = useState(false);
-    const [status, setStatus] = useState<"pending" | "accepted" | "rejected">(currentStatus);
+    const [status, setStatus] = useState<"pending" | "accepted" | "rejected">(
+        currentStatus,
+    );
     const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
 
     const handleStatusChange = async (newStatus: "accepted" | "rejected") => {
         setIsUpdatingStatus(true);
-        const success = await updateApplicantStatus(applicantId, newStatus.toUpperCase() as "ACCEPTED" | "REJECTED");
+        const success = await updateApplicantStatus(
+            applicantId,
+            newStatus.toUpperCase() as "ACCEPTED" | "REJECTED",
+        );
         if (success) {
             setStatus(newStatus);
         }
@@ -57,9 +62,9 @@ const ApplicantDecision = ({
         thinking: 5,
         priorExperience: 5,
         motivation: 5,
-        curiosity: 5
+        curiosity: 5,
     });
-    
+
     const [remarks, setRemarks] = useState("");
     const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -73,8 +78,14 @@ const ApplicantDecision = ({
                         <Button
                             onClick={() => handleStatusChange("accepted")}
                             disabled={isUpdatingStatus || status === "accepted"}
-                            variant={status === "accepted" ? "default" : "outline"}
-                            className={status === "accepted" ? "bg-green-600 hover:bg-green-700" : ""}
+                            variant={
+                                status === "accepted" ? "default" : "outline"
+                            }
+                            className={
+                                status === "accepted"
+                                    ? "bg-green-600 hover:bg-green-700"
+                                    : ""
+                            }
                             size="sm"
                         >
                             Accept
@@ -82,8 +93,14 @@ const ApplicantDecision = ({
                         <Button
                             onClick={() => handleStatusChange("rejected")}
                             disabled={isUpdatingStatus || status === "rejected"}
-                            variant={status === "rejected" ? "default" : "outline"}
-                            className={status === "rejected" ? "bg-red-600 hover:bg-red-700" : ""}
+                            variant={
+                                status === "rejected" ? "default" : "outline"
+                            }
+                            className={
+                                status === "rejected"
+                                    ? "bg-red-600 hover:bg-red-700"
+                                    : ""
+                            }
                             size="sm"
                         >
                             Reject
@@ -94,8 +111,13 @@ const ApplicantDecision = ({
                     {PARAMETERS.map((param) => {
                         const score = initialReviewScore?.[param.key] || 0;
                         return (
-                            <div key={param.key} className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                                <span className="text-sm font-medium text-slate-700 w-1/3">{param.label}</span>
+                            <div
+                                key={param.key}
+                                className="flex flex-col sm:flex-row sm:items-center justify-between gap-4"
+                            >
+                                <span className="text-sm font-medium text-slate-700 w-1/3">
+                                    {param.label}
+                                </span>
                                 <div className="flex-1 max-w-sm">
                                     <Slider
                                         value={[score]}
@@ -106,7 +128,9 @@ const ApplicantDecision = ({
                                         className="w-full opacity-70"
                                     />
                                 </div>
-                                <div className={`flex h-8 w-10 items-center justify-center rounded-md border text-sm font-bold ${getColorClass(score)}`}>
+                                <div
+                                    className={`flex h-8 w-10 items-center justify-center rounded-md border text-sm font-bold ${getColorClass(score)}`}
+                                >
                                     {score}
                                 </div>
                             </div>
@@ -114,7 +138,9 @@ const ApplicantDecision = ({
                     })}
                 </div>
                 <div className="mt-6 pt-6 border-t border-slate-200">
-                    <label className="mb-2 block text-sm font-medium text-gray-700">Remarks from {reviewedBy || "Panelist"}</label>
+                    <label className="mb-2 block text-sm font-medium text-gray-700">
+                        Remarks from {reviewedBy || "Panelist"}
+                    </label>
                     <div className="w-full rounded-md border border-gray-300 p-4 text-sm bg-white text-gray-700 leading-relaxed">
                         {initialRemarks || "No remarks provided."}
                     </div>
@@ -163,7 +189,11 @@ const ApplicantDecision = ({
                         onClick={() => handleStatusChange("accepted")}
                         disabled={isUpdatingStatus || status === "accepted"}
                         variant={status === "accepted" ? "default" : "outline"}
-                        className={status === "accepted" ? "bg-green-600 hover:bg-green-700" : ""}
+                        className={
+                            status === "accepted"
+                                ? "bg-green-600 hover:bg-green-700"
+                                : ""
+                        }
                         size="sm"
                     >
                         Accept
@@ -172,7 +202,11 @@ const ApplicantDecision = ({
                         onClick={() => handleStatusChange("rejected")}
                         disabled={isUpdatingStatus || status === "rejected"}
                         variant={status === "rejected" ? "default" : "outline"}
-                        className={status === "rejected" ? "bg-red-600 hover:bg-red-700" : ""}
+                        className={
+                            status === "rejected"
+                                ? "bg-red-600 hover:bg-red-700"
+                                : ""
+                        }
                         size="sm"
                     >
                         Reject
@@ -189,13 +223,20 @@ const ApplicantDecision = ({
                                 <label className="block text-sm font-semibold text-slate-700">
                                     {param.label}
                                 </label>
-                                <div className={`flex h-8 w-10 items-center justify-center rounded-md border text-sm font-bold transition-colors ${getColorClass(score)}`}>
+                                <div
+                                    className={`flex h-8 w-10 items-center justify-center rounded-md border text-sm font-bold transition-colors ${getColorClass(score)}`}
+                                >
                                     {score}
                                 </div>
                             </div>
                             <Slider
                                 value={[score]}
-                                onValueChange={([val]) => setReviewScore(prev => ({ ...prev, [param.key]: val }))}
+                                onValueChange={([val]) =>
+                                    setReviewScore((prev) => ({
+                                        ...prev,
+                                        [param.key]: val,
+                                    }))
+                                }
                                 min={1}
                                 max={10}
                                 step={1}
@@ -219,7 +260,8 @@ const ApplicantDecision = ({
                     Detailed Remarks <span className="text-red-500">*</span>
                 </label>
                 <p className="text-xs text-slate-500 mb-2">
-                    Please provide your detailed observations and reasoning for the scores above.
+                    Please provide your detailed observations and reasoning for
+                    the scores above.
                 </p>
 
                 <textarea
@@ -237,9 +279,7 @@ const ApplicantDecision = ({
                     disabled={!isFormValid || isSubmitting}
                     className="mt-6 w-full rounded-lg bg-black px-4 py-4 text-base font-semibold text-white transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50 shadow-sm"
                 >
-                    {isSubmitting
-                        ? "Submitting Review..."
-                        : "Submit Review"}
+                    {isSubmitting ? "Submitting Review..." : "Submit Review"}
                 </button>
             </div>
         </div>

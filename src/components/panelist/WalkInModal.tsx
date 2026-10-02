@@ -1,5 +1,11 @@
 import { useState } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import {
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+    DialogFooter,
+} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -22,12 +28,12 @@ const WalkInModal = ({ isOpen, onClose, onSuccess }: WalkInModalProps) => {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        
+
         if (!name || !sid) {
             toast({
                 title: "Error",
                 description: "Name and SID are required.",
-                variant: "destructive"
+                variant: "destructive",
             });
             return;
         }
@@ -37,7 +43,7 @@ const WalkInModal = ({ isOpen, onClose, onSuccess }: WalkInModalProps) => {
             toast({
                 title: "Error",
                 description: "Name can only contain letters and spaces.",
-                variant: "destructive"
+                variant: "destructive",
             });
             return;
         }
@@ -46,7 +52,7 @@ const WalkInModal = ({ isOpen, onClose, onSuccess }: WalkInModalProps) => {
             toast({
                 title: "Error",
                 description: "SID must be exactly 8 digits.",
-                variant: "destructive"
+                variant: "destructive",
             });
             return;
         }
@@ -54,8 +60,9 @@ const WalkInModal = ({ isOpen, onClose, onSuccess }: WalkInModalProps) => {
         if (phone && !/^\d{10}$/.test(phone)) {
             toast({
                 title: "Error",
-                description: "Phone number must be exactly 10 digits if provided.",
-                variant: "destructive"
+                description:
+                    "Phone number must be exactly 10 digits if provided.",
+                variant: "destructive",
             });
             return;
         }
@@ -65,14 +72,21 @@ const WalkInModal = ({ isOpen, onClose, onSuccess }: WalkInModalProps) => {
         setIsLoading(false);
 
         if (newApplicant) {
-            toast({ title: "Success", description: "Walk-in applicant registered." });
+            toast({
+                title: "Success",
+                description: "Walk-in applicant registered.",
+            });
             onSuccess(newApplicant);
             setName("");
             setSid("");
             setPhone("");
             onClose();
         } else {
-            toast({ title: "Error", description: "Failed to create applicant.", variant: "destructive" });
+            toast({
+                title: "Error",
+                description: "Failed to create applicant.",
+                variant: "destructive",
+            });
         }
     };
 
@@ -85,19 +99,48 @@ const WalkInModal = ({ isOpen, onClose, onSuccess }: WalkInModalProps) => {
                 <form onSubmit={handleSubmit} className="space-y-4">
                     <div className="space-y-2">
                         <Label htmlFor="name">Name</Label>
-                        <Input id="name" value={name} onChange={e => setName(e.target.value)} placeholder="Full Name" />
+                        <Input
+                            id="name"
+                            value={name}
+                            onChange={(e) => setName(e.target.value)}
+                            placeholder="Full Name"
+                        />
                     </div>
                     <div className="space-y-2">
                         <Label htmlFor="sid">SID</Label>
-                        <Input id="sid" value={sid} onChange={e => setSid(e.target.value.replace(/\D/g, ''))} placeholder="8-digit SID" maxLength={8} />
+                        <Input
+                            id="sid"
+                            value={sid}
+                            onChange={(e) =>
+                                setSid(e.target.value.replace(/\D/g, ""))
+                            }
+                            placeholder="8-digit SID"
+                            maxLength={8}
+                        />
                     </div>
                     <div className="space-y-2">
                         <Label htmlFor="phone">Phone (Optional)</Label>
-                        <Input id="phone" value={phone} onChange={e => setPhone(e.target.value.replace(/\D/g, ''))} placeholder="10-digit Phone Number" maxLength={10} />
+                        <Input
+                            id="phone"
+                            value={phone}
+                            onChange={(e) =>
+                                setPhone(e.target.value.replace(/\D/g, ""))
+                            }
+                            placeholder="10-digit Phone Number"
+                            maxLength={10}
+                        />
                     </div>
                     <DialogFooter>
-                        <Button type="button" variant="outline" onClick={onClose}>Cancel</Button>
-                        <Button type="submit" disabled={isLoading}>{isLoading ? "Saving..." : "Register"}</Button>
+                        <Button
+                            type="button"
+                            variant="outline"
+                            onClick={onClose}
+                        >
+                            Cancel
+                        </Button>
+                        <Button type="submit" disabled={isLoading}>
+                            {isLoading ? "Saving..." : "Register"}
+                        </Button>
                     </DialogFooter>
                 </form>
             </DialogContent>

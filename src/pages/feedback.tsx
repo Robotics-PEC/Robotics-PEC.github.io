@@ -1,12 +1,8 @@
 import PageSection from "@/components/layout/PageSection";
-import FeedbackForm, {
-    FeedbackData,
-} from "@/components/FeedbackForm";
+import FeedbackForm, { FeedbackData } from "@/components/FeedbackForm";
 
 export default function FeedbackPage() {
-    const handleContinue = (
-        data: FeedbackData
-    ) => {
+    const handleContinue = (data: FeedbackData) => {
         /*
          * For now, we are only building the form.
          *
@@ -17,10 +13,7 @@ export default function FeedbackPage() {
          * 4. Eventually save the final result to Google Sheets.
          */
 
-        console.log(
-            "Ready to start Dino game:",
-            data
-        );
+        console.log("Ready to start Dino game:", data);
     };
 
     return (
@@ -29,11 +22,7 @@ export default function FeedbackPage() {
                 title="Feedback Form"
                 subtitle="A tiny surprise awaits 👀"
             >
-                <FeedbackForm
-                    onContinue={
-                        handleContinue
-                    }
-                />
+                <FeedbackForm onContinue={handleContinue} />
             </PageSection>
         </section>
     );

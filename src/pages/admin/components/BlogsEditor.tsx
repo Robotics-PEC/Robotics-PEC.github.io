@@ -15,18 +15,37 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { useState } from "react";
-import { fetchUserByEmail, fetchUserBySID, insertBlogPost } from "@/lib/supabase/actions/blogs.action";
+import {
+    fetchUserByEmail,
+    fetchUserBySID,
+    insertBlogPost,
+} from "@/lib/supabase/actions/blogs.action";
 import Blob from "@/components/Blob";
 import MarkdownEditor from "./MarkdownEditor";
 
 const blogFormSchema = z.object({
-    sid: z.string().min(8, "SID is required and must be 8 digits").max(8, "SID is required and must be 8 digits"),
-    name: z.string().min(2, "Name must be at least 2 characters").max(100, "Name must be less than 100 characters"),
-    branch: z.string().min(2, "Branch is required").max(100, "Branch must be less than 100 characters"),
-    bio: z.string().min(10, "Bio must be at least 10 characters").max(500, "Bio must be less than 500 characters"),
+    sid: z
+        .string()
+        .min(8, "SID is required and must be 8 digits")
+        .max(8, "SID is required and must be 8 digits"),
+    name: z
+        .string()
+        .min(2, "Name must be at least 2 characters")
+        .max(100, "Name must be less than 100 characters"),
+    branch: z
+        .string()
+        .min(2, "Branch is required")
+        .max(100, "Branch must be less than 100 characters"),
+    bio: z
+        .string()
+        .min(10, "Bio must be at least 10 characters")
+        .max(500, "Bio must be less than 500 characters"),
     email: z.string().email("Invalid email address"),
-    content: z.string().min(50, "Blog content must be at least 50 characters").max(10000, "Blog content must be less than 10000 characters"),
-    image: z.string().min(0, "Image is Required")
+    content: z
+        .string()
+        .min(50, "Blog content must be at least 50 characters")
+        .max(10000, "Blog content must be less than 10000 characters"),
+    image: z.string().min(0, "Image is Required"),
 });
 
 type BlogFormValues = z.infer<typeof blogFormSchema>;
@@ -42,7 +61,7 @@ const BlogsEditor = () => {
             branch: "",
             bio: "",
             content: "",
-            image: ""
+            image: "",
         },
     });
 
@@ -57,10 +76,8 @@ const BlogsEditor = () => {
             return;
         }
 
-
         const email = data.email.trim();
         const user = await fetchUserByEmail(email);
-
 
         if (user.data) {
             toast.error("You have already submitted a blog post", {
@@ -88,9 +105,7 @@ const BlogsEditor = () => {
                 description: error.message,
             });
             setIsSubmitting(false);
-        }
-
-        else {
+        } else {
             toast.success("Blog post submitted successfully");
         }
 
@@ -100,10 +115,15 @@ const BlogsEditor = () => {
     return (
         <div className="min-h-screen bg-background py-12 px-4 sm:px-6 lg:px-8">
             <div className="bg-card border border-border rounded-lg p-8 shadow-sm">
-                <h2 className="text-xl font-medium text-card-foreground mb-6">Add New Blog Post</h2>
+                <h2 className="text-xl font-medium text-card-foreground mb-6">
+                    Add New Blog Post
+                </h2>
 
                 <Form {...form}>
-                    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                    <form
+                        onSubmit={form.handleSubmit(onSubmit)}
+                        className="space-y-6"
+                    >
                         <div className="flex flex-row gap-10 w-full">
                             <FormField
                                 control={form.control}
@@ -112,7 +132,11 @@ const BlogsEditor = () => {
                                     <FormItem className="w-full">
                                         <FormLabel>SID</FormLabel>
                                         <FormControl>
-                                            <Input placeholder="Enter your SID" {...field} className="border-2 border-black" />
+                                            <Input
+                                                placeholder="Enter your SID"
+                                                {...field}
+                                                className="border-2 border-black"
+                                            />
                                         </FormControl>
                                         <FormMessage />
                                     </FormItem>
@@ -125,7 +149,11 @@ const BlogsEditor = () => {
                                     <FormItem className="w-full">
                                         <FormLabel>Name</FormLabel>
                                         <FormControl>
-                                            <Input placeholder="Enter your name" {...field} className="border-2 border-black" />
+                                            <Input
+                                                placeholder="Enter your name"
+                                                {...field}
+                                                className="border-2 border-black"
+                                            />
                                         </FormControl>
                                         <FormMessage />
                                     </FormItem>
@@ -140,7 +168,11 @@ const BlogsEditor = () => {
                                     <FormItem className="w-full">
                                         <FormLabel>Branch</FormLabel>
                                         <FormControl>
-                                            <Input placeholder="Enter your branch or department" {...field} className="border-2 border-black" />
+                                            <Input
+                                                placeholder="Enter your branch or department"
+                                                {...field}
+                                                className="border-2 border-black"
+                                            />
                                         </FormControl>
                                         <FormMessage />
                                     </FormItem>
@@ -165,7 +197,6 @@ const BlogsEditor = () => {
                             />
                         </div>
 
-
                         <FormField
                             control={form.control}
                             name="bio"
@@ -180,7 +211,8 @@ const BlogsEditor = () => {
                                         />
                                     </FormControl>
                                     <FormDescription>
-                                        Insert Your Image to be featured in the website
+                                        Insert Your Image to be featured in the
+                                        website
                                     </FormDescription>
                                     <FormMessage />
                                 </FormItem>
@@ -199,7 +231,8 @@ const BlogsEditor = () => {
                                         />
                                     </FormControl>
                                     <FormDescription>
-                                        Brief introduction about yourself (10-500 characters)
+                                        Brief introduction about yourself
+                                        (10-500 characters)
                                     </FormDescription>
                                     <FormMessage />
                                 </FormItem>
@@ -221,7 +254,8 @@ const BlogsEditor = () => {
                                         />
                                     </FormControl>
                                     <FormDescription>
-                                        Your main blog content (minimum 50 characters)
+                                        Your main blog content (minimum 50
+                                        characters)
                                     </FormDescription>
                                     <FormMessage />
                                 </FormItem>
@@ -229,8 +263,14 @@ const BlogsEditor = () => {
                         />
 
                         <div className="flex gap-3 pt-4">
-                            <Button type="submit" className="flex-1 sm:flex-none" disabled={isSubmitting}>
-                                {!isSubmitting ? "Submit Blog Post" : "Submitting..."}
+                            <Button
+                                type="submit"
+                                className="flex-1 sm:flex-none"
+                                disabled={isSubmitting}
+                            >
+                                {!isSubmitting
+                                    ? "Submit Blog Post"
+                                    : "Submitting..."}
                             </Button>
                             <Button
                                 type="button"

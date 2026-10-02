@@ -24,35 +24,22 @@ export type CreateApplicantResult =
  * application/update/decision operation fail.
  */
 
-const requestInterviewSchedule =
-    async (): Promise<void> => {
-        // Skip in dev — edge functions only exist on the production Supabase project
-        if (process.env.NODE_ENV !== "production") return;
+const requestInterviewSchedule = async (): Promise<void> => {
+    // Skip in dev — edge functions only exist on the production Supabase project
+    if (process.env.NODE_ENV !== "production") return;
 
-        try {
-            const {
-                error,
-            } =
-                await client.functions.invoke(
-                    "schedule-interviews",
-                    {
-                        body: {},
-                    }
-                );
+    try {
+        const { error } = await client.functions.invoke("schedule-interviews", {
+            body: {},
+        });
 
-            if (error) {
-                console.error(
-                    "Interview schedule refresh failed:",
-                    error
-                );
-            }
-        } catch (error) {
-            console.error(
-                "Interview schedule refresh failed:",
-                error
-            );
+        if (error) {
+            console.error("Interview schedule refresh failed:", error);
         }
-    };
+    } catch (error) {
+        console.error("Interview schedule refresh failed:", error);
+    }
+};
 
 /*
  * ---------------------------------------------------------
@@ -60,41 +47,27 @@ const requestInterviewSchedule =
  * ---------------------------------------------------------
  */
 
-const mapApplicant = (
-    item: any
-): ApplicantType => {
-    const response =
-        item.applicant_response;
+const mapApplicant = (item: any): ApplicantType => {
+    const response = item.applicant_response;
 
-    const responseData =
-        Array.isArray(response)
-            ? response[0]
-            : response;
+    const responseData = Array.isArray(response) ? response[0] : response;
 
     return {
         ...item,
 
-        userId:
-            item.userId,
+        userId: item.userId,
 
-        status:
-            item.status?.toLowerCase(),
+        status: item.status?.toLowerCase(),
 
-        createdAt:
-            item.createdAt ||
-            item.created_at,
+        createdAt: item.createdAt || item.created_at,
 
-        gender:
-            item.gender ?? null,
+        gender: item.gender ?? null,
 
-        isHostellers:
-            item.isHostellers ?? null,
+        isHostellers: item.isHostellers ?? null,
 
-        branch:
-            responseData?.branch,
+        branch: responseData?.branch,
 
-        responses:
-            responseData?.responses,
+        responses: responseData?.responses,
     } as ApplicantType;
 };
 
@@ -103,16 +76,20 @@ const mapApplicant = (
  * Get applicant by user ID
  * ---------------------------------------------------------
  */
-export const getApplicantByUserId = async (userId: string): Promise<ApplicantType | null> => {
+export const getApplicantByUserId = async (
+    userId: string,
+): Promise<ApplicantType | null> => {
     const { data, error } = await client
         .from("applicants")
-        .select(`
+        .select(
+            `
             *,
             applicant_response (
                 branch,
                 responses
             )
-        `)
+        `,
+        )
         .eq("userId", userId)
         .maybeSingle();
 
@@ -129,7 +106,10 @@ export const getApplicantByUserId = async (userId: string): Promise<ApplicantTyp
  * Link unassigned applicant to user ID (for walk-ins)
  * ---------------------------------------------------------
  */
-export const linkApplicantToUser = async (sid: string, userId: string): Promise<ApplicantType | null> => {
+export const linkApplicantToUser = async (
+    sid: string,
+    userId: string,
+): Promise<ApplicantType | null> => {
     // Normalize SID
     const normalizedSid = sid.trim().toUpperCase();
 
@@ -155,7 +135,7 @@ export const linkApplicantToUser = async (sid: string, userId: string): Promise<
             .from("applicants")
             .update({ userId })
             .eq("id", fetch.id);
-            
+
         if (updateError) {
             console.error("Failed to link applicant:", updateError);
             return null;
@@ -171,38 +151,22 @@ export const linkApplicantToUser = async (sid: string, userId: string): Promise<
  * ---------------------------------------------------------
  */
 
-export const fetchApplicants =
-    async (): Promise<
-        ApplicantType[]
-    > => {
-        const {
-            data,
-            error,
-        } = await client
-            .from("applicants")
-            .select(
-                "*, applicant_response(branch, responses)"
-            )
-            .order(
-                "created_at",
-                {
-                    ascending: false,
-                }
-            );
+export const fetchApplicants = async (): Promise<ApplicantType[]> => {
+    const { data, error } = await client
+        .from("applicants")
+        .select("*, applicant_response(branch, responses)")
+        .order("created_at", {
+            ascending: false,
+        });
 
-        if (error) {
-            console.error(
-                "Error fetching applicants:",
-                error
-            );
+    if (error) {
+        console.error("Error fetching applicants:", error);
 
-            return [];
-        }
+        return [];
+    }
 
-        return (
-            (data as any[]) || []
-        ).map(mapApplicant);
-    };
+    return ((data as any[]) || []).map(mapApplicant);
+};
 
 /*
  * ---------------------------------------------------------
@@ -210,35 +174,21 @@ export const fetchApplicants =
  * ---------------------------------------------------------
  */
 
-export const fetchApplicantWithResponses =
-    async (
-        id: string
-    ): Promise<
-        ApplicantType | null
-    > => {
-        const {
-            data,
-            error,
-        } = await client
-            .from("applicants")
-            .select(
-                "*, applicant_response(branch, responses)"
-            )
-            .eq(
-                "id",
-                id
-            )
-            .single();
+export const fetchApplicantWithResponses = async (
+    id: string,
+): Promise<ApplicantType | null> => {
+    const { data, error } = await client
+        .from("applicants")
+        .select("*, applicant_response(branch, responses)")
+        .eq("id", id)
+        .single();
 
-        if (
-            error ||
-            !data
-        ) {
-            return null;
-        }
+    if (error || !data) {
+        return null;
+    }
 
-        return mapApplicant(data);
-    };
+    return mapApplicant(data);
+};
 
 /*
  * ---------------------------------------------------------
@@ -246,48 +196,28 @@ export const fetchApplicantWithResponses =
  * ---------------------------------------------------------
  */
 
-export const fetchMyApplication =
-    async (): Promise<
-        ApplicantType | null
-    > => {
-        const {
-            data: {
-                user,
-            },
-            error: userError,
-        } =
-            await client.auth.getUser();
+export const fetchMyApplication = async (): Promise<ApplicantType | null> => {
+    const {
+        data: { user },
+        error: userError,
+    } = await client.auth.getUser();
 
-        if (
-            userError ||
-            !user
-        ) {
-            return null;
-        }
+    if (userError || !user) {
+        return null;
+    }
 
-        const {
-            data,
-            error,
-        } = await client
-            .from("applicants")
-            .select(
-                "*, applicant_response(branch, responses)"
-            )
-            .eq(
-                "userId",
-                user.id
-            )
-            .maybeSingle();
+    const { data, error } = await client
+        .from("applicants")
+        .select("*, applicant_response(branch, responses)")
+        .eq("userId", user.id)
+        .maybeSingle();
 
-        if (
-            error ||
-            !data
-        ) {
-            return null;
-        }
+    if (error || !data) {
+        return null;
+    }
 
-        return mapApplicant(data);
-    };
+    return mapApplicant(data);
+};
 
 /*
  * ---------------------------------------------------------
@@ -295,45 +225,31 @@ export const fetchMyApplication =
  * ---------------------------------------------------------
  */
 
-export const createWalkIn =
-    async (
-        name: string,
-        sid: string,
-        phone: string
-    ): Promise<
-        ApplicantType | null
-    > => {
-        const {
-            data,
-            error,
-        } = await client
-            .from("applicants")
-            .insert([
-                {
-                    name,
-                    sid,
-                    phone:
-                        phone || null,
-                    isWalkin:
-                        true,
-                    status:
-                        "PENDING",
-                },
-            ])
-            .select()
-            .single();
+export const createWalkIn = async (
+    name: string,
+    sid: string,
+    phone: string,
+): Promise<ApplicantType | null> => {
+    const { data, error } = await client
+        .from("applicants")
+        .insert([
+            {
+                name,
+                sid,
+                phone: phone || null,
+                isWalkin: true,
+                status: "PENDING",
+            },
+        ])
+        .select()
+        .single();
 
-        if (
-            error ||
-            !data
-        ) {
-            return null;
-        }
+    if (error || !data) {
+        return null;
+    }
 
-        return mapApplicant(
-            data
-        );
-    };
+    return mapApplicant(data);
+};
 
 /*
  * ---------------------------------------------------------
@@ -341,305 +257,223 @@ export const createWalkIn =
  * ---------------------------------------------------------
  */
 
-export const createApplicant =
-    async (
-        name: string,
-        sid: string,
-        phone: string,
-        branch: string,
-        gender:
-            | "male"
-            | "female",
-        isHostellers: boolean,
-        responses: Record<
-            string,
-            string
-        >
-    ): Promise<
-        CreateApplicantResult
-    > => {
-        /*
-         * Get logged-in user.
-         */
+export const createApplicant = async (
+    name: string,
+    sid: string,
+    phone: string,
+    branch: string,
+    gender: "male" | "female",
+    isHostellers: boolean,
+    responses: Record<string, string>,
+): Promise<CreateApplicantResult> => {
+    /*
+     * Get logged-in user.
+     */
 
-        const {
-            data: {
-                user,
-            },
-            error: userError,
-        } =
-            await client.auth.getUser();
+    const {
+        data: { user },
+        error: userError,
+    } = await client.auth.getUser();
 
-        if (
-            userError ||
-            !user
-        ) {
-            console.error(
-                "Cannot create application without an authenticated user:",
-                userError
-            );
+    if (userError || !user) {
+        console.error(
+            "Cannot create application without an authenticated user:",
+            userError,
+        );
 
-            return {
-                success: false,
-                reason: "error",
-            };
-        }
+        return {
+            success: false,
+            reason: "error",
+        };
+    }
 
-        /*
-         * Check whether this account has already
-         * submitted an application.
-         */
+    /*
+     * Check whether this account has already
+     * submitted an application.
+     */
 
-        const {
-            data:
-                existingApplicant,
-            error:
-                existingApplicantError,
-        } = await client
+    const { data: existingApplicant, error: existingApplicantError } =
+        await client
             .from("applicants")
             .select("id")
-            .eq(
-                "userId",
-                user.id
-            )
+            .eq("userId", user.id)
             .maybeSingle();
 
-        if (
-            existingApplicantError
-        ) {
-            console.error(
-                "Error checking existing application:",
-                existingApplicantError
-            );
+    if (existingApplicantError) {
+        console.error(
+            "Error checking existing application:",
+            existingApplicantError,
+        );
 
-            return {
-                success: false,
-                reason: "error",
-            };
-        }
+        return {
+            success: false,
+            reason: "error",
+        };
+    }
 
-        if (
-            existingApplicant
-        ) {
+    if (existingApplicant) {
+        return {
+            success: false,
+            reason: "duplicate",
+        };
+    }
+
+    /*
+     * Create applicant.
+     */
+
+    const { data: applicantData, error: applicantError } = await client
+        .from("applicants")
+        .insert([
+            {
+                userId: user.id,
+
+                name,
+
+                sid,
+
+                phone: phone || null,
+
+                gender,
+
+                isHostellers,
+
+                isWalkin: false,
+
+                status: "PENDING",
+            },
+        ])
+        .select()
+        .single();
+
+    if (applicantError || !applicantData) {
+        /*
+         * Unique userId constraint means this is
+         * already a submitted account.
+         */
+        if (applicantError?.code === "23505") {
             return {
                 success: false,
                 reason: "duplicate",
             };
         }
 
-        /*
-         * Create applicant.
-         */
-
-        const {
-            data:
-                applicantData,
-            error:
-                applicantError,
-        } = await client
-            .from("applicants")
-            .insert([
-                {
-                    userId:
-                        user.id,
-
-                    name,
-
-                    sid,
-
-                    phone:
-                        phone || null,
-
-                    gender,
-
-                    isHostellers,
-
-                    isWalkin:
-                        false,
-
-                    status:
-                        "PENDING",
-                },
-            ])
-            .select()
-            .single();
-
-        if (
-            applicantError ||
-            !applicantData
-        ) {
-            /*
-             * Unique userId constraint means this is
-             * already a submitted account.
-             */
-            if (
-                applicantError?.code ===
-                "23505"
-            ) {
-                return {
-                    success: false,
-                    reason: "duplicate",
-                };
-            }
-
-            console.error(
-                "Error creating applicant:",
-                applicantError
-            );
-
-            return {
-                success: false,
-                reason: "error",
-            };
-        }
-
-        /*
-         * Store branch + answers.
-         */
-
-        const {
-            error:
-                responseError,
-        } = await client
-            .from(
-                "applicant_response"
-            )
-            .insert([
-                {
-                    applicantId:
-                        applicantData.id,
-
-                    branch,
-
-                    responses,
-                },
-            ]);
-
-        if (
-            responseError
-        ) {
-            console.error(
-                "Error creating applicant response:",
-                responseError
-            );
-
-            /*
-             * Roll back applicant if the response
-             * record could not be created.
-             */
-            await client
-                .from(
-                    "applicants"
-                )
-                .delete()
-                .eq(
-                    "id",
-                    applicantData.id
-                );
-
-            return {
-                success: false,
-                reason: "error",
-            };
-        }
-
-        /*
-         * Sync application to Google Sheets.
-         *
-         * Supabase remains the source of truth, so a
-         * Google Sheets failure does not invalidate the
-         * successful application.
-         */
-
-        try {
-            if (process.env.NODE_ENV === "production") {
-            const {
-                error:
-                    sheetsError,
-            } =
-                await client.functions.invoke(
-                    "sync-application-to-sheets",
-                    {
-                        body: {
-                            operation:
-                                "application",
-
-                            applicationId:
-                                applicantData.id,
-
-                            name,
-
-                            phone,
-
-                            sid,
-
-                            branch,
-
-                            gender,
-
-                            isHostellers,
-
-                            q1:
-                                responses.Q1 ||
-                                "",
-
-                            q2:
-                                responses.Q2 ||
-                                "",
-
-                            q3:
-                                responses.Q3 ||
-                                "",
-
-                            q4:
-                                responses.Q4 ||
-                                "",
-                        },
-                    }
-                );
-
-            if (
-                sheetsError
-            ) {
-                console.error(
-                    "Application saved to Supabase, but Google Sheets synchronization failed:",
-                    sheetsError
-                );
-            }
-            } // end production-only block
-        } catch (error) {
-            console.error(
-                "Application saved to Supabase, but Google Sheets synchronization failed:",
-                error
-            );
-        }
+        console.error("Error creating applicant:", applicantError);
 
         return {
-            success: true,
+            success: false,
+            reason: "error",
+        };
+    }
 
-            applicant: {
-                ...applicantData,
+    /*
+     * Store branch + answers.
+     */
 
-                userId:
-                    applicantData.userId,
-
-                status:
-                    applicantData.status?.toLowerCase(),
-
-                createdAt:
-                    applicantData.createdAt ||
-                    applicantData.created_at,
+    const { error: responseError } = await client
+        .from("applicant_response")
+        .insert([
+            {
+                applicantId: applicantData.id,
 
                 branch,
 
-                gender,
-
-                isHostellers,
-
                 responses,
-            } as ApplicantType,
+            },
+        ]);
+
+    if (responseError) {
+        console.error("Error creating applicant response:", responseError);
+
+        /*
+         * Roll back applicant if the response
+         * record could not be created.
+         */
+        await client.from("applicants").delete().eq("id", applicantData.id);
+
+        return {
+            success: false,
+            reason: "error",
         };
+    }
+
+    /*
+     * Sync application to Google Sheets.
+     *
+     * Supabase remains the source of truth, so a
+     * Google Sheets failure does not invalidate the
+     * successful application.
+     */
+
+    try {
+        if (process.env.NODE_ENV === "production") {
+            const { error: sheetsError } = await client.functions.invoke(
+                "sync-application-to-sheets",
+                {
+                    body: {
+                        operation: "application",
+
+                        applicationId: applicantData.id,
+
+                        name,
+
+                        phone,
+
+                        sid,
+
+                        branch,
+
+                        gender,
+
+                        isHostellers,
+
+                        q1: responses.Q1 || "",
+
+                        q2: responses.Q2 || "",
+
+                        q3: responses.Q3 || "",
+
+                        q4: responses.Q4 || "",
+                    },
+                },
+            );
+
+            if (sheetsError) {
+                console.error(
+                    "Application saved to Supabase, but Google Sheets synchronization failed:",
+                    sheetsError,
+                );
+            }
+        } // end production-only block
+    } catch (error) {
+        console.error(
+            "Application saved to Supabase, but Google Sheets synchronization failed:",
+            error,
+        );
+    }
+
+    return {
+        success: true,
+
+        applicant: {
+            ...applicantData,
+
+            userId: applicantData.userId,
+
+            status: applicantData.status?.toLowerCase(),
+
+            createdAt: applicantData.createdAt || applicantData.created_at,
+
+            branch,
+
+            gender,
+
+            isHostellers,
+
+            responses,
+        } as ApplicantType,
     };
+};
 
 /*
  * ---------------------------------------------------------
@@ -658,240 +492,167 @@ export const createApplicant =
  * Application answers remain untouched.
  */
 
-export const updateApplicantPersonalInfo =
-    async (
-        applicantId: string,
-        name: string,
-        phone: string,
-        sid: string,
-        branch: string,
-        gender:
-            | "male"
-            | "female",
-        isHostellers: boolean
-    ): Promise<
-        | {
-              success: true;
-              applicant: ApplicantType;
-          }
-        | {
-              success: false;
-              reason:
-                  | "error"
-                  | "not_found";
-          }
-    > => {
-        const {
-            data: {
-                user,
-            },
-            error: userError,
-        } =
-            await client.auth.getUser();
+export const updateApplicantPersonalInfo = async (
+    applicantId: string,
+    name: string,
+    phone: string,
+    sid: string,
+    branch: string,
+    gender: "male" | "female",
+    isHostellers: boolean,
+): Promise<
+    | {
+          success: true;
+          applicant: ApplicantType;
+      }
+    | {
+          success: false;
+          reason: "error" | "not_found";
+      }
+> => {
+    const {
+        data: { user },
+        error: userError,
+    } = await client.auth.getUser();
 
-        if (
-            userError ||
-            !user
-        ) {
-            return {
-                success: false,
-                reason: "error",
-            };
-        }
+    if (userError || !user) {
+        return {
+            success: false,
+            reason: "error",
+        };
+    }
 
-        /*
-         * Update only the authenticated user's own
-         * still-pending application.
-         */
+    /*
+     * Update only the authenticated user's own
+     * still-pending application.
+     */
 
-        const {
-            data,
-            error,
-        } = await client
-            .from("applicants")
-            .update({
-                name,
+    const { data, error } = await client
+        .from("applicants")
+        .update({
+            name,
 
-                phone:
-                    phone || null,
+            phone: phone || null,
 
-                sid,
+            sid,
 
-                gender,
+            gender,
 
-                isHostellers,
-            })
-            .eq(
-                "id",
-                applicantId
-            )
-            .eq(
-                "userId",
-                user.id
-            )
-            .eq(
-                "status",
-                "PENDING"
-            )
-            .select()
-            .single();
+            isHostellers,
+        })
+        .eq("id", applicantId)
+        .eq("userId", user.id)
+        .eq("status", "PENDING")
+        .select()
+        .single();
 
-        if (
-            error ||
-            !data
-        ) {
-            console.error(
-                "Error updating applicant:",
-                error
+    if (error || !data) {
+        console.error("Error updating applicant:", error);
+
+        return {
+            success: false,
+            reason: error?.code === "PGRST116" ? "not_found" : "error",
+        };
+    }
+
+    /*
+     * Update branch separately because branch
+     * lives in applicant_response.
+     */
+
+    const { error: branchError } = await client
+        .from("applicant_response")
+        .update({
+            branch,
+        })
+        .eq("applicantId", applicantId);
+
+    if (branchError) {
+        console.error("Error updating branch:", branchError);
+
+        return {
+            success: false,
+            reason: "error",
+        };
+    }
+
+    /*
+     * Update the existing application row
+     * in Google Sheets.
+     */
+
+    if (process.env.NODE_ENV === "production")
+        try {
+            const { error: sheetsError } = await client.functions.invoke(
+                "sync-application-to-sheets",
+                {
+                    body: {
+                        operation: "update_application",
+
+                        applicationId: applicantId,
+
+                        name,
+
+                        phone,
+
+                        sid,
+
+                        branch,
+
+                        gender,
+
+                        isHostellers,
+                    },
+                },
             );
 
-            return {
-                success: false,
-                reason:
-                    error?.code ===
-                    "PGRST116"
-                        ? "not_found"
-                        : "error",
-            };
-        }
-
-        /*
-         * Update branch separately because branch
-         * lives in applicant_response.
-         */
-
-        const {
-            error:
-                branchError,
-        } = await client
-            .from(
-                "applicant_response"
-            )
-            .update({
-                branch,
-            })
-            .eq(
-                "applicantId",
-                applicantId
-            );
-
-        if (
-            branchError
-        ) {
-            console.error(
-                "Error updating branch:",
-                branchError
-            );
-
-            return {
-                success: false,
-                reason: "error",
-            };
-        }
-
-        /*
-         * Update the existing application row
-         * in Google Sheets.
-         */
-
-        if (process.env.NODE_ENV === "production") try {
-            const {
-                error:
-                    sheetsError,
-            } =
-                await client.functions.invoke(
-                    "sync-application-to-sheets",
-                    {
-                        body: {
-                            operation:
-                                "update_application",
-
-                            applicationId:
-                                applicantId,
-
-                            name,
-
-                            phone,
-
-                            sid,
-
-                            branch,
-
-                            gender,
-
-                            isHostellers,
-                        },
-                    }
-                );
-
-            if (
-                sheetsError
-            ) {
+            if (sheetsError) {
                 console.error(
                     "Personal information saved to Supabase, but Google Sheets synchronization failed:",
-                    sheetsError
+                    sheetsError,
                 );
             }
         } catch (error) {
             console.error(
                 "Personal information saved to Supabase, but Google Sheets synchronization failed:",
-                error
+                error,
             );
         }
 
-        /*
-         * Rebuild schedule because:
-         *
-         * - name can change in the shared sheet
-         * - SID can change in the shared sheet
-         * - gender can change priority
-         * - hosteller/day-scholar can change priority
-         */
-        await requestInterviewSchedule();
+    /*
+     * Rebuild schedule because:
+     *
+     * - name can change in the shared sheet
+     * - SID can change in the shared sheet
+     * - gender can change priority
+     * - hosteller/day-scholar can change priority
+     */
+    await requestInterviewSchedule();
 
-        /*
-         * Fetch complete updated applicant.
-         */
+    /*
+     * Fetch complete updated applicant.
+     */
 
-        const {
-            data:
-                completeApplicant,
-            error:
-                fetchError,
-        } = await client
-            .from("applicants")
-            .select(
-                "*, applicant_response(branch, responses)"
-            )
-            .eq(
-                "id",
-                applicantId
-            )
-            .eq(
-                "userId",
-                user.id
-            )
-            .single();
+    const { data: completeApplicant, error: fetchError } = await client
+        .from("applicants")
+        .select("*, applicant_response(branch, responses)")
+        .eq("id", applicantId)
+        .eq("userId", user.id)
+        .single();
 
-        if (
-            fetchError ||
-            !completeApplicant
-        ) {
-            return {
-                success: false,
-                reason: "error",
-            };
-        }
-
+    if (fetchError || !completeApplicant) {
         return {
-            success: true,
-
-            applicant:
-                mapApplicant(
-                    completeApplicant
-                ),
+            success: false,
+            reason: "error",
         };
+    }
+
+    return {
+        success: true,
+
+        applicant: mapApplicant(completeApplicant),
     };
+};
 
 /*
  * ---------------------------------------------------------
@@ -901,226 +662,141 @@ export const updateApplicantPersonalInfo =
  * Existing admin/panelist functionality is preserved.
  */
 
-export const updateApplicant =
-    async (
-        applicantId: string,
-        data: {
-            name: string;
-            sid: string;
-            phone: string;
-            remarks?: string;
-            branch?: string;
-            gender?:
-                | "male"
-                | "female";
-            isHostellers?: boolean;
-            responses?: Record<
-                string,
-                string
-            >;
-            reviewScore?: ReviewScore;
-        }
-    ): Promise<
-        ApplicantType | null
-    > => {
-        const {
-            error:
-                applicantError,
-        } = await client
-            .from("applicants")
-            .update({
-                name:
-                    data.name.trim(),
+export const updateApplicant = async (
+    applicantId: string,
+    data: {
+        name: string;
+        sid: string;
+        phone: string;
+        remarks?: string;
+        branch?: string;
+        gender?: "male" | "female";
+        isHostellers?: boolean;
+        responses?: Record<string, string>;
+        reviewScore?: ReviewScore;
+    },
+): Promise<ApplicantType | null> => {
+    const { error: applicantError } = await client
+        .from("applicants")
+        .update({
+            name: data.name.trim(),
 
-                sid:
-                    data.sid.trim(),
+            sid: data.sid.trim(),
 
-                phone:
-                    data.phone.trim() ||
-                    null,
+            phone: data.phone.trim() || null,
 
-                remarks:
-                    data.remarks?.trim() ||
-                    null,
+            remarks: data.remarks?.trim() || null,
 
-                ...(data.gender !==
-                undefined
-                    ? {
-                          gender:
-                              data.gender,
-                      }
-                    : {}),
+            ...(data.gender !== undefined
+                ? {
+                      gender: data.gender,
+                  }
+                : {}),
 
-                ...(data.isHostellers !==
-                undefined
-                    ? {
-                          isHostellers:
-                              data.isHostellers,
-                      }
-                    : {}),
+            ...(data.isHostellers !== undefined
+                ? {
+                      isHostellers: data.isHostellers,
+                  }
+                : {}),
 
-                ...(data.reviewScore !==
-                undefined
-                    ? {
-                          reviewScore:
-                              data.reviewScore,
-                      }
-                    : {}),
-            })
-            .eq(
-                "id",
-                applicantId
-            );
+            ...(data.reviewScore !== undefined
+                ? {
+                      reviewScore: data.reviewScore,
+                  }
+                : {}),
+        })
+        .eq("id", applicantId);
 
-        if (
-            applicantError
-        ) {
+    if (applicantError) {
+        console.error("Error updating applicant:", applicantError);
+
+        return null;
+    }
+
+    /*
+     * Update applicant response if required.
+     */
+
+    if (data.branch !== undefined || data.responses !== undefined) {
+        const { data: existingResponse, error: responseFetchError } =
+            await client
+                .from("applicant_response")
+                .select("id")
+                .eq("applicantId", applicantId)
+                .limit(1)
+                .maybeSingle();
+
+        if (responseFetchError) {
             console.error(
-                "Error updating applicant:",
-                applicantError
+                "Error finding applicant response:",
+                responseFetchError,
             );
 
             return null;
         }
 
-        /*
-         * Update applicant response if required.
-         */
+        if (existingResponse) {
+            const responseUpdate: {
+                branch?: string;
+                responses?: Record<string, string>;
+            } = {};
 
-        if (
-            data.branch !==
-                undefined ||
-            data.responses !==
-                undefined
-        ) {
-            const {
-                data:
-                    existingResponse,
-                error:
-                    responseFetchError,
-            } = await client
-                .from(
-                    "applicant_response"
-                )
-                .select("id")
-                .eq(
-                    "applicantId",
-                    applicantId
-                )
-                .limit(1)
-                .maybeSingle();
+            if (data.branch !== undefined) {
+                responseUpdate.branch = data.branch.trim();
+            }
 
-            if (
-                responseFetchError
-            ) {
+            if (data.responses !== undefined) {
+                responseUpdate.responses = data.responses;
+            }
+
+            const { error: responseUpdateError } = await client
+                .from("applicant_response")
+                .update(responseUpdate)
+                .eq("id", existingResponse.id);
+
+            if (responseUpdateError) {
                 console.error(
-                    "Error finding applicant response:",
-                    responseFetchError
+                    "Error updating applicant response:",
+                    responseUpdateError,
                 );
 
                 return null;
             }
+        } else {
+            const { error: responseInsertError } = await client
+                .from("applicant_response")
+                .insert([
+                    {
+                        applicantId,
 
-            if (
-                existingResponse
-            ) {
-                const responseUpdate: {
-                    branch?: string;
-                    responses?: Record<
-                        string,
-                        string
-                    >;
-                } = {};
+                        branch: data.branch?.trim() || "",
 
-                if (
-                    data.branch !==
-                    undefined
-                ) {
-                    responseUpdate.branch =
-                        data.branch.trim();
-                }
+                        responses: data.responses || {},
+                    },
+                ]);
 
-                if (
-                    data.responses !==
-                    undefined
-                ) {
-                    responseUpdate.responses =
-                        data.responses;
-                }
+            if (responseInsertError) {
+                console.error(
+                    "Error creating applicant response:",
+                    responseInsertError,
+                );
 
-                const {
-                    error:
-                        responseUpdateError,
-                } = await client
-                    .from(
-                        "applicant_response"
-                    )
-                    .update(
-                        responseUpdate
-                    )
-                    .eq(
-                        "id",
-                        existingResponse.id
-                    );
-
-                if (
-                    responseUpdateError
-                ) {
-                    console.error(
-                        "Error updating applicant response:",
-                        responseUpdateError
-                    );
-
-                    return null;
-                }
-            } else {
-                const {
-                    error:
-                        responseInsertError,
-                } = await client
-                    .from(
-                        "applicant_response"
-                    )
-                    .insert([
-                        {
-                            applicantId,
-
-                            branch:
-                                data.branch?.trim() ||
-                                "",
-
-                            responses:
-                                data.responses ||
-                                {},
-                        },
-                    ]);
-
-                if (
-                    responseInsertError
-                ) {
-                    console.error(
-                        "Error creating applicant response:",
-                        responseInsertError
-                    );
-
-                    return null;
-                }
+                return null;
             }
         }
+    }
 
-        /*
-         * Keep the shared interview schedule synchronized
-         * with admin/panelist edits as well.
-         *
-         * If this applicant is not PENDING, the scheduler will
-         * simply exclude them.
-         */
-        await requestInterviewSchedule();
+    /*
+     * Keep the shared interview schedule synchronized
+     * with admin/panelist edits as well.
+     *
+     * If this applicant is not PENDING, the scheduler will
+     * simply exclude them.
+     */
+    await requestInterviewSchedule();
 
-        return await fetchApplicantWithResponses(
-            applicantId
-        );
-    };
+    return await fetchApplicantWithResponses(applicantId);
+};
 
 /*
  * ---------------------------------------------------------
@@ -1131,7 +807,6 @@ export const updateApplicant =
  * from the interview schedule.
  */
 
-
 /*
  * ---------------------------------------------------------
  * Update applicant status (Accept/Reject)
@@ -1139,7 +814,7 @@ export const updateApplicant =
  */
 export const updateApplicantStatus = async (
     applicantId: string,
-    status: "ACCEPTED" | "REJECTED"
+    status: "ACCEPTED" | "REJECTED",
 ): Promise<boolean> => {
     const { error } = await client
         .from("applicants")
@@ -1159,95 +834,76 @@ export const updateApplicantStatus = async (
     return true;
 };
 
-export const updateApplicantReview =
-    async (
-        applicantId: string,
-        status: string,
-        reviewScore: ReviewScore,
-        remarks: string,
-        reviewedBy: string
-    ): Promise<boolean> => {
-        const reviewedAt =
-            new Date().toISOString();
+export const updateApplicantReview = async (
+    applicantId: string,
+    status: string,
+    reviewScore: ReviewScore,
+    remarks: string,
+    reviewedBy: string,
+): Promise<boolean> => {
+    const reviewedAt = new Date().toISOString();
 
-        const {
-            error,
-        } = await client
-            .from("applicants")
-            .update({
-                reviewScore,
+    const { error } = await client
+        .from("applicants")
+        .update({
+            reviewScore,
 
-                remarks,
+            remarks,
 
-                reviewedBy,
+            reviewedBy,
 
-                reviewedAt,
-            })
-            .eq(
-                "id",
-                applicantId
+            reviewedAt,
+        })
+        .eq("id", applicantId);
+
+    if (error) {
+        console.error("Error updating applicant decision:", error);
+
+        return false;
+    }
+
+    /*
+     * Keep Results sheet synchronized.
+     */
+
+    if (process.env.NODE_ENV === "production")
+        try {
+            const { error: sheetsError } = await client.functions.invoke(
+                "sync-application-to-sheets",
+                {
+                    body: {
+                        operation: "result",
+
+                        applicationId: applicantId,
+
+                        status,
+
+                        reviewScore,
+
+                        remarks,
+
+                        reviewedBy,
+
+                        reviewedAt,
+                    },
+                },
             );
 
-        if (
-            error
-        ) {
-            console.error(
-                "Error updating applicant decision:",
-                error
-            );
-
-            return false;
-        }
-
-        /*
-         * Keep Results sheet synchronized.
-         */
-
-        if (process.env.NODE_ENV === "production") try {
-            const {
-                error:
-                    sheetsError,
-            } =
-                await client.functions.invoke(
-                    "sync-application-to-sheets",
-                    {
-                        body: {
-                            operation:
-                                "result",
-
-                            applicationId:
-                                applicantId,
-
-                            status,
-                            
-                            reviewScore,
-
-                            remarks,
-
-                            reviewedBy,
-
-                            reviewedAt,
-                        },
-                    }
-                );
-
-            if (
-                sheetsError
-            ) {
+            if (sheetsError) {
                 console.error(
                     "Decision saved to Supabase, but Results Sheet synchronization failed:",
-                    sheetsError
+                    sheetsError,
                 );
             }
         } catch (error) {
             console.error(
                 "Decision saved to Supabase, but Results Sheet synchronization failed:",
-                error
+                error,
             );
         }
 
-        return true;
-    };
+    return true;
+};
 
 /*
  * ---------------------------------------------------------
@@ -1258,47 +914,35 @@ export const updateApplicantReview =
  * and therefore must re-enter the shared schedule.
  */
 
-export const resetApplicantDecision =
-    async (
-        applicantId: string
-    ): Promise<boolean> => {
-        const {
-            error,
-        } = await client
-            .from("applicants")
-            .update({
-                status:
-                    "PENDING",
+export const resetApplicantDecision = async (
+    applicantId: string,
+): Promise<boolean> => {
+    const { error } = await client
+        .from("applicants")
+        .update({
+            status: "PENDING",
 
-                remarks: null,
+            remarks: null,
 
-                reviewedBy: null,
+            reviewedBy: null,
 
-                reviewedAt: null,
-            })
-            .eq(
-                "id",
-                applicantId
-            );
+            reviewedAt: null,
+        })
+        .eq("id", applicantId);
 
-        if (
-            error
-        ) {
-            console.error(
-                "Error resetting applicant decision:",
-                error
-            );
+    if (error) {
+        console.error("Error resetting applicant decision:", error);
 
-            return false;
-        }
+        return false;
+    }
 
-        /*
-         * Re-add the applicant to the schedule.
-         */
-        await requestInterviewSchedule();
+    /*
+     * Re-add the applicant to the schedule.
+     */
+    await requestInterviewSchedule();
 
-        return true;
-    };
+    return true;
+};
 
 /*
  * ---------------------------------------------------------
@@ -1306,101 +950,79 @@ export const resetApplicantDecision =
  * ---------------------------------------------------------
  */
 
-export const subscribeToApplicantUpdates =
-    (
-        onUpdate: (
-            applicant: ApplicantType
-        ) => void,
+export const subscribeToApplicantUpdates = (
+    onUpdate: (applicant: ApplicantType) => void,
 
-        onInsert: (
-            applicant: ApplicantType
-        ) => void
-    ) => {
-        const channel =
-            client
-                .channel(
-                    `applicants-status-${Date.now()}`
-                )
-                .on(
-                    "postgres_changes",
-                    {
-                        event:
-                            "UPDATE",
+    onInsert: (applicant: ApplicantType) => void,
+) => {
+    const channel = client
+        .channel(`applicants-status-${Date.now()}`)
+        .on(
+            "postgres_changes",
+            {
+                event: "UPDATE",
 
-                        schema:
-                            "public",
+                schema: "public",
 
-                        table:
-                            "applicants",
-                    },
-                    (
-                        payload: any
-                    ) => {
-                        onUpdate(
-                            mapApplicant(
-                                payload.new
-                            )
-                        );
-                    }
-                )
-                .on(
-                    "postgres_changes",
-                    {
-                        event:
-                            "INSERT",
+                table: "applicants",
+            },
+            (payload: any) => {
+                onUpdate(mapApplicant(payload.new));
+            },
+        )
+        .on(
+            "postgres_changes",
+            {
+                event: "INSERT",
 
-                        schema:
-                            "public",
+                schema: "public",
 
-                        table:
-                            "applicants",
-                    },
-                    (
-                        payload: any
-                    ) => {
-                        onInsert(
-                            mapApplicant(
-                                payload.new
-                            )
-                        );
-                    }
-                )
-                .subscribe();
+                table: "applicants",
+            },
+            (payload: any) => {
+                onInsert(mapApplicant(payload.new));
+            },
+        )
+        .subscribe();
 
-        return () => {
-            client.removeChannel(
-                channel
-            );
-        };
+    return () => {
+        client.removeChannel(channel);
     };
+};
 
 export const batchUpdateApplicantStatuses = async (
-    updates: { id: string; status: "accepted" | "rejected" }[]
+    updates: { id: string; status: "accepted" | "rejected" }[],
 ): Promise<{ success: boolean; updatedCount: number }> => {
     try {
         // 1. Separate the IDs into two arrays
-        const acceptedIds = updates.filter(u => u.status === "accepted").map(u => u.id);
-        const rejectedIds = updates.filter(u => u.status === "rejected").map(u => u.id);
+        const acceptedIds = updates
+            .filter((u) => u.status === "accepted")
+            .map((u) => u.id);
+        const rejectedIds = updates
+            .filter((u) => u.status === "rejected")
+            .map((u) => u.id);
 
         const promises = [];
 
         // 2. Fire exactly ONE request for all accepted applicants
         if (acceptedIds.length > 0) {
             promises.push(
-                client.from("applicants")
+                client
+                    .from("applicants")
                     .update({ status: "ACCEPTED" })
                     .in("id", acceptedIds)
-                    .select("id")
+                    .select("id"),
             );
         }
 
         // 3. Fire exactly ONE request for all rejected applicants
         if (rejectedIds.length > 0) {
             promises.push(
-                client.from("applicants")
+                client
+                    .from("applicants")
                     .update({ status: "REJECTED" })
                     .in("id", rejectedIds)
-                    .select("id")
+                    .select("id"),
             );
         }
 

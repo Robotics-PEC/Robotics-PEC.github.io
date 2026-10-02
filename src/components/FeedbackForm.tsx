@@ -43,9 +43,7 @@ export default function FeedbackForm({
 
     const [error, setError] = useState("");
 
-    const handleSubmit = (
-        event: React.FormEvent<HTMLFormElement>
-    ) => {
+    const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
 
         setError("");
@@ -62,9 +60,7 @@ export default function FeedbackForm({
             !branch ||
             rating === 0
         ) {
-            setError(
-                "Please fill in all the required fields."
-            );
+            setError("Please fill in all the required fields.");
             return;
         }
 
@@ -74,9 +70,7 @@ export default function FeedbackForm({
         }
 
         if (!/^\d{8}$/.test(trimmedSid)) {
-            setError(
-                "SID must be exactly 8 digits."
-            );
+            setError("SID must be exactly 8 digits.");
             return;
         }
 
@@ -96,24 +90,21 @@ export default function FeedbackForm({
          * without changing the form validation itself.
          */
         try {
-            localStorage.setItem("rpec_dino_fb_v2", JSON.stringify(feedbackData));
-        } catch(e) {}
+            localStorage.setItem(
+                "rpec_dino_fb_v2",
+                JSON.stringify(feedbackData),
+            );
+        } catch (e) {}
 
         if (onContinue) {
             onContinue(feedbackData);
         } else {
-            console.log(
-                "Feedback submitted:",
-                feedbackData
-            );
+            console.log("Feedback submitted:", feedbackData);
         }
     };
 
     return (
-        <form
-            onSubmit={handleSubmit}
-            className="mx-auto max-w-3xl space-y-6"
-        >
+        <form onSubmit={handleSubmit} className="mx-auto max-w-3xl space-y-6">
             {/* Header */}
             <div className="text-center">
                 <h2 className="text-2xl font-semibold text-gray-900">
@@ -136,9 +127,7 @@ export default function FeedbackForm({
                                 className="text-sm font-medium"
                             >
                                 Name
-                                <span className="ml-1 text-red-500">
-                                    *
-                                </span>
+                                <span className="ml-1 text-red-500">*</span>
                             </label>
 
                             <input
@@ -146,9 +135,7 @@ export default function FeedbackForm({
                                 type="text"
                                 value={name}
                                 onChange={(event) =>
-                                    setName(
-                                        event.target.value
-                                    )
+                                    setName(event.target.value)
                                 }
                                 placeholder="Enter your full name"
                                 autoComplete="name"
@@ -162,9 +149,7 @@ export default function FeedbackForm({
                                 className="text-sm font-medium"
                             >
                                 Email
-                                <span className="ml-1 text-red-500">
-                                    *
-                                </span>
+                                <span className="ml-1 text-red-500">*</span>
                             </label>
 
                             <input
@@ -172,9 +157,7 @@ export default function FeedbackForm({
                                 type="email"
                                 value={email}
                                 onChange={(event) =>
-                                    setEmail(
-                                        event.target.value
-                                    )
+                                    setEmail(event.target.value)
                                 }
                                 placeholder="Enter your email"
                                 autoComplete="email"
@@ -188,9 +171,7 @@ export default function FeedbackForm({
                                 className="text-sm font-medium"
                             >
                                 SID
-                                <span className="ml-1 text-red-500">
-                                    *
-                                </span>
+                                <span className="ml-1 text-red-500">*</span>
                             </label>
 
                             <input
@@ -201,10 +182,7 @@ export default function FeedbackForm({
                                 value={sid}
                                 onChange={(event) =>
                                     setSid(
-                                        event.target.value.replace(
-                                            /\D/g,
-                                            ""
-                                        )
+                                        event.target.value.replace(/\D/g, ""),
                                     )
                                 }
                                 placeholder="e.g. 23103000"
@@ -221,35 +199,22 @@ export default function FeedbackForm({
                             className="text-sm font-medium"
                         >
                             Branch
-                            <span className="ml-1 text-red-500">
-                                *
-                            </span>
+                            <span className="ml-1 text-red-500">*</span>
                         </label>
 
                         <select
                             id="feedback-branch"
                             value={branch}
-                            onChange={(event) =>
-                                setBranch(
-                                    event.target.value
-                                )
-                            }
+                            onChange={(event) => setBranch(event.target.value)}
                             className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm outline-none transition focus:ring-2 focus:ring-primary/20"
                         >
-                            <option value="">
-                                Select your branch
-                            </option>
+                            <option value="">Select your branch</option>
 
-                            {branches.map(
-                                (branchName) => (
-                                    <option
-                                        key={branchName}
-                                        value={branchName}
-                                    >
-                                        {branchName}
-                                    </option>
-                                )
-                            )}
+                            {branches.map((branchName) => (
+                                <option key={branchName} value={branchName}>
+                                    {branchName}
+                                </option>
+                            ))}
                         </select>
                     </div>
                 </div>
@@ -261,14 +226,12 @@ export default function FeedbackForm({
                     <div>
                         <label className="text-sm font-medium">
                             How would you rate the orientation?
-                            <span className="ml-1 text-red-500">
-                                *
-                            </span>
+                            <span className="ml-1 text-red-500">*</span>
                         </label>
 
                         <p className="mt-1 text-xs text-muted-foreground">
-                            Your feedback helps us make the next
-                            orientation even better.
+                            Your feedback helps us make the next orientation
+                            even better.
                         </p>
                     </div>
 
@@ -277,29 +240,23 @@ export default function FeedbackForm({
                         role="radiogroup"
                         aria-label="Orientation rating"
                     >
-                        {[1, 2, 3, 4, 5].map(
-                            (value) => (
-                                <button
-                                    key={value}
-                                    type="button"
-                                    role="radio"
-                                    aria-checked={
-                                        rating === value
-                                    }
-                                    aria-label={`${value} out of 5`}
-                                    onClick={() =>
-                                        setRating(value)
-                                    }
-                                    className={`text-4xl leading-none transition-transform hover:scale-110 focus:outline-none ${
-                                        value <= rating
-                                            ? "text-yellow-400"
-                                            : "text-gray-300"
-                                    }`}
-                                >
-                                    ★
-                                </button>
-                            )
-                        )}
+                        {[1, 2, 3, 4, 5].map((value) => (
+                            <button
+                                key={value}
+                                type="button"
+                                role="radio"
+                                aria-checked={rating === value}
+                                aria-label={`${value} out of 5`}
+                                onClick={() => setRating(value)}
+                                className={`text-4xl leading-none transition-transform hover:scale-110 focus:outline-none ${
+                                    value <= rating
+                                        ? "text-yellow-400"
+                                        : "text-gray-300"
+                                }`}
+                            >
+                                ★
+                            </button>
+                        ))}
 
                         {rating > 0 && (
                             <span className="ml-3 text-sm text-muted-foreground">
@@ -326,11 +283,7 @@ export default function FeedbackForm({
                     <textarea
                         id="feedback-review"
                         value={review}
-                        onChange={(event) =>
-                            setReview(
-                                event.target.value
-                            )
-                        }
+                        onChange={(event) => setReview(event.target.value)}
                         rows={5}
                         maxLength={1000}
                         placeholder="What did you like? What could we improve?"
@@ -359,9 +312,7 @@ export default function FeedbackForm({
                 disabled={isPreparingGame}
                 className="w-full rounded-md bg-primary px-6 py-3 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
             >
-                {isPreparingGame
-                    ? "Preparing Game..."
-                    : "Continue →"}
+                {isPreparingGame ? "Preparing Game..." : "Continue →"}
             </button>
         </form>
     );

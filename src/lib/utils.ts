@@ -1,5 +1,5 @@
-import { clsx, type ClassValue } from "clsx"
-import { twMerge } from "tailwind-merge"
+import { clsx, type ClassValue } from "clsx";
+import { twMerge } from "tailwind-merge";
 import { client } from "./supabase/supabase";
 import TurndownService from "turndown";
 import { marked } from "marked";
@@ -12,8 +12,8 @@ export interface TimeValue {
 }
 
 export function cn(...inputs: ClassValue[]) {
-    return twMerge(clsx(inputs))
-};
+    return twMerge(clsx(inputs));
+}
 
 export const compressImage = async (file: File) => {
     const options = {
@@ -38,7 +38,7 @@ export const HTMLToMarkdown = (html: string) => {
 };
 
 export const markdownToHTML = async (markdown: string) => {
-    return (await marked(markdown));
+    return await marked(markdown);
 };
 
 export const handleLogout = async () => {
@@ -59,21 +59,21 @@ export const sanitizeRedirectPath = (value?: string | null) => {
     return value;
 };
 
-export const base64ToBlob = (base64Data: string, contentType = 'image/png') => {
-    const byteCharacters = atob(base64Data)
-    const byteArrays = []
+export const base64ToBlob = (base64Data: string, contentType = "image/png") => {
+    const byteCharacters = atob(base64Data);
+    const byteArrays = [];
 
     for (let i = 0; i < byteCharacters.length; i += 512) {
-        const slice = byteCharacters.slice(i, i + 512)
-        const byteNumbers = new Array(slice.length)
+        const slice = byteCharacters.slice(i, i + 512);
+        const byteNumbers = new Array(slice.length);
         for (let j = 0; j < slice.length; j++) {
-            byteNumbers[j] = slice.charCodeAt(j)
+            byteNumbers[j] = slice.charCodeAt(j);
         }
-        const byteArray = new Uint8Array(byteNumbers)
-        byteArrays.push(byteArray)
+        const byteArray = new Uint8Array(byteNumbers);
+        byteArrays.push(byteArray);
     }
 
-    return new Blob(byteArrays, { type: contentType })
+    return new Blob(byteArrays, { type: contentType });
 };
 
 export const fileToBase64 = (file: File): Promise<string> => {
@@ -83,10 +83,10 @@ export const fileToBase64 = (file: File): Promise<string> => {
         reader.onload = () => {
             const result = reader.result as string;
             // Remove 'data:image/png;base64,' prefix
-            const base64 = result.split(',')[1];
+            const base64 = result.split(",")[1];
             resolve(base64);
         };
-        reader.onerror = error => reject(error);
+        reader.onerror = (error) => reject(error);
     });
 };
 
@@ -102,20 +102,19 @@ export const urlToBase64 = async (url: string): Promise<string> => {
     });
 };
 
-
 export function format12Hour(time: TimeValue): string {
     const hours = time.hours === 0 ? 12 : time.hours;
     return `${hours}:${time.minutes.toString().padStart(2, "0")} ${time.period}`;
-};
+}
 
 export function parseTime(input: string): TimeValue | null {
     const normalized = input.trim().toUpperCase().replace(/\s+/g, " ");
 
     const patterns = [
-        /^(\d{1,2}):(\d{2})\s*(AM|PM)$/,  // 9:30 AM
-        /^(\d{1,2}):(\d{2})(AM|PM)$/,     // 9:30AM
-        /^(\d{1,2})\s*(AM|PM)$/,          // 9 AM
-        /^(\d{1,2})(AM|PM)$/,             // 9AM
+        /^(\d{1,2}):(\d{2})\s*(AM|PM)$/, // 9:30 AM
+        /^(\d{1,2}):(\d{2})(AM|PM)$/, // 9:30AM
+        /^(\d{1,2})\s*(AM|PM)$/, // 9 AM
+        /^(\d{1,2})(AM|PM)$/, // 9AM
     ];
 
     for (const pattern of patterns) {
@@ -140,18 +139,21 @@ export function parseTime(input: string): TimeValue | null {
     }
 
     return null;
-};
+}
 
 export function isTimeValid(input: string): boolean {
     return parseTime(input) !== null;
-};
+}
 
-export function convertTo12Hour(hour24: number): { hour: number; period: "AM" | "PM" } {
+export function convertTo12Hour(hour24: number): {
+    hour: number;
+    period: "AM" | "PM";
+} {
     const period = hour24 >= 12 ? "PM" : "AM";
     let hour12 = hour24 % 12;
     if (hour12 === 0) hour12 = 12;
     return { hour: hour12, period };
-};
+}
 
 export function convertTo24Hour(hour12: number, period: "AM" | "PM"): number {
     if (period === "AM") {
@@ -159,7 +161,7 @@ export function convertTo24Hour(hour12: number, period: "AM" | "PM"): number {
     } else {
         return hour12 === 12 ? 12 : hour12 + 12;
     }
-};
+}
 
 export function convertToTotalMinutes(time: TimeValue): number {
     let hours = time.hours;
@@ -171,16 +173,22 @@ export function convertToTotalMinutes(time: TimeValue): number {
     }
 
     return hours * 60 + time.minutes;
-};
+}
 
-export function isEndTimeAfterStartTime(start: TimeValue, end: TimeValue): boolean {
+export function isEndTimeAfterStartTime(
+    start: TimeValue,
+    end: TimeValue,
+): boolean {
     const startTotalMinutes = convertToTotalMinutes(start);
     const endTotalMinutes = convertToTotalMinutes(end);
 
     return endTotalMinutes > startTotalMinutes;
-};
+}
 
-export function getNextValidTime(startTime: TimeValue, interval: number = 1): TimeValue {
+export function getNextValidTime(
+    startTime: TimeValue,
+    interval: number = 1,
+): TimeValue {
     // Add the interval to the start time
     let minutes = startTime.minutes + interval;
     let hours = startTime.hours;
@@ -201,7 +209,7 @@ export function getNextValidTime(startTime: TimeValue, interval: number = 1): Ti
     }
 
     return { hours, minutes, period };
-};
+}
 
 export const teamCategoryOptions = [
     { value: "leader", label: "Leader" },
@@ -213,23 +221,23 @@ export const teamCategoryOptions = [
 
 export const getAuthHeaders = async () => {
     const {
-      data: { session },
+        data: { session },
     } = await client.auth.getSession();
-  
+
     if (!session?.access_token) {
-      throw new Error("You must be logged in");
+        throw new Error("You must be logged in");
     }
-  
+
     return {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${session.access_token}`,
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${session.access_token}`,
     };
-  };
+};
 
 const EWKB_SRID_FLAG = 0x20000000;
 const WKB_POINT = 1;
 
-export function parseEWKBPoint(hex: string): Record<string,number> {
+export function parseEWKBPoint(hex: string): Record<string, number> {
     if (hex.length % 2 !== 0 || !/^[0-9a-fA-F]+$/.test(hex)) {
         throw new Error("Invalid hex string");
     }

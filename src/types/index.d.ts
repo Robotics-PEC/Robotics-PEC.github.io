@@ -3,7 +3,7 @@ import { SetStateAction } from "react";
 export interface ImageData {
     name: string;
     base64: string;
-};
+}
 
 export interface ProjectType {
     id: string;
@@ -13,7 +13,7 @@ export interface ProjectType {
     category: string;
     technologies: string[];
     image: string;
-};
+}
 
 export interface EventType {
     id: string;
@@ -25,7 +25,7 @@ export interface EventType {
     capacity: number;
     attendanceOpen: boolean;
     registrationOpen: boolean;
-};
+}
 
 export interface ActivityType {
     id: string;
@@ -33,7 +33,7 @@ export interface ActivityType {
     description: string;
     date: string;
     participants: number;
-};
+}
 
 export interface TeamMember {
     id: string;
@@ -41,7 +41,7 @@ export interface TeamMember {
     lastName: string;
     role: string;
     image: string;
-};
+}
 
 export interface CategoryTeamMember {
     category: string;
@@ -51,7 +51,7 @@ export interface CategoryTeamMember {
 export interface PublicUrlType {
     name: string;
     url: string;
-};
+}
 
 interface FormTeamType {
     id: string;
@@ -60,7 +60,7 @@ interface FormTeamType {
     role: string;
     image: string;
     category: string;
-};
+}
 
 export interface FormProjectType {
     id: string;
@@ -70,13 +70,13 @@ export interface FormProjectType {
     longDescription: string;
     category: string;
     technologies: string;
-};
+}
 
 export interface FormResourceType {
     id: string;
     name: string;
     url: string;
-};
+}
 
 export interface FormActivityType {
     id: string;
@@ -85,7 +85,7 @@ export interface FormActivityType {
     shortDescription: string;
     date: string | undefined;
     participants: string;
-};
+}
 
 export interface FormEventType {
     id: string;
@@ -102,7 +102,7 @@ export interface FormEventType {
     registrationOpen?: boolean;
     attendanceFormConfigJson?: any;
     event_geo_location?: string;
-};
+}
 
 export interface BlogUserType {
     sid: string;
@@ -111,53 +111,61 @@ export interface BlogUserType {
     bio: string;
     content: string;
     image: string;
-};
+}
 
 export interface FormFieldProps {
     htmlFor: string;
     title: string;
     id: string;
-    onChange: ((value: SetStateAction<FormProjectType>) => void) | ((value: SetStateAction<FormTeamType>) => void) | ((value: SetStateAction<FormActivityType>) => void) | ((value: SetStateAction<FormEventType>) => void) | ((value: SetStateAction<HeroType>) => void) | ((value: SetStateAction<string>) => void) | ((value: SetStateAction<FormResourceType>) => void) | ((value: any) => void);
+    onChange:
+        | ((value: SetStateAction<FormProjectType>) => void)
+        | ((value: SetStateAction<FormTeamType>) => void)
+        | ((value: SetStateAction<FormActivityType>) => void)
+        | ((value: SetStateAction<FormEventType>) => void)
+        | ((value: SetStateAction<HeroType>) => void)
+        | ((value: SetStateAction<string>) => void)
+        | ((value: SetStateAction<FormResourceType>) => void)
+        | ((value: any) => void);
     placeholder: string;
     value: string | Date | undefined;
     type: "BLOB" | "TEXT" | "IMAGE" | "MARKDOWN" | "DATE" | "TIME" | "CATEGORY";
     setFileName?: (value: SetStateAction<string>) => void;
-    imageData?: { name: string, base64: string };
+    imageData?: { name: string; base64: string };
     date?: Date | undefined;
     setDate?: (date: Date | undefined) => void;
-};
+}
 
 export interface HeroType {
     heading: string;
     description: string;
-};
+}
 
 export interface ImageObjectType {
     image1: string;
     image2: string;
     image3: string;
-};
+}
 
 export interface ImageType {
     name: "";
-    src: ""
-};
+    src: "";
+}
 
 export interface RepoType {
     name: string;
     url: string;
-};
+}
 
 export interface TeamData {
-    leader: any[],
-    website: any[],
-    mechanical: any[],
-    electrical: any[],
-    software: any[],
-    length: number,
+    leader: any[];
+    website: any[];
+    mechanical: any[];
+    electrical: any[];
+    software: any[];
+    length: number;
     emptyArrays: number;
     [key: string]: any;
-};
+}
 
 export interface ReviewScore {
     personality: number;
@@ -213,10 +221,7 @@ export type InterviewerType = {
     phone: string;
     availableDays: string[];
     responses: Record<string, string>;
-    status:
-        | "pending"
-        | "accepted"
-        | "rejected";
+    status: "pending" | "accepted" | "rejected";
     createdAt?: string | null;
 };
 
@@ -234,37 +239,37 @@ export interface TechTalkDetails {
     showName: string;
     tagline: string;
     episodeNumber: number;
-  
+
     channelId: string;
     channelUrl: string;
     currentVideoId: string | null;
-  
+
     challenge: {
-      week: number;
-      title: string;
-      brief: string;
-      deadline: string;
+        week: number;
+        title: string;
+        brief: string;
+        deadline: string;
     };
-  
+
     socials: {
-      label: string;
-      href: string;
+        label: string;
+        href: string;
     }[];
-  
+
     created_at: string;
-};
+}
 
 export interface TechTalkChallenge {
     week: number;
     title: string;
     brief: string;
     deadline: string;
-};
+}
 
 export interface TechTalkSocial {
     label: string;
     href: string;
-};
+}
 
 export interface TechTalkDetails {
     id: string;
@@ -281,12 +286,9 @@ export interface TechTalkDetails {
 
     challenge: TechTalkChallenge;
     socials: TechTalkSocial[];
-};
+}
 
-export type TechTalkDetailsInsert = Omit<
-  TechTalkDetails,
-  "id" | "created_at"
->;
+export type TechTalkDetailsInsert = Omit<TechTalkDetails, "id" | "created_at">;
 
 export type TechTalkDetailsUpdate = Partial<TechTalkDetailsInsert>;
 
@@ -296,9 +298,9 @@ export interface TechTalkSubmission {
     name: string;
     episodeNumber: number;
     link: string;
-};
+}
 
 export type TechTalkSubmissionInsert = Omit<
-  TechTalkSubmission,
-  "id" | "created_at"
+    TechTalkSubmission,
+    "id" | "created_at"
 >;

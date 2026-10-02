@@ -33,7 +33,9 @@ import { FieldRenderer } from "./fields";
  * />
  * ```
  */
-export function DynamicForm<TValues extends Record<string, unknown> = Record<string, unknown>>({
+export function DynamicForm<
+    TValues extends Record<string, unknown> = Record<string, unknown>,
+>({
     config,
     onSubmit,
     disabled = false,
@@ -45,7 +47,9 @@ export function DynamicForm<TValues extends Record<string, unknown> = Record<str
 
     const form = useForm<TValues>({
         resolver: zodResolver(schema),
-        defaultValues: (defaultValues ?? config[FormConfigKey.DEFAULT_VALUES] ?? {}) as any,
+        defaultValues: (defaultValues ??
+            config[FormConfigKey.DEFAULT_VALUES] ??
+            {}) as any,
     });
 
     const [isSubmitting, setIsSubmitting] = React.useState(false);
@@ -66,7 +70,11 @@ export function DynamicForm<TValues extends Record<string, unknown> = Record<str
         <Form {...form}>
             <form
                 onSubmit={form.handleSubmit(handleSubmit)}
-                className={cn("space-y-8", config[FormConfigKey.CLASS_NAME], className)}
+                className={cn(
+                    "space-y-8",
+                    config[FormConfigKey.CLASS_NAME],
+                    className,
+                )}
             >
                 {sections.map((section, sectionIdx) => {
                     const sectionTitle = section[SectionKey.TITLE];
@@ -76,11 +84,16 @@ export function DynamicForm<TValues extends Record<string, unknown> = Record<str
                     const sectionClassName = section[SectionKey.CLASS_NAME];
 
                     return (
-                        <div key={sectionIdx} className={cn("space-y-6", sectionClassName)}>
+                        <div
+                            key={sectionIdx}
+                            className={cn("space-y-6", sectionClassName)}
+                        >
                             {(sectionTitle || sectionDescription) && (
                                 <div className="space-y-2">
                                     {sectionTitle && (
-                                        <h3 className="text-lg font-semibold">{sectionTitle}</h3>
+                                        <h3 className="text-lg font-semibold">
+                                            {sectionTitle}
+                                        </h3>
                                     )}
                                     {sectionDescription && (
                                         <p className="text-sm text-muted-foreground">
@@ -94,9 +107,12 @@ export function DynamicForm<TValues extends Record<string, unknown> = Record<str
                                 className={cn(
                                     "grid gap-6",
                                     sectionColumns === 1 && "grid-cols-1",
-                                    sectionColumns === 2 && "grid-cols-1 md:grid-cols-2",
-                                    sectionColumns === 3 && "grid-cols-1 md:grid-cols-2 lg:grid-cols-3",
-                                    sectionColumns >= 4 && "grid-cols-1 md:grid-cols-2 lg:grid-cols-4"
+                                    sectionColumns === 2 &&
+                                        "grid-cols-1 md:grid-cols-2",
+                                    sectionColumns === 3 &&
+                                        "grid-cols-1 md:grid-cols-2 lg:grid-cols-3",
+                                    sectionColumns >= 4 &&
+                                        "grid-cols-1 md:grid-cols-2 lg:grid-cols-4",
                                 )}
                             >
                                 {sectionFields.map((field, fieldIdx) => (
@@ -117,11 +133,15 @@ export function DynamicForm<TValues extends Record<string, unknown> = Record<str
                     <Button
                         type="submit"
                         disabled={disabled || isSubmitting}
-                        className={submitConfig?.[SubmitConfigKey.CLASS_NAME] ?? ""}
+                        className={
+                            submitConfig?.[SubmitConfigKey.CLASS_NAME] ?? ""
+                        }
                     >
                         {isSubmitting
-                            ? (submitConfig?.[SubmitConfigKey.LOADING_LABEL] ?? "Submitting...")
-                            : (submitConfig?.[SubmitConfigKey.LABEL] ?? "Submit")}
+                            ? (submitConfig?.[SubmitConfigKey.LOADING_LABEL] ??
+                              "Submitting...")
+                            : (submitConfig?.[SubmitConfigKey.LABEL] ??
+                              "Submit")}
                     </Button>
                 </div>
             </form>

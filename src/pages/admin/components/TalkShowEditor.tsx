@@ -3,10 +3,12 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { Plus, Trash } from "lucide-react";
+import { TechTalkDetailsInsert } from "@/types";
 import {
-    TechTalkDetailsInsert,
-} from "@/types";
-import { getTechTalkDetails, updateTechTalkDetails, insertTechTalkDetails } from "@/lib/supabase/actions/tech-talk.actions";
+    getTechTalkDetails,
+    updateTechTalkDetails,
+    insertTechTalkDetails,
+} from "@/lib/supabase/actions/tech-talk.actions";
 import {
     DynamicForm,
     FormConfigKey,
@@ -16,7 +18,7 @@ import {
     SubmitConfigKey,
     ValidationKey,
     InputMode,
-    type FormConfig
+    type FormConfig,
 } from "@/lib/form-builder";
 
 const emptyData: TechTalkDetailsInsert = {
@@ -91,7 +93,10 @@ const TalkShowEditor = () => {
             } catch (error) {
                 toast({
                     title: "Failed to load Tech Talk details",
-                    description: error instanceof Error ? error.message : "Something went wrong",
+                    description:
+                        error instanceof Error
+                            ? error.message
+                            : "Something went wrong",
                     variant: "destructive",
                 });
             } finally {
@@ -136,7 +141,10 @@ const TalkShowEditor = () => {
         } catch (error) {
             toast({
                 title: "Error",
-                description: error instanceof Error ? error.message : "Something went wrong",
+                description:
+                    error instanceof Error
+                        ? error.message
+                        : "Something went wrong",
                 variant: "destructive",
             });
         } finally {
@@ -145,7 +153,7 @@ const TalkShowEditor = () => {
     };
 
     const handleChallengeSubmit = (values: ChallengeFormValues) => {
-        setDetails(prev => ({
+        setDetails((prev) => ({
             ...prev,
             challenge: {
                 week: Number(values.week),
@@ -174,19 +182,20 @@ const TalkShowEditor = () => {
         }));
     };
 
-    const handleSocialSubmit = (index: number) => (values: SocialFormValues) => {
-        setDetails((prev) => ({
-            ...prev,
-            socials: prev.socials.map((social, i) =>
-                i === index ? values : social
-            ),
-        }));
+    const handleSocialSubmit =
+        (index: number) => (values: SocialFormValues) => {
+            setDetails((prev) => ({
+                ...prev,
+                socials: prev.socials.map((social, i) =>
+                    i === index ? values : social,
+                ),
+            }));
 
-        toast({
-            title: "Success",
-            description: "Social link updated",
-        });
-    };
+            toast({
+                title: "Success",
+                description: "Social link updated",
+            });
+        };
 
     const handleRemoveSocial = (index: number) => {
         setDetails((prev) => ({
@@ -238,7 +247,8 @@ const TalkShowEditor = () => {
                         [FieldConfigKey.NAME]: "tagline",
                         [FieldConfigKey.LABEL]: "Tagline",
                         [FieldConfigKey.TYPE]: FieldType.TEXT,
-                        [FieldConfigKey.PLACEHOLDER]: "A tech talk show, served late-night style.",
+                        [FieldConfigKey.PLACEHOLDER]:
+                            "A tech talk show, served late-night style.",
                         [FieldConfigKey.REQUIRED]: true,
                     },
                     {
@@ -250,7 +260,8 @@ const TalkShowEditor = () => {
                         [FieldConfigKey.INPUT_MODE]: InputMode.NUMERIC,
                         [FieldConfigKey.VALIDATION]: {
                             [ValidationKey.PATTERN]: /^\d+$/,
-                            [ValidationKey.MESSAGE]: "Episode number must be a valid number",
+                            [ValidationKey.MESSAGE]:
+                                "Episode number must be a valid number",
                         },
                     },
                 ],
@@ -269,21 +280,25 @@ const TalkShowEditor = () => {
                         [FieldConfigKey.NAME]: "channelUrl",
                         [FieldConfigKey.LABEL]: "Channel URL",
                         [FieldConfigKey.TYPE]: FieldType.URL,
-                        [FieldConfigKey.PLACEHOLDER]: "https://www.youtube.com/@...",
+                        [FieldConfigKey.PLACEHOLDER]:
+                            "https://www.youtube.com/@...",
                         [FieldConfigKey.REQUIRED]: true,
                     },
                     {
                         [FieldConfigKey.NAME]: "currentVideoId",
                         [FieldConfigKey.LABEL]: "Current Video ID",
                         [FieldConfigKey.TYPE]: FieldType.TEXT,
-                        [FieldConfigKey.PLACEHOLDER]: "Leave empty when offline",
+                        [FieldConfigKey.PLACEHOLDER]:
+                            "Leave empty when offline",
                         [FieldConfigKey.REQUIRED]: false,
                     },
                 ],
             },
         ],
         [FormConfigKey.SUBMIT]: {
-            [SubmitConfigKey.LABEL]: existingId ? "Update Tech Talk Details" : "Add Tech Talk Details",
+            [SubmitConfigKey.LABEL]: existingId
+                ? "Update Tech Talk Details"
+                : "Add Tech Talk Details",
             [SubmitConfigKey.LOADING_LABEL]: "Saving...",
         },
     };
@@ -302,7 +317,8 @@ const TalkShowEditor = () => {
                         [FieldConfigKey.INPUT_MODE]: InputMode.NUMERIC,
                         [FieldConfigKey.VALIDATION]: {
                             [ValidationKey.PATTERN]: /^\d+$/,
-                            [ValidationKey.MESSAGE]: "Week must be a valid number",
+                            [ValidationKey.MESSAGE]:
+                                "Week must be a valid number",
                         },
                     },
                     {
@@ -327,7 +343,8 @@ const TalkShowEditor = () => {
                         [FieldConfigKey.NAME]: "brief",
                         [FieldConfigKey.LABEL]: "Brief",
                         [FieldConfigKey.TYPE]: FieldType.MARKDOWN,
-                        [FieldConfigKey.PLACEHOLDER]: "Describe this week's challenge...",
+                        [FieldConfigKey.PLACEHOLDER]:
+                            "Describe this week's challenge...",
                         [FieldConfigKey.REQUIRED]: true,
                         dontWantImage: true,
                     },
@@ -355,7 +372,8 @@ const TalkShowEditor = () => {
                         [FieldConfigKey.NAME]: "href",
                         [FieldConfigKey.LABEL]: "URL",
                         [FieldConfigKey.TYPE]: FieldType.URL,
-                        [FieldConfigKey.PLACEHOLDER]: "https://instagram.com/...",
+                        [FieldConfigKey.PLACEHOLDER]:
+                            "https://instagram.com/...",
                         [FieldConfigKey.REQUIRED]: true,
                     },
                 ],
@@ -439,7 +457,9 @@ const TalkShowEditor = () => {
                                                 type="button"
                                                 variant="destructive"
                                                 size="sm"
-                                                onClick={() => handleRemoveSocial(index)}
+                                                onClick={() =>
+                                                    handleRemoveSocial(index)
+                                                }
                                                 className="w-full"
                                             >
                                                 <Trash className="mr-2 h-4 w-4" />

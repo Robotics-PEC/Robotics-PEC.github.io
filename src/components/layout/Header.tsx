@@ -4,7 +4,11 @@ import { useMemo, useState } from "react";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+    Popover,
+    PopoverContent,
+    PopoverTrigger,
+} from "@/components/ui/popover";
 import { GitFork, LogOut, Menu } from "lucide-react";
 import Link from "next/link";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
@@ -33,7 +37,8 @@ const Header = () => {
     const [profileOpen, setProfileOpen] = useState(false);
     const isAdmin = router.pathname === "/admin/page" || roleIsAdmin;
     const isPanelist = role?.slug === "admin" || role?.slug?.includes("panel");
-    const displayName = user?.user_metadata?.full_name ?? user?.user_metadata?.name ?? null;
+    const displayName =
+        user?.user_metadata?.full_name ?? user?.user_metadata?.name ?? null;
     const displayEmail = user?.email ?? null;
     const avatarUrl =
         user?.user_metadata?.avatar_url ??
@@ -59,14 +64,14 @@ const Header = () => {
 
     const navigation = [
         { name: "Home", path: "/" },
-        { name: "Team", path: "/team"},
+        { name: "Team", path: "/team" },
         { name: "Projects", path: "/project" },
         { name: "Activities", path: "/activities" },
         { name: "Events", path: "/events" },
         { name: "Apply", path: "/apply" },
         { name: "Contact", path: "/contact" },
         { name: "Resources", path: "/resources" },
-        { name: "Tech Talk", path: "/tech-talk"}
+        { name: "Tech Talk", path: "/tech-talk" },
     ];
 
     return (
@@ -113,35 +118,44 @@ const Header = () => {
                                     </Link>
                                 </>
                             )}
-                            {
-                                isAdmin && (
-                                    <>
-                                        <Link href="/" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
-                                            View Website
-                                        </Link>
-                                    </>
-                                )
-                            }
-                            {
-                                isAdmin && (
-                                    <>
-                                        <Link href="/admin/page" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
-                                            Admin
-                                        </Link>
-                                    </>
-                                )
-                            }
+                            {isAdmin && (
+                                <>
+                                    <Link
+                                        href="/"
+                                        className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+                                    >
+                                        View Website
+                                    </Link>
+                                </>
+                            )}
+                            {isAdmin && (
+                                <>
+                                    <Link
+                                        href="/admin/page"
+                                        className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+                                    >
+                                        Admin
+                                    </Link>
+                                </>
+                            )}
                         </nav>
                     </div>
 
                     {/* Buttons and Mobile Menu */}
                     <div className="flex items-center gap-2 sm:gap-4">
                         {!user ? (
-                            <Button asChild variant="outline" className="border-border bg-background/80 hover:bg-accent">
+                            <Button
+                                asChild
+                                variant="outline"
+                                className="border-border bg-background/80 hover:bg-accent"
+                            >
                                 <Link href={loginHref}>Login</Link>
                             </Button>
                         ) : (
-                            <Popover open={profileOpen} onOpenChange={setProfileOpen}>
+                            <Popover
+                                open={profileOpen}
+                                onOpenChange={setProfileOpen}
+                            >
                                 <PopoverTrigger asChild>
                                     <button
                                         type="button"
@@ -149,18 +163,36 @@ const Header = () => {
                                         className="relative flex h-10 w-10 items-center justify-center overflow-hidden rounded-full border border-border bg-background shadow-sm ring-offset-background transition hover:scale-[1.02] focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
                                     >
                                         <Avatar className="h-10 w-10">
-                                            <AvatarImage src={avatarUrl ?? undefined} alt={displayName ?? displayEmail ?? "User profile"} />
+                                            <AvatarImage
+                                                src={avatarUrl ?? undefined}
+                                                alt={
+                                                    displayName ??
+                                                    displayEmail ??
+                                                    "User profile"
+                                                }
+                                            />
                                             <AvatarFallback className="bg-slate-900 text-xs font-semibold text-white">
                                                 {fallbackInitials}
                                             </AvatarFallback>
                                         </Avatar>
                                     </button>
                                 </PopoverTrigger>
-                                <PopoverContent align="end" sideOffset={12} className="w-72 rounded-2xl border border-border/60 bg-background p-3 shadow-xl">
+                                <PopoverContent
+                                    align="end"
+                                    sideOffset={12}
+                                    className="w-72 rounded-2xl border border-border/60 bg-background p-3 shadow-xl"
+                                >
                                     <div className="space-y-3">
                                         <div className="flex items-center gap-3 rounded-xl bg-muted/40 px-3 py-3">
                                             <Avatar className="h-11 w-11">
-                                                <AvatarImage src={avatarUrl ?? undefined} alt={displayName ?? displayEmail ?? "User profile"} />
+                                                <AvatarImage
+                                                    src={avatarUrl ?? undefined}
+                                                    alt={
+                                                        displayName ??
+                                                        displayEmail ??
+                                                        "User profile"
+                                                    }
+                                                />
                                                 <AvatarFallback className="bg-slate-900 text-xs font-semibold text-white">
                                                     {fallbackInitials}
                                                 </AvatarFallback>
@@ -205,7 +237,11 @@ const Header = () => {
                         {/* Mobile menu */}
                         <Sheet>
                             <SheetTrigger asChild>
-                                <Button variant="outline" size="icon" className="md:hidden">
+                                <Button
+                                    variant="outline"
+                                    size="icon"
+                                    className="md:hidden"
+                                >
                                     <Menu className="h-6 w-6" />
                                 </Button>
                             </SheetTrigger>

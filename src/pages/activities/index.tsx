@@ -1,4 +1,3 @@
-
 import { motion } from "framer-motion";
 import { Card } from "@/components/ui/card";
 import { Calendar, Users } from "lucide-react";
@@ -12,7 +11,6 @@ import PageSection from "@/components/layout/PageSection";
 import Link from "next/link";
 
 const Activities = () => {
-
     const [activities, setActivities] = useState<ActivityType[]>([]);
     const [loading, setLoading] = useState(true);
 
@@ -37,7 +35,7 @@ const Activities = () => {
                     title="Our Activities"
                     subtitle="Join us in our robotics journey"
                 >
-                    {activities.length > 0 ?
+                    {activities.length > 0 ? (
                         <motion.div
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
@@ -52,39 +50,53 @@ const Activities = () => {
                                         transition={{ duration: 0.5 }}
                                         whileHover={{ y: -5 }}
                                     >
-                                        <Link href={`/activities/${activity.id}`}>
+                                        <Link
+                                            href={`/activities/${activity.id}`}
+                                        >
                                             <Card className="overflow-hidden hover:shadow-lg transition-all duration-300">
                                                 <div className="p-6">
                                                     <div className="flex justify-between items-start mb-4">
-                                                        <h3 className="text-xl font-semibold">{activity.title}</h3>
+                                                        <h3 className="text-xl font-semibold">
+                                                            {activity.title}
+                                                        </h3>
                                                     </div>
-                                                    <p className="text-gray-600 mb-4">{activity.description}</p>
+                                                    <p className="text-gray-600 mb-4">
+                                                        {activity.description}
+                                                    </p>
                                                     <div className="flex items-center gap-4 text-sm text-gray-500">
                                                         <div className="flex items-center gap-1">
                                                             <Calendar className="h-4 w-4" />
-                                                            <span>{activity.date}</span>
+                                                            <span>
+                                                                {activity.date}
+                                                            </span>
                                                         </div>
                                                         <div className="flex items-center gap-1">
                                                             <Users className="h-4 w-4" />
-                                                            <span>{activity.participants} Participants</span>
+                                                            <span>
+                                                                {
+                                                                    activity.participants
+                                                                }{" "}
+                                                                Participants
+                                                            </span>
                                                         </div>
                                                     </div>
                                                 </div>
                                             </Card>
                                         </Link>
                                     </motion.div>
-
                                 ))}
                             </div>
                         </motion.div>
-                        :
+                    ) : (
                         <div className="text-center mb-16">
-                            <h1 className="text-4xl font-bold mb-4">No Activities as of now!</h1>
+                            <h1 className="text-4xl font-bold mb-4">
+                                No Activities as of now!
+                            </h1>
                         </div>
-                    }
+                    )}
                 </PageSection>
-            </ section >
-        </Loader >
+            </section>
+        </Loader>
     );
 };
 

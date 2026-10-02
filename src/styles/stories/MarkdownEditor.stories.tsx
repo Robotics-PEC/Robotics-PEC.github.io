@@ -12,4 +12,3 @@ export const Default = () => (
         placeholder="Enter markdown text..."
     />
 );
-

@@ -1,11 +1,21 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import {
+    Accordion,
+    AccordionContent,
+    AccordionItem,
+    AccordionTrigger,
+} from "@/components/ui/accordion";
 import { useToast } from "@/hooks/use-toast";
 import { Plus, Trash, Edit, Save } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import ReactMarkdown from "react-markdown";
-import { deleteProject, getProjects, updateProject, uploadProject } from "@/lib/supabase/actions/project.actions";
+import {
+    deleteProject,
+    getProjects,
+    updateProject,
+    uploadProject,
+} from "@/lib/supabase/actions/project.actions";
 import { FormProjectType } from "@/types";
 import { Loader } from "../../../components/layout/Loader";
 import { HTMLToMarkdown, urlToBase64 } from "@/lib/utils";
@@ -16,7 +26,7 @@ import {
     FieldConfigKey,
     FieldType,
     SubmitConfigKey,
-    type FormConfig
+    type FormConfig,
 } from "@/lib/form-builder";
 
 type ProjectFormValues = {
@@ -36,7 +46,7 @@ const ProjectsEditor = () => {
         image: "",
         longDescription: "",
         category: "",
-        technologies: ""
+        technologies: "",
     };
     const { toast } = useToast();
     const [projects, setProjects] = useState<FormProjectType[]>([]);
@@ -70,14 +80,14 @@ const ProjectsEditor = () => {
             toast({
                 title: error.name,
                 description: error.message,
-                variant: "destructive"
+                variant: "destructive",
             });
         } else {
             toast({
                 title: "Success",
-                description: "Project has been Uploaded"
+                description: "Project has been Uploaded",
             });
-            setProjects(prev => [...prev, newProject]);
+            setProjects((prev) => [...prev, newProject]);
         }
     };
 
@@ -86,15 +96,15 @@ const ProjectsEditor = () => {
 
         for (let i = 0; i < projects.length; i++) {
             if (projects[i].id === editingId) {
-                setFileName((projects[i].image.split("/").pop()!));
+                setFileName(projects[i].image.split("/").pop()!);
             }
         }
 
         const updatedProject = { ...defaultData, id: editingId, ...values };
-        setProjects(prev =>
-            prev.map(project =>
-                project.id === editingId ? updatedProject : project
-            )
+        setProjects((prev) =>
+            prev.map((project) =>
+                project.id === editingId ? updatedProject : project,
+            ),
         );
 
         const error = await updateProject(updatedProject, fileName);
@@ -105,34 +115,34 @@ const ProjectsEditor = () => {
             toast({
                 title: error.name,
                 description: error.message,
-                variant: "destructive"
+                variant: "destructive",
             });
         } else {
             toast({
                 title: "Success",
-                description: "Project has been Updated"
+                description: "Project has been Updated",
             });
         }
     };
 
     const handleEditProject = async (project: FormProjectType) => {
-        setFileName((project.image.split("/").pop())!);
+        setFileName(project.image.split("/").pop()!);
         project.image = await urlToBase64(project.image);
         setEditingId(project.id);
     };
 
     const handleRemoveProject = async (project: FormProjectType) => {
-        setProjects(prev => prev.filter(pr => pr.id !== project.id));
+        setProjects((prev) => prev.filter((pr) => pr.id !== project.id));
         const response = await deleteProject(project);
         if (response.status == 204) {
             toast({
                 title: "Project Deleted Successfully",
-                description: `${project.title} was successfully deleted`
+                description: `${project.title} was successfully deleted`,
             });
         } else {
             toast({
                 title: "Project Couldn't be deleted",
-                description: `${project.title} unable to be deleted`
+                description: `${project.title} unable to be deleted`,
             });
         }
     };
@@ -166,7 +176,8 @@ const ProjectsEditor = () => {
                         [FieldConfigKey.NAME]: "longDescription",
                         [FieldConfigKey.LABEL]: "Detailed Description",
                         [FieldConfigKey.TYPE]: FieldType.MARKDOWN,
-                        [FieldConfigKey.PLACEHOLDER]: "Write detailed project description using Markdown",
+                        [FieldConfigKey.PLACEHOLDER]:
+                            "Write detailed project description using Markdown",
                         [FieldConfigKey.REQUIRED]: true,
                     },
                     {
@@ -178,7 +189,8 @@ const ProjectsEditor = () => {
                     },
                     {
                         [FieldConfigKey.NAME]: "technologies",
-                        [FieldConfigKey.LABEL]: "Technologies Used (Comma Separated)",
+                        [FieldConfigKey.LABEL]:
+                            "Technologies Used (Comma Separated)",
                         [FieldConfigKey.TYPE]: FieldType.TEXT,
                         [FieldConfigKey.PLACEHOLDER]: "AI,Mechanical Design",
                         [FieldConfigKey.REQUIRED]: true,
@@ -187,20 +199,28 @@ const ProjectsEditor = () => {
             },
         ],
         [FormConfigKey.SUBMIT]: {
-            [SubmitConfigKey.LABEL]: editingId ? "Update Project" : "Add Project",
-            [SubmitConfigKey.LOADING_LABEL]: editingId ? "Updating..." : "Adding...",
+            [SubmitConfigKey.LABEL]: editingId
+                ? "Update Project"
+                : "Add Project",
+            [SubmitConfigKey.LOADING_LABEL]: editingId
+                ? "Updating..."
+                : "Adding...",
         },
     };
 
-    const editingProject = editingId ? projects.find(p => p.id === editingId) : null;
-    const defaultValues = editingProject ? {
-        title: editingProject.title,
-        description: editingProject.description,
-        image: editingProject.image,
-        longDescription: editingProject.longDescription,
-        category: editingProject.category,
-        technologies: editingProject.technologies,
-    } : undefined;
+    const editingProject = editingId
+        ? projects.find((p) => p.id === editingId)
+        : null;
+    const defaultValues = editingProject
+        ? {
+              title: editingProject.title,
+              description: editingProject.description,
+              image: editingProject.image,
+              longDescription: editingProject.longDescription,
+              category: editingProject.category,
+              technologies: editingProject.technologies,
+          }
+        : undefined;
 
     return (
         <Loader isLoading={loading}>
@@ -211,7 +231,9 @@ const ProjectsEditor = () => {
                     </h3>
                     <DynamicForm
                         config={projectFormConfig}
-                        onSubmit={editingId ? handleUpdateProject : handleAddProject}
+                        onSubmit={
+                            editingId ? handleUpdateProject : handleAddProject
+                        }
                         defaultValues={defaultValues}
                         key={editingId || "new"}
                         footer={
@@ -233,11 +255,16 @@ const ProjectsEditor = () => {
                     <h3 className="text-lg font-medium">Current Projects</h3>
 
                     {projects.length === 0 ? (
-                        <p className="text-gray-500 italic">No projects added yet.</p>
+                        <p className="text-gray-500 italic">
+                            No projects added yet.
+                        </p>
                     ) : (
                         <Accordion type="single" collapsible className="w-full">
                             {projects.map((project) => (
-                                <AccordionItem key={project.id} value={project.id}>
+                                <AccordionItem
+                                    key={project.id}
+                                    value={project.id}
+                                >
                                     <AccordionTrigger>
                                         <div className="flex justify-between items-center w-full pr-4">
                                             <span>{project.title}</span>
@@ -254,9 +281,15 @@ const ProjectsEditor = () => {
                                                     />
                                                 )}
                                                 <div className="flex-1">
-                                                    <p className="text-sm text-gray-600 mb-2">{project.description}</p>
+                                                    <p className="text-sm text-gray-600 mb-2">
+                                                        {project.description}
+                                                    </p>
                                                     <div className="prose prose-sm max-w-none">
-                                                        <ReactMarkdown>{HTMLToMarkdown(project.longDescription)}</ReactMarkdown>
+                                                        <ReactMarkdown>
+                                                            {HTMLToMarkdown(
+                                                                project.longDescription,
+                                                            )}
+                                                        </ReactMarkdown>
                                                     </div>
                                                 </div>
                                             </div>
@@ -264,16 +297,26 @@ const ProjectsEditor = () => {
                                                 <Button
                                                     size="sm"
                                                     variant="outline"
-                                                    onClick={() => handleEditProject(project)}
+                                                    onClick={() =>
+                                                        handleEditProject(
+                                                            project,
+                                                        )
+                                                    }
                                                 >
-                                                    <Edit className="h-4 w-4 mr-1" /> Edit
+                                                    <Edit className="h-4 w-4 mr-1" />{" "}
+                                                    Edit
                                                 </Button>
                                                 <Button
                                                     size="sm"
                                                     variant="destructive"
-                                                    onClick={() => handleRemoveProject(project)}
+                                                    onClick={() =>
+                                                        handleRemoveProject(
+                                                            project,
+                                                        )
+                                                    }
                                                 >
-                                                    <Trash className="h-4 w-4 mr-1" /> Delete
+                                                    <Trash className="h-4 w-4 mr-1" />{" "}
+                                                    Delete
                                                 </Button>
                                             </div>
                                         </div>

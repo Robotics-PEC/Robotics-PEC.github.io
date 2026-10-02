@@ -18,7 +18,7 @@ export const BRANCHES = [
     "Information Technology",
 ] as const;
 
-export type Branch = typeof BRANCHES[number];
+export type Branch = (typeof BRANCHES)[number];
 
 export const GENDER_OPTIONS = [
     { label: "Male", value: "male" },

@@ -9,8 +9,8 @@ import { HeroType } from "@/types";
 
 const emptyData = {
     heading: "",
-    description: ""
-}
+    description: "",
+};
 
 const Hero: React.FC<{ handleClick: () => void }> = ({ handleClick }) => {
     const [currentIndex, setCurrentIndex] = useState(0);
@@ -25,14 +25,16 @@ const Hero: React.FC<{ handleClick: () => void }> = ({ handleClick }) => {
             setImages(publicUrls);
             setHeroData(hero);
             setLoading(false);
-        }
+        };
         fetch();
-    }, [])
+    }, []);
 
     useEffect(() => {
         const interval = setInterval(() => {
             if (!images || images.length === 0) return;
-            setCurrentIndex((previousIndex) => (previousIndex + 1) % images.length);
+            setCurrentIndex(
+                (previousIndex) => (previousIndex + 1) % images.length,
+            );
         }, 5000);
 
         return () => clearInterval(interval);
@@ -56,7 +58,7 @@ const Hero: React.FC<{ handleClick: () => void }> = ({ handleClick }) => {
                                 className="w-full h-full bg-cover bg-center"
                                 style={{
                                     backgroundImage: `url(${images[currentIndex]})`,
-                                    filter: "brightness(0.5)"
+                                    filter: "brightness(0.5)",
                                 }}
                             />
                         </motion.div>
@@ -83,7 +85,8 @@ const Hero: React.FC<{ handleClick: () => void }> = ({ handleClick }) => {
                                     className="px-8 py-6 text-lg rounded-full  text-white transition-all duration-300 ease-in-out hover:scale-105 backdrop-blur-sm bg-opacity-80"
                                     onClick={handleClick}
                                 >
-                                    Explore Our Projects <ChevronRight className="ml-2" />
+                                    Explore Our Projects{" "}
+                                    <ChevronRight className="ml-2" />
                                 </Button>
                             </div>
                         </motion.div>
@@ -95,10 +98,11 @@ const Hero: React.FC<{ handleClick: () => void }> = ({ handleClick }) => {
                             <button
                                 key={index}
                                 onClick={() => setCurrentIndex(index)}
-                                className={`w-3 h-3 rounded-full transition-all duration-300 ${index === currentIndex
-                                    ? "bg-white scale-110 w-4"
-                                    : "bg-white/50 hover:bg-white/70"
-                                    }`}
+                                className={`w-3 h-3 rounded-full transition-all duration-300 ${
+                                    index === currentIndex
+                                        ? "bg-white scale-110 w-4"
+                                        : "bg-white/50 hover:bg-white/70"
+                                }`}
                                 aria-label={`Go to slide ${index + 1}`}
                             />
                         ))}

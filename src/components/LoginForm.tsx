@@ -42,7 +42,7 @@ const LoginForm = () => {
             const data = await loginUser(email, password);
 
             if (!data) {
-                throw new Error;
+                throw new Error();
             }
 
             if (data) {
@@ -89,7 +89,6 @@ const LoginForm = () => {
             <div className="space-y-2">
                 <div className="flex justify-between items-center">
                     <Label htmlFor="password">Password</Label>
-
                 </div>
                 <div className="relative">
                     <div className="absolute left-3 top-3 text-gray-400">
@@ -110,15 +109,15 @@ const LoginForm = () => {
                         className="absolute right-0 top-0 h-full px-3 py-2 text-gray-400 hover:text-gray-600"
                         onClick={() => setShowPassword(!showPassword)}
                     >
-                        {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                        {showPassword ? (
+                            <EyeOff size={16} />
+                        ) : (
+                            <Eye size={16} />
+                        )}
                     </Button>
                 </div>
             </div>
-            <Button
-                type="submit"
-                className="w-full"
-                disabled={isLoading}
-            >
+            <Button type="submit" className="w-full" disabled={isLoading}>
                 {isLoading ? "Logging in..." : "Log in"}
             </Button>
         </form>

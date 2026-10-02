@@ -16,8 +16,12 @@ interface MarkdownEditorProps {
     dontWantImage?: boolean;
 }
 
-const MarkdownEditor: React.FC<MarkdownEditorProps> = ({ value, onChange, placeholder, dontWantImage }) => {
-
+const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
+    value,
+    onChange,
+    placeholder,
+    dontWantImage,
+}) => {
     const [imageData, setImageData] = useState("");
 
     const hasLoaded = useRef(false);
@@ -46,8 +50,8 @@ const MarkdownEditor: React.FC<MarkdownEditorProps> = ({ value, onChange, placeh
 
     useEffect(() => {
         if (!hasLoaded.current && value !== "") {
-            value = value.replace(/<p>\s*(<img[^>]+>)\s*<\/p>/g, '$1');
-            value = value.replace(/<img([^>]*)>/g, '<img$1 />');
+            value = value.replace(/<p>\s*(<img[^>]+>)\s*<\/p>/g, "$1");
+            value = value.replace(/<img([^>]*)>/g, "<img$1 />");
             hasLoaded.current = true;
         }
         if (editor && value !== editor.getHTML()) {
@@ -57,7 +61,7 @@ const MarkdownEditor: React.FC<MarkdownEditorProps> = ({ value, onChange, placeh
 
     const addImage = useCallback(() => {
         if (imageData && editor) {
-            editor.chain().focus("end").setImage({ src: imageData }).run()
+            editor.chain().focus("end").setImage({ src: imageData }).run();
         }
     }, [editor, imageData]);
 
@@ -73,10 +77,9 @@ const MarkdownEditor: React.FC<MarkdownEditorProps> = ({ value, onChange, placeh
                     <Label htmlFor="imageURL">Image (if any)</Label>
                     <Blob setData={setImageData} uploadCallback={addImage} />
                 </div>
-            )
-            }
+            )}
         </div>
     );
-}
+};
 
 export default MarkdownEditor;

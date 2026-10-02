@@ -19,19 +19,21 @@ const Index = () => {
         electrical: [],
         software: [],
         length: 0,
-        emptyArrays: 5
+        emptyArrays: 5,
     };
 
     const [teamMembers, setTeamMembers] = useState<TeamData>(defaultData);
     const [projects, setProjects] = useState<ProjectType[]>([]);
     const [loading, setLoading] = useState(true);
-    const {role} = useAuthRole();
+    const { role } = useAuthRole();
 
     const isAdmin = role?.slug === "admin";
 
     const handleClick = () => {
-        document.getElementById("projects")?.scrollIntoView({ behavior: "smooth" });
-    }
+        document
+            .getElementById("projects")
+            ?.scrollIntoView({ behavior: "smooth" });
+    };
 
     useEffect(() => {
         const teamData: TeamData = {
@@ -41,18 +43,20 @@ const Index = () => {
             electrical: [],
             software: [],
             length: 0,
-            emptyArrays: 5
+            emptyArrays: 5,
         };
         const fetch = async () => {
             for (let i = 0; i < teamCategoryOptions.length; i++) {
-                const data = await getTeamMembersByCategory(teamCategoryOptions[i].value);
+                const data = await getTeamMembersByCategory(
+                    teamCategoryOptions[i].value,
+                );
                 if (data.length != 0) {
                     teamData.emptyArrays--;
                 }
-                teamData[teamCategoryOptions[i].value] = teamData[teamCategoryOptions[i].value].concat(data);
+                teamData[teamCategoryOptions[i].value] =
+                    teamData[teamCategoryOptions[i].value].concat(data);
                 teamData.length += data.length;
             }
-
 
             const projectsData = await getProjects();
             setTeamMembers(teamData);
@@ -65,7 +69,6 @@ const Index = () => {
 
     return (
         <Loader isLoading={loading}>
-
             <PageHead
                 title="Robotics Society | Punjab Engineering College"
                 description="PEC Robotics Society at Punjab Engineering College is dedicated to innovation in robotics and automation. Explore our projects and join our team."

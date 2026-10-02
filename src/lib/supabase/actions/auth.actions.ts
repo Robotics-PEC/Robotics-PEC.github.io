@@ -4,10 +4,12 @@ import crypto from "crypto";
 import { sanitizeRedirectPath } from "@/lib/utils";
 
 export const loginUser = async (email: string, password: string) => {
-
     const hash = crypto.createHash("sha256").update(password).digest("hex");
 
-    if (hash != process.env.NEXT_PUBLIC_PASSWORD_HASH || email != process.env.NEXT_PUBLIC_ADMIN_EMAIL) {
+    if (
+        hash != process.env.NEXT_PUBLIC_PASSWORD_HASH ||
+        email != process.env.NEXT_PUBLIC_ADMIN_EMAIL
+    ) {
         toast({
             title: "Error",
             description: "Email or password is incorrect",
@@ -16,7 +18,10 @@ export const loginUser = async (email: string, password: string) => {
         return;
     }
 
-    const { data, error } = await client.auth.signInWithPassword({ email, password });
+    const { data, error } = await client.auth.signInWithPassword({
+        email,
+        password,
+    });
 
     if (error) {
         console.log(error);
@@ -29,34 +34,33 @@ export const loginUser = async (email: string, password: string) => {
     }
 
     return JSON.parse(JSON.stringify(data));
-
-}
+};
 
 export const loginWithGoogle = async (redirectPath = "/") => {
-  const safeRedirectPath = sanitizeRedirectPath(redirectPath);
-  const { data, error } = await client.auth.signInWithOAuth({
-    provider: "google",
-    options: {
-      redirectTo: `${window.location.origin}/login/callback?redirect=${encodeURIComponent(safeRedirectPath)}`,
-      queryParams: {
-        hd: "pec.edu.in",
-      },
-    },
-  });
-
-  if (error) {
-    console.log(error);
-
-    toast({
-      title: "Error",
-      description: "Failed to log in with Google. Please try again.",
-      variant: "destructive",
+    const safeRedirectPath = sanitizeRedirectPath(redirectPath);
+    const { data, error } = await client.auth.signInWithOAuth({
+        provider: "google",
+        options: {
+            redirectTo: `${window.location.origin}/login/callback?redirect=${encodeURIComponent(safeRedirectPath)}`,
+            queryParams: {
+                hd: "pec.edu.in",
+            },
+        },
     });
 
-    return;
-  }
+    if (error) {
+        console.log(error);
 
-  return data;
+        toast({
+            title: "Error",
+            description: "Failed to log in with Google. Please try again.",
+            variant: "destructive",
+        });
+
+        return;
+    }
+
+    return data;
 };
 
 export const getCurrentUser = async () => {

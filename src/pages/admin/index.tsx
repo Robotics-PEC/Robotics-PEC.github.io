@@ -1,8 +1,14 @@
-import LoginForm from '@/components/LoginForm'
+import LoginForm from "@/components/LoginForm";
 
 import { motion } from "framer-motion";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import PageHead from '@/components/layout/PageHead';
+import {
+    Card,
+    CardContent,
+    CardDescription,
+    CardHeader,
+    CardTitle,
+} from "@/components/ui/card";
+import PageHead from "@/components/layout/PageHead";
 
 const AdminPage = () => {
     return (
@@ -13,12 +19,19 @@ const AdminPage = () => {
             />
             <div className="min-h-screen flex items-center justify-center">
                 <div className="w-full max-w-md">
-                    <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.5 }}>
+                    <motion.div
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ duration: 0.5 }}
+                    >
                         <Card className="border-none shadow-lg">
                             <CardHeader className="space-y-1 text-center">
-                                <CardTitle className="text-2xl font-bold tracking-tight">Welcome back</CardTitle>
+                                <CardTitle className="text-2xl font-bold tracking-tight">
+                                    Welcome back
+                                </CardTitle>
                                 <CardDescription>
-                                    Enter your credentials to access your account
+                                    Enter your credentials to access your
+                                    account
                                 </CardDescription>
                             </CardHeader>
                             <CardContent>
@@ -29,7 +42,7 @@ const AdminPage = () => {
                 </div>
             </div>
         </>
-    )
-}
+    );
+};
 
-export default AdminPage
+export default AdminPage;

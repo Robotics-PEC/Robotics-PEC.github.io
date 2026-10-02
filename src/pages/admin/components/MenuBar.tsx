@@ -1,5 +1,5 @@
-import React from 'react';
-import { Editor } from '@tiptap/react';
+import React from "react";
+import { Editor } from "@tiptap/react";
 import {
     Bold,
     Italic,
@@ -13,10 +13,10 @@ import {
     Undo,
     Redo,
     FileText,
-    Eye
-} from 'lucide-react';
-import FormatButton from './FormatButton';
-import { Separator } from '@/components/ui/separator';
+    Eye,
+} from "lucide-react";
+import FormatButton from "./FormatButton";
+import { Separator } from "@/components/ui/separator";
 
 interface MenuBarProps {
     editor: Editor | null;
@@ -44,40 +44,46 @@ const MenuBar = ({ editor }: MenuBarProps) => {
                 onClick={() => editor.chain().focus().toggleBold().run()}
                 icon={<Bold className="h-4 w-4" />}
                 tooltip="Bold (ctrl+B)"
-                isActive={editor.isActive('bold')}
+                isActive={editor.isActive("bold")}
             />
             <FormatButton
                 onClick={() => editor.chain().focus().toggleItalic().run()}
                 icon={<Italic className="h-4 w-4" />}
                 tooltip="Italic (ctrl+I)"
-                isActive={editor.isActive('italic')}
+                isActive={editor.isActive("italic")}
             />
             <FormatButton
                 onClick={() => editor.chain().focus().toggleCode().run()}
                 icon={<Code className="h-4 w-4" />}
                 tooltip="Code (ctrl+E)"
-                isActive={editor.isActive('code')}
+                isActive={editor.isActive("code")}
             />
 
             <Separator orientation="vertical" className="h-6 mx-1" />
 
             <FormatButton
-                onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
+                onClick={() =>
+                    editor.chain().focus().toggleHeading({ level: 1 }).run()
+                }
                 icon={<Heading1 className="h-4 w-4" />}
                 tooltip="Heading 1 (ctrl+Alt+1)"
-                isActive={editor.isActive('heading', { level: 1 })}
+                isActive={editor.isActive("heading", { level: 1 })}
             />
             <FormatButton
-                onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
+                onClick={() =>
+                    editor.chain().focus().toggleHeading({ level: 2 }).run()
+                }
                 icon={<Heading2 className="h-4 w-4" />}
                 tooltip="Heading 2 (ctrl+Alt+2)"
-                isActive={editor.isActive('heading', { level: 2 })}
+                isActive={editor.isActive("heading", { level: 2 })}
             />
             <FormatButton
-                onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}
+                onClick={() =>
+                    editor.chain().focus().toggleHeading({ level: 3 }).run()
+                }
                 icon={<Heading3 className="h-4 w-4" />}
                 tooltip="Heading 3 (ctrl+Alt+3)"
-                isActive={editor.isActive('heading', { level: 3 })}
+                isActive={editor.isActive("heading", { level: 3 })}
             />
 
             <Separator orientation="vertical" className="h-6 mx-1" />
@@ -86,19 +92,19 @@ const MenuBar = ({ editor }: MenuBarProps) => {
                 onClick={() => editor.chain().focus().toggleBulletList().run()}
                 icon={<List className="h-4 w-4" />}
                 tooltip="Bullet List (ctrl+Shift+8)"
-                isActive={editor.isActive('bulletList')}
+                isActive={editor.isActive("bulletList")}
             />
             <FormatButton
                 onClick={() => editor.chain().focus().toggleOrderedList().run()}
                 icon={<ListOrdered className="h-4 w-4" />}
                 tooltip="Ordered List (ctrl+Shift+7)"
-                isActive={editor.isActive('orderedList')}
+                isActive={editor.isActive("orderedList")}
             />
             <FormatButton
                 onClick={() => editor.chain().focus().toggleBlockquote().run()}
                 icon={<Quote className="h-4 w-4" />}
                 tooltip="Blockquote (ctrl+Shift+B)"
-                isActive={editor.isActive('blockquote')}
+                isActive={editor.isActive("blockquote")}
             />
 
             <div className="flex-1" />

@@ -1,8 +1,11 @@
 import { HeroType } from "@/types";
-import { client } from "../supabase"
+import { client } from "../supabase";
 
 export const getHeroData = async () => {
-    const { data, error } = await client.from("hero").select("*").eq("id", "e32e2ff0-8a37-4b44-aded-db033dc95333");
+    const { data, error } = await client
+        .from("hero")
+        .select("*")
+        .eq("id", "e32e2ff0-8a37-4b44-aded-db033dc95333");
 
     if (error) {
         console.log(error);
@@ -10,19 +13,23 @@ export const getHeroData = async () => {
 
     if (!data) throw new Error("Could not fetch data for hero section");
 
-    if(data.length === 0) return {
-        heading: "Robotics Society Temp Heading",
-        description: "Placeholder Description"
-    }
+    if (data.length === 0)
+        return {
+            heading: "Robotics Society Temp Heading",
+            description: "Placeholder Description",
+        };
 
     return {
         heading: data[0].heading,
-        description: data[0].description
+        description: data[0].description,
     };
 };
 
 export const updateHeroData = async (data: HeroType) => {
-    const { error } = await client.from("hero").update(data).eq("id", "e32e2ff0-8a37-4b44-aded-db033dc95333");
+    const { error } = await client
+        .from("hero")
+        .update(data)
+        .eq("id", "e32e2ff0-8a37-4b44-aded-db033dc95333");
 
     if (error) {
         console.log(error);
@@ -30,4 +37,4 @@ export const updateHeroData = async (data: HeroType) => {
     }
 
     return null;
-}
+};

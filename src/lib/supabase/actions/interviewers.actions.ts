@@ -1,8 +1,6 @@
 "use server";
 
-import type {
-    InterviewerType,
-} from "@/types";
+import type { InterviewerType } from "@/types";
 
 /*
  * ---------------------------------------------------------
@@ -17,9 +15,7 @@ export type CreateInterviewerResult =
       }
     | {
           success: false;
-          reason:
-              | "duplicate"
-              | "error";
+          reason: "duplicate" | "error";
       };
 
 export type UpdateInterviewerResult =
@@ -29,9 +25,7 @@ export type UpdateInterviewerResult =
       }
     | {
           success: false;
-          reason:
-              | "not_found"
-              | "error";
+          reason: "not_found" | "error";
       };
 
 /*
@@ -40,94 +34,53 @@ export type UpdateInterviewerResult =
  * ---------------------------------------------------------
  */
 
-const appsScriptRequest =
-    async (
-        body: Record<
-            string,
-            unknown
-        >
-    ): Promise<any> => {
-        const isServer =
-            typeof window ===
-            "undefined";
+const appsScriptRequest = async (
+    body: Record<string, unknown>,
+): Promise<any> => {
+    const isServer = typeof window === "undefined";
 
-        if (isServer) {
-            const appsScriptUrl =
-                process.env
-                    .INT_GOOGLE_APPS_SCRIPT_URL;
+    if (isServer) {
+        const appsScriptUrl = process.env.INT_GOOGLE_APPS_SCRIPT_URL;
 
-            if (
-                !appsScriptUrl
-            ) {
-                throw new Error(
-                    "INT_GOOGLE_APPS_SCRIPT_URL is not configured."
-                );
-            }
-
-            const response =
-                await fetch(
-                    appsScriptUrl,
-                    {
-                        method: "POST",
-                        redirect:
-                            "follow",
-                        headers: {
-                            "Content-Type":
-                                "application/json",
-                        },
-                        body: JSON.stringify(
-                            body
-                        ),
-                    }
-                );
-
-            if (
-                !response.ok
-            ) {
-                throw new Error(
-                    `Google Apps Script returned ${response.status}`
-                );
-            }
-
-            return response.json();
-        } else {
-            const response =
-                await fetch(
-                    "/api/interviewer",
-                    {
-                        method: "POST",
-                        headers: {
-                            "Content-Type":
-                                "application/json",
-                        },
-                        body: JSON.stringify(
-                            body
-                        ),
-                    }
-                );
-
-            if (
-                !response.ok
-            ) {
-                const errorData =
-                    await response
-                        .json()
-                        .catch(
-                            () =>
-                                (
-                                    {}
-                                )
-                        );
-
-                throw new Error(
-                    errorData.error ||
-                        `API route returned status ${response.status}`
-                );
-            }
-
-            return response.json();
+        if (!appsScriptUrl) {
+            throw new Error("INT_GOOGLE_APPS_SCRIPT_URL is not configured.");
         }
-    };
+
+        const response = await fetch(appsScriptUrl, {
+            method: "POST",
+            redirect: "follow",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify(body),
+        });
+
+        if (!response.ok) {
+            throw new Error(`Google Apps Script returned ${response.status}`);
+        }
+
+        return response.json();
+    } else {
+        const response = await fetch("/api/interviewer", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify(body),
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => ({}));
+
+            throw new Error(
+                errorData.error ||
+                    `API route returned status ${response.status}`,
+            );
+        }
+
+        return response.json();
+    }
+};
 
 /*
  * ---------------------------------------------------------
@@ -135,63 +88,32 @@ const appsScriptRequest =
  * ---------------------------------------------------------
  */
 
-const mapInterviewer =
-    (
-        item: any
-    ): InterviewerType => {
-        return {
-            id:
-                String(
-                    item.id || ""
-                ),
+const mapInterviewer = (item: any): InterviewerType => {
+    return {
+        id: String(item.id || ""),
 
-            name:
-                String(
-                    item.name || ""
-                ),
+        name: String(item.name || ""),
 
-            email:
-                String(
-                    item.email || ""
-                ),
+        email: String(item.email || ""),
 
-            sid:
-                String(
-                    item.sid || ""
-                ),
-            phone:
-                String(
-                    item.phone || ""
-                ),
+        sid: String(item.sid || ""),
+        phone: String(item.phone || ""),
 
-            availableDays:
-                Array.isArray(
-                    item.availableDays
-                )
-                    ? item.availableDays
-                    : [],
+        availableDays: Array.isArray(item.availableDays)
+            ? item.availableDays
+            : [],
 
-            responses:
-                item.responses &&
-                typeof item.responses ===
-                    "object"
-                    ? item.responses
-                    : {},
+        responses:
+            item.responses && typeof item.responses === "object"
+                ? item.responses
+                : {},
 
-            status:
-                String(
-                    item.status ||
-                        "pending"
-                ).toLowerCase() as
-                    | "pending"
-                    | "accepted"
-                    | "rejected",
+        status: String(item.status || "pending").toLowerCase() as
+            "pending" | "accepted" | "rejected",
 
-            createdAt:
-                item.createdAt ||
-                null,
-        };
+        createdAt: item.createdAt || null,
     };
+};
 
 /*
  * ---------------------------------------------------------
@@ -204,49 +126,31 @@ const mapInterviewer =
  * ---------------------------------------------------------
  */
 
-export const fetchMyInterviewerApplication =
-    async (
-        email: string
-    ): Promise<
-        InterviewerType | null
-    > => {
-        try {
-            if (
-                !email.trim()
-            ) {
-                return null;
-            }
-
-            const result =
-                await appsScriptRequest(
-                    {
-                        action:
-                            "get_my_interviewer",
-
-                        email:
-                            email.trim(),
-                    }
-                );
-
-            if (
-                !result?.success ||
-                !result?.applicant
-            ) {
-                return null;
-            }
-
-            return mapInterviewer(
-                result.applicant
-            );
-        } catch (error) {
-            console.error(
-                "Error fetching interviewer application:",
-                error
-            );
-
+export const fetchMyInterviewerApplication = async (
+    email: string,
+): Promise<InterviewerType | null> => {
+    try {
+        if (!email.trim()) {
             return null;
         }
-    };
+
+        const result = await appsScriptRequest({
+            action: "get_my_interviewer",
+
+            email: email.trim(),
+        });
+
+        if (!result?.success || !result?.applicant) {
+            return null;
+        }
+
+        return mapInterviewer(result.applicant);
+    } catch (error) {
+        console.error("Error fetching interviewer application:", error);
+
+        return null;
+    }
+};
 
 /*
  * ---------------------------------------------------------
@@ -254,110 +158,75 @@ export const fetchMyInterviewerApplication =
  * ---------------------------------------------------------
  */
 
-export const createInterviewer =
-    async (
-        name: string,
-        sid: string,
-        email: string,
-        phone: string,
-        availableDays: string[],
-        responses: Record<
-            string,
-            string
-        >
-    ): Promise<
-        CreateInterviewerResult
-    > => {
-        try {
-            const result =
-                await appsScriptRequest(
-                    {
-                        action:
-                            "create_interviewer",
+export const createInterviewer = async (
+    name: string,
+    sid: string,
+    email: string,
+    phone: string,
+    availableDays: string[],
+    responses: Record<string, string>,
+): Promise<CreateInterviewerResult> => {
+    try {
+        const result = await appsScriptRequest({
+            action: "create_interviewer",
 
-                        name:
-                            name.trim(),
+            name: name.trim(),
 
-                        sid:
-                            sid.trim(),
+            sid: sid.trim(),
 
-                        email:
-                            email.trim(),
+            email: email.trim(),
 
-                        phone:
-                            phone.trim(),
+            phone: phone.trim(),
 
-                        availableDays:
-                            availableDays,
+            availableDays: availableDays,
 
-                        responses:
-                            responses,
-                    }
-                );
+            responses: responses,
+        });
 
-            /*
-             * Duplicate application
-             */
+        /*
+         * Duplicate application
+         */
 
-            if (
-                result?.reason ===
-                "duplicate"
-            ) {
-                return {
-                    success:
-                        false,
-
-                    reason:
-                        "duplicate",
-                };
-            }
-
-            /*
-             * Apps Script returned an error
-             */
-
-            if (
-                !result?.success ||
-                !result?.applicant
-            ) {
-                console.error(
-                    "Google Apps Script failed to create interviewer:",
-                    result
-                );
-
-                return {
-                    success:
-                        false,
-
-                    reason:
-                        "error",
-                };
-            }
-
+        if (result?.reason === "duplicate") {
             return {
-                success:
-                    true,
+                success: false,
 
-                applicant:
-                    mapInterviewer(
-                        result.applicant
-                    ),
+                reason: "duplicate",
             };
-        } catch (error) {
+        }
+
+        /*
+         * Apps Script returned an error
+         */
+
+        if (!result?.success || !result?.applicant) {
             console.error(
-                "Error creating interviewer:",
-                error
+                "Google Apps Script failed to create interviewer:",
+                result,
             );
 
             return {
-                success:
-                    false,
+                success: false,
 
-                reason:
-                    "error",
+                reason: "error",
             };
         }
-    };
+
+        return {
+            success: true,
+
+            applicant: mapInterviewer(result.applicant),
+        };
+    } catch (error) {
+        console.error("Error creating interviewer:", error);
+
+        return {
+            success: false,
+
+            reason: "error",
+        };
+    }
+};
 
 /*
  * ---------------------------------------------------------
@@ -375,104 +244,73 @@ export const createInterviewer =
  * ---------------------------------------------------------
  */
 
-export const updateInterviewerPersonalInfo =
-    async (
-        applicationId: string,
-        name: string,
-        email: string,
-        sid: string,
-        phone: string, 
-        availableDays: string[]
-    ): Promise<
-        UpdateInterviewerResult
-    > => {
-        try {
-            const result =
-                await appsScriptRequest(
-                    {
-                        action:
-                            "update_interviewer",
+export const updateInterviewerPersonalInfo = async (
+    applicationId: string,
+    name: string,
+    email: string,
+    sid: string,
+    phone: string,
+    availableDays: string[],
+): Promise<UpdateInterviewerResult> => {
+    try {
+        const result = await appsScriptRequest({
+            action: "update_interviewer",
 
-                        applicationId,
+            applicationId,
 
-                        name:
-                            name.trim(),
+            name: name.trim(),
 
-                        email:
-                            email.trim(),
+            email: email.trim(),
 
-                        sid:
-                            sid.trim(),
+            sid: sid.trim(),
 
-                        phone:
-                            phone.trim(),
+            phone: phone.trim(),
 
-                        availableDays:
-                            availableDays,
-                    }
-                );
+            availableDays: availableDays,
+        });
 
-            /*
-             * Application doesn't exist
-             * or is no longer editable.
-             */
+        /*
+         * Application doesn't exist
+         * or is no longer editable.
+         */
 
-            if (
-                result?.reason ===
-                "not_found"
-            ) {
-                return {
-                    success:
-                        false,
-
-                    reason:
-                        "not_found",
-                };
-            }
-
-            /*
-             * Apps Script returned an error
-             */
-
-            if (
-                !result?.success ||
-                !result?.applicant
-            ) {
-                console.error(
-                    "Google Apps Script failed to update interviewer:",
-                    result
-                );
-
-                return {
-                    success:
-                        false,
-
-                    reason:
-                        "error",
-                };
-            }
-
+        if (result?.reason === "not_found") {
             return {
-                success:
-                    true,
+                success: false,
 
-                applicant:
-                    mapInterviewer(
-                        result.applicant
-                    ),
+                reason: "not_found",
             };
-        } catch (error) {
+        }
+
+        /*
+         * Apps Script returned an error
+         */
+
+        if (!result?.success || !result?.applicant) {
             console.error(
-                "Error updating interviewer:",
-                error
+                "Google Apps Script failed to update interviewer:",
+                result,
             );
 
             return {
-                success:
-                    false,
+                success: false,
 
-                reason:
-                    "error",
+                reason: "error",
             };
         }
-    };
+
+        return {
+            success: true,
+
+            applicant: mapInterviewer(result.applicant),
+        };
+    } catch (error) {
+        console.error("Error updating interviewer:", error);
+
+        return {
+            success: false,
+
+            reason: "error",
+        };
+    }
+};

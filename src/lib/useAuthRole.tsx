@@ -1,98 +1,111 @@
-import { createContext, useContext, useCallback, useEffect, useState, ReactNode } from "react";
+import {
+    createContext,
+    useContext,
+    useCallback,
+    useEffect,
+    useState,
+    ReactNode,
+} from "react";
 import type { User } from "@supabase/supabase-js";
 import { fetchMyRole, isAllowed, type Role } from "./roles";
 import { client } from "./supabase/supabase";
 
 export type AuthRoleState = {
-  loading: boolean;
-  userId: string | null;
-  user: User | null;
-  role: Role | null;
-  routes: string[];
-  isAdmin: boolean;
-  can: (path: string) => boolean;
-  refresh: () => Promise<void>;
+    loading: boolean;
+    userId: string | null;
+    user: User | null;
+    role: Role | null;
+    routes: string[];
+    isAdmin: boolean;
+    can: (path: string) => boolean;
+    refresh: () => Promise<void>;
 };
 
 const defaultAuthRoleState: AuthRoleState = {
-  loading: true,
-  userId: null,
-  user: null,
-  role: null,
-  routes: [],
-  isAdmin: false,
-  can: () => false,
-  refresh: async () => {},
+    loading: true,
+    userId: null,
+    user: null,
+    role: null,
+    routes: [],
+    isAdmin: false,
+    can: () => false,
+    refresh: async () => {},
 };
 
 const AuthRoleContext = createContext<AuthRoleState>(defaultAuthRoleState);
 
 export function AuthRoleProvider({ children }: { children: ReactNode }) {
-  const [loading, setLoading] = useState(true);
-  const [userId, setUserId] = useState<string | null>(null);
-  const [user, setUser] = useState<User | null>(null);
-  const [role, setRole] = useState<Role | null>(null);
-  const [routes, setRoutes] = useState<string[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [userId, setUserId] = useState<string | null>(null);
+    const [user, setUser] = useState<User | null>(null);
+    const [role, setRole] = useState<Role | null>(null);
+    const [routes, setRoutes] = useState<string[]>([]);
 
-  const load = useCallback(async () => {
-    setLoading(true);
-    try {
-      const { data } = await client.auth.getUser();
-      setUser(data.user ?? null);
-      setUserId(data.user?.id ?? null);
-      if (!data.user) {
-        setRole(null);  
-        setRoutes([]);
-        return;
-      }
-      const result = await fetchMyRole();
-      setRole(result.role);
-      setRoutes(result.routes);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+    const load = useCallback(async () => {
+        setLoading(true);
+        try {
+            const { data } = await client.auth.getUser();
+            setUser(data.user ?? null);
+            setUserId(data.user?.id ?? null);
+            if (!data.user) {
+                setRole(null);
+                setRoutes([]);
+                return;
+            }
+            const result = await fetchMyRole();
+            setRole(result.role);
+            setRoutes(result.routes);
+        } finally {
+            setLoading(false);
+        }
+    }, []);
 
-  useEffect(() => {
-    let lastUserId: string | null | undefined = undefined;
+    useEffect(() => {
+        let lastUserId: string | null | undefined = undefined;
 
-    const checkAndLoad = (newUserId: string | null) => {
-      if (newUserId !== lastUserId) {
-        lastUserId = newUserId;
-        void load();
-      }
+        const checkAndLoad = (newUserId: string | null) => {
+            if (newUserId !== lastUserId) {
+                lastUserId = newUserId;
+                void load();
+            }
+        };
+
+        // Initial check
+        client.auth.getSession().then(({ data: { session } }) => {
+            checkAndLoad(session?.user?.id ?? null);
+        });
+
+        const { data: sub } = client.auth.onAuthStateChange(
+            (event, session) => {
+                if (
+                    event === "SIGNED_IN" ||
+                    event === "SIGNED_OUT" ||
+                    event === "USER_UPDATED"
+                ) {
+                    checkAndLoad(session?.user?.id ?? null);
+                }
+            },
+        );
+
+        return () => sub.subscription.unsubscribe();
+    }, [load]);
+
+    const value: AuthRoleState = {
+        loading,
+        userId,
+        user,
+        role,
+        routes,
+        isAdmin: role?.slug === "admin",
+        can: (path: string) => isAllowed(routes, path),
+        refresh: load,
     };
 
-    // Initial check
-    client.auth.getSession().then(({ data: { session } }) => {
-      checkAndLoad(session?.user?.id ?? null);
-    });
-
-    const { data: sub } = client.auth.onAuthStateChange((event, session) => {
-      if (event === "SIGNED_IN" || event === "SIGNED_OUT" || event === "USER_UPDATED") {
-        checkAndLoad(session?.user?.id ?? null);
-      }
-    });
-
-    return () => sub.subscription.unsubscribe();
-  }, [load]);
-
-  const value: AuthRoleState = {
-    loading,
-    userId,
-    user,
-    role,
-    routes,
-    isAdmin: role?.slug === "admin",
-    can: (path: string) => isAllowed(routes, path),
-    refresh: load,
-  };
-
-  return (
-    <AuthRoleContext.Provider value={value}>
-      {children}
-    </AuthRoleContext.Provider>
-  );
+    return (
+        <AuthRoleContext.Provider value={value}>
+            {children}
+        </AuthRoleContext.Provider>
+    );
 }
 
 /**
@@ -100,7 +113,7 @@ export function AuthRoleProvider({ children }: { children: ReactNode }) {
  * (Member) when the user has no row yet.
  */
 export function useAuthRole(): AuthRoleState {
-  return useContext(AuthRoleContext);
+    return useContext(AuthRoleContext);
 }
 
 /**
@@ -108,9 +121,9 @@ export function useAuthRole(): AuthRoleState {
  *   signInWithGoogle("/dashboard")
  */
 export async function signInWithGoogle(redirectPath = "/") {
-  const { error } = await client.auth.signInWithOAuth({
-    provider: "google",
-    options: { redirectTo: `${window.location.origin}${redirectPath}` },
-  });
-  if (error) throw error;
+    const { error } = await client.auth.signInWithOAuth({
+        provider: "google",
+        options: { redirectTo: `${window.location.origin}${redirectPath}` },
+    });
+    if (error) throw error;
 }

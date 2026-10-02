@@ -3,10 +3,7 @@ export interface PanelStatusIconProps {
     size?: "sm" | "lg";
 }
 
-const PanelStatusIcon = ({
-    isOccupied,
-    size = "lg",
-}: PanelStatusIconProps) => {
+const PanelStatusIcon = ({ isOccupied, size = "lg" }: PanelStatusIconProps) => {
     const dimensions = size === "lg" ? 100 : 40;
     const color = isOccupied ? "#ef4444" : "#22c55e";
 
@@ -58,12 +55,7 @@ const PanelStatusIcon = ({
             />
 
             {/* Status light */}
-            <circle
-                cx="50"
-                cy="41"
-                r="7"
-                fill={color}
-            />
+            <circle cx="50" cy="41" r="7" fill={color} />
         </svg>
     );
 };

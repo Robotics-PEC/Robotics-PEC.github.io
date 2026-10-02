@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Clock } from "lucide-react";
 import { Label } from "@/components/ui/label";
@@ -17,7 +16,7 @@ import {
     parseTime,
     TimeValue,
     convertToTotalMinutes,
-    isEndTimeAfterStartTime
+    isEndTimeAfterStartTime,
 } from "@/lib/utils";
 
 interface TimeFieldProps {
@@ -120,7 +119,8 @@ const TimeField = ({
                             disabled={disabled}
                             className={cn(
                                 "pr-10",
-                                localError && "border-destructive focus-visible:ring-destructive"
+                                localError &&
+                                    "border-destructive focus-visible:ring-destructive",
                             )}
                         />
                         <Popover>
@@ -155,7 +155,8 @@ const TimeField = ({
                             disabled={disabled}
                             className={cn(
                                 "pr-10",
-                                localError && "border-destructive focus-visible:ring-destructive"
+                                localError &&
+                                    "border-destructive focus-visible:ring-destructive",
                             )}
                         />
                         <Popover>
@@ -187,5 +188,5 @@ const TimeField = ({
             )}
         </div>
     );
-}
+};
 export default TimeField;

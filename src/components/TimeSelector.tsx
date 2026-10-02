@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,7 +8,7 @@ import {
     TimeValue,
     convertToTotalMinutes,
     isEndTimeAfterStartTime,
-    getNextValidTime
+    getNextValidTime,
 } from "@/lib/utils";
 
 interface TimeSelectorProps {
@@ -66,17 +65,24 @@ const TimeSelector = ({
         onChange(newTimeValue);
     }, [hours, minutes, period, onChange, isEndTime, startTime, interval]);
 
-    const isTimeBeforeStartTime = (endTime: TimeValue, startTime: TimeValue): boolean => {
+    const isTimeBeforeStartTime = (
+        endTime: TimeValue,
+        startTime: TimeValue,
+    ): boolean => {
         return !isEndTimeAfterStartTime(startTime, endTime);
     };
 
     const incrementHours = () => {
-        setHours(prev => {
+        setHours((prev) => {
             const newHours = prev === 12 ? 1 : prev + 1;
 
             // For end time, check if incrementing would make it valid
             if (isEndTime && startTime) {
-                const potentialNewTime: TimeValue = { hours: newHours, minutes, period };
+                const potentialNewTime: TimeValue = {
+                    hours: newHours,
+                    minutes,
+                    period,
+                };
                 if (isTimeBeforeStartTime(potentialNewTime, startTime)) {
                     // Skip to a valid time
                     const validTime = getNextValidTime(startTime, interval);
@@ -91,12 +97,16 @@ const TimeSelector = ({
     };
 
     const decrementHours = () => {
-        setHours(prev => {
+        setHours((prev) => {
             const newHours = prev === 1 ? 12 : prev - 1;
 
             // For end time, check if decrementing would make it invalid
             if (isEndTime && startTime) {
-                const potentialNewTime: TimeValue = { hours: newHours, minutes, period };
+                const potentialNewTime: TimeValue = {
+                    hours: newHours,
+                    minutes,
+                    period,
+                };
                 if (isTimeBeforeStartTime(potentialNewTime, startTime)) {
                     // Don't allow decrementing to an invalid time
                     return prev;
@@ -118,12 +128,14 @@ const TimeSelector = ({
     const decrementMinutes = () => {
         if (isEndTime && startTime) {
             // Check if decrementing would make the time invalid
-            const potentialNewMinutes = minutes === 0 ? 60 - interval : minutes - interval;
-            const potentialNewHours = minutes === 0 ? (hours === 1 ? 12 : hours - 1) : hours;
+            const potentialNewMinutes =
+                minutes === 0 ? 60 - interval : minutes - interval;
+            const potentialNewHours =
+                minutes === 0 ? (hours === 1 ? 12 : hours - 1) : hours;
             const potentialNewTime: TimeValue = {
                 hours: potentialNewHours,
                 minutes: potentialNewMinutes,
-                period
+                period,
             };
 
             if (isTimeBeforeStartTime(potentialNewTime, startTime)) {
@@ -136,17 +148,23 @@ const TimeSelector = ({
             decrementHours();
             setMinutes(60 - interval);
         } else {
-            setMinutes(minutes - interval < 0 ? 60 - interval : minutes - interval);
+            setMinutes(
+                minutes - interval < 0 ? 60 - interval : minutes - interval,
+            );
         }
     };
 
     const togglePeriod = () => {
-        setPeriod(prev => {
+        setPeriod((prev) => {
             const newPeriod: "AM" | "PM" = prev === "AM" ? "PM" : "AM";
 
             // For end time, check if toggling would make it invalid
             if (isEndTime && startTime) {
-                const potentialNewTime: TimeValue = { hours, minutes, period: newPeriod };
+                const potentialNewTime: TimeValue = {
+                    hours,
+                    minutes,
+                    period: newPeriod,
+                };
                 if (isTimeBeforeStartTime(potentialNewTime, startTime)) {
                     // Don't allow toggling to an invalid time
                     return prev;
@@ -171,7 +189,7 @@ const TimeSelector = ({
                 const potentialNewTime: TimeValue = {
                     hours: parsed === 0 ? 12 : parsed,
                     minutes,
-                    period
+                    period,
                 };
                 if (isTimeBeforeStartTime(potentialNewTime, startTime)) {
                     // Don't set invalid hours
@@ -194,7 +212,11 @@ const TimeSelector = ({
         if (!isNaN(parsed) && parsed >= 0 && parsed < 60) {
             // For end time, check if the new minutes would make the time invalid
             if (isEndTime && startTime) {
-                const potentialNewTime: TimeValue = { hours, minutes: parsed, period };
+                const potentialNewTime: TimeValue = {
+                    hours,
+                    minutes: parsed,
+                    period,
+                };
                 if (isTimeBeforeStartTime(potentialNewTime, startTime)) {
                     // Don't set invalid minutes
                     return;
@@ -232,7 +254,11 @@ const TimeSelector = ({
                         <Input
                             ref={hoursInputRef}
                             type="text"
-                            value={hours === 12 && period === "AM" ? "0" : hours.toString()}
+                            value={
+                                hours === 12 && period === "AM"
+                                    ? "0"
+                                    : hours.toString()
+                            }
                             onChange={handleHoursChange}
                             onBlur={handleHoursBlur}
                             className="w-10 h-8 p-0 text-center font-mono text-lg"
@@ -290,5 +316,5 @@ const TimeSelector = ({
             </Button>
         </div>
     );
-}
+};
 export default TimeSelector;

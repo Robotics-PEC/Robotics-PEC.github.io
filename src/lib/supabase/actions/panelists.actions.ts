@@ -17,7 +17,7 @@ export const fetchPanelists = async (): Promise<PanelistType[]> => {
 
 export const updateMyStatus = async (
     panelNumber: number,
-    isOccupied: boolean
+    isOccupied: boolean,
 ): Promise<boolean> => {
     const { error } = await client
         .from("panelists")
@@ -35,7 +35,7 @@ export const updateMyStatus = async (
 };
 
 export const subscribeToPanelistUpdates = (
-    onUpdate: (panelist: PanelistType) => void
+    onUpdate: (panelist: PanelistType) => void,
 ) => {
     const channel = client
         .channel(`panelists-status-${Date.now()}`)
@@ -48,7 +48,7 @@ export const subscribeToPanelistUpdates = (
             },
             (payload) => {
                 onUpdate(payload.new as PanelistType);
-            }
+            },
         )
         .subscribe();
 
