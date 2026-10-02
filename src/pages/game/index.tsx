@@ -14,7 +14,7 @@ export default function GamePage() {
   const [isResultsPublished, setIsResultsPublished] = useState<boolean | null>(null);
   const [branchLeaderboard, setBranchLeaderboard] = useState<any[]>([]);
 
-  const [feedbackData, setFeedbackData] = useState<FeedbackData | null>(null);
+  const [feedbackData, setFeedbackData] = useState<FeedbackData | null>(null)
   const [leaderboard, setLeaderboard] = useState<any[]>([]);
   const [branchTop10, setBranchTop10] = useState<Record<string, any[]>>({});
   const [deviceId, setDeviceId] = useState<string | null>(null);
