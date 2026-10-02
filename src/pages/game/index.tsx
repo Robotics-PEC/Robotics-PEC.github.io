@@ -99,7 +99,7 @@ export default function GamePage() {
 
                 if (!cancelled) {
                     setAssetsReady(false)
-                    setAssetLoadError(true)
+                    setAssetLoadError(true);
                 }
             }
         };
