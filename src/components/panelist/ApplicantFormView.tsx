@@ -6,10 +6,7 @@ import { ApplicantType, ReviewScore } from "@/types";
 
 import { Button } from "@/components/ui/button";
 
-import {
-    ArrowLeft,
-    Pencil,
-} from "lucide-react";
+import { ArrowLeft, Pencil } from "lucide-react";
 
 import ApplicantDecision from "./ApplicantDecision";
 import ApplicantEditForm from "./ApplicantEditForm";
@@ -26,9 +23,7 @@ export interface ApplicantFormViewProps {
 
     onBack: () => void;
 
-    onStatusUpdate: (
-        updatedApplicant: ApplicantType
-    ) => void;
+    onStatusUpdate: (updatedApplicant: ApplicantType) => void;
 }
 
 const ApplicantFormView = ({
@@ -39,17 +34,13 @@ const ApplicantFormView = ({
     const { role } = useAuthRole();
 
     const [currentApplicant, setCurrentApplicant] =
-        useState<ApplicantType>(
-            applicant
-        );
+        useState<ApplicantType>(applicant);
 
-    const [currentStatus, setCurrentStatus] =
-        useState<
-            "pending" | "accepted" | "rejected"
-        >(applicant.status);
+    const [currentStatus, setCurrentStatus] = useState<
+        "pending" | "accepted" | "rejected"
+    >(applicant.status);
 
-    const [isEditing, setIsEditing] =
-        useState(false);
+    const [isEditing, setIsEditing] = useState(false);
 
     /*
      * ---------------------------------------------------------
@@ -58,64 +49,40 @@ const ApplicantFormView = ({
      *
      * This does NOT change status.
      */
-    const handleSaveApplicant = async (
-        editedApplicant: ApplicantType
-    ) => {
-        const updatedApplicant =
-            await updateApplicant(
-                editedApplicant.id,
-                {
-                    name:
-                        editedApplicant.name,
+    const handleSaveApplicant = async (editedApplicant: ApplicantType) => {
+        const updatedApplicant = await updateApplicant(editedApplicant.id, {
+            name: editedApplicant.name,
 
-                    sid:
-                        editedApplicant.sid,
+            sid: editedApplicant.sid,
 
-                    phone:
-                        editedApplicant.phone ||
-                        "",
+            phone: editedApplicant.phone || "",
 
-                    remarks:
-                        editedApplicant.remarks ||
-                        "",
+            remarks: editedApplicant.remarks || "",
 
-                    branch:
-                        editedApplicant.branch,
+            branch: editedApplicant.branch,
 
-                    responses:
-                        editedApplicant.responses ||
-                        {},
+            responses: editedApplicant.responses || {},
 
-                    reviewScore:
-                        editedApplicant.reviewScore,
-                }
-            );
+            reviewScore: editedApplicant.reviewScore,
+        });
 
         if (!updatedApplicant) {
-            throw new Error(
-                "Failed to update applicant."
-            );
+            throw new Error("Failed to update applicant.");
         }
 
         /*
          * Preserve the existing decision.
          */
-        setCurrentApplicant(
-            updatedApplicant
-        );
+        setCurrentApplicant(updatedApplicant);
 
-        setCurrentStatus(
-            updatedApplicant.status
-        );
+        setCurrentStatus(updatedApplicant.status);
 
         setIsEditing(false);
 
         /*
          * Update parent list immediately.
          */
-        onStatusUpdate(
-            updatedApplicant
-        );
+        onStatusUpdate(updatedApplicant);
     };
 
     /*
@@ -125,49 +92,37 @@ const ApplicantFormView = ({
      */
     const handleSubmitReview = async (
         reviewScore: ReviewScore,
-        remarks: string
+        remarks: string,
     ) => {
-        const reviewedBy =
-            role?.slug === "admin"
-                ? "Admin"
-                : "Panelist";
+        const reviewedBy = role?.slug === "admin" ? "Admin" : "Panelist";
 
-        const success =
-            await updateApplicantReview(
-                currentApplicant.id,
-                currentApplicant.status,
-                reviewScore,
-                remarks,
-                reviewedBy
-            );
+        const success = await updateApplicantReview(
+            currentApplicant.id,
+            currentApplicant.status,
+            reviewScore,
+            remarks,
+            reviewedBy,
+        );
 
         if (!success) {
-            throw new Error(
-                "Failed to submit applicant review."
-            );
+            throw new Error("Failed to submit applicant review.");
         }
 
-        const updatedApplicant: ApplicantType =
-            {
-                ...currentApplicant,
-                
-                reviewScore,
+        const updatedApplicant: ApplicantType = {
+            ...currentApplicant,
 
-                remarks,
+            reviewScore,
 
-                reviewedBy,
+            remarks,
 
-                reviewedAt:
-                    new Date().toISOString(),
-            };
+            reviewedBy,
 
-        setCurrentApplicant(
-            updatedApplicant
-        );
+            reviewedAt: new Date().toISOString(),
+        };
 
-        onStatusUpdate(
-            updatedApplicant
-        );
+        setCurrentApplicant(updatedApplicant);
+
+        onStatusUpdate(updatedApplicant);
     };
 
     /*
@@ -178,52 +133,34 @@ const ApplicantFormView = ({
     if (isEditing) {
         return (
             <div className="flex h-full flex-col rounded-lg border bg-white p-6">
-
                 {/* Header */}
                 <div className="mb-6 flex items-center gap-4 border-b pb-4">
-
                     <Button
                         variant="ghost"
                         size="icon"
-                        onClick={() =>
-                            setIsEditing(false)
-                        }
+                        onClick={() => setIsEditing(false)}
                     >
                         <ArrowLeft className="h-5 w-5" />
                     </Button>
 
                     <div>
-                        <h2 className="text-2xl font-bold">
-                            Edit Applicant
-                        </h2>
+                        <h2 className="text-2xl font-bold">Edit Applicant</h2>
 
                         <p className="text-muted-foreground">
-                            {
-                                currentApplicant.name
-                            }
+                            {currentApplicant.name}
 
                             {" • "}
 
-                            {
-                                currentApplicant.sid
-                            }
+                            {currentApplicant.sid}
                         </p>
                     </div>
-
                 </div>
 
                 <ApplicantEditForm
-                    applicant={
-                        currentApplicant
-                    }
-                    onSave={
-                        handleSaveApplicant
-                    }
-                    onCancel={() =>
-                        setIsEditing(false)
-                    }
+                    applicant={currentApplicant}
+                    onSave={handleSaveApplicant}
+                    onCancel={() => setIsEditing(false)}
                 />
-
             </div>
         );
     }
@@ -235,35 +172,21 @@ const ApplicantFormView = ({
      */
     return (
         <div className="flex h-full flex-col rounded-lg border bg-white p-6">
-
             {/* Header */}
             <div className="mb-6 flex items-center gap-4 border-b pb-4">
-
-                <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={onBack}
-                >
+                <Button variant="ghost" size="icon" onClick={onBack}>
                     <ArrowLeft className="h-5 w-5" />
                 </Button>
 
                 <div className="flex-1">
-
                     <h2 className="text-2xl font-bold">
                         {currentApplicant.name}
                     </h2>
 
                     <p className="text-muted-foreground">
-                        SID:{" "}
-                        {currentApplicant.sid}
-
-                        {" "}
-
-                        {currentApplicant.isWalkin
-                            ? "(Walk-In)"
-                            : ""}
+                        SID: {currentApplicant.sid}{" "}
+                        {currentApplicant.isWalkin ? "(Walk-In)" : ""}
                     </p>
-
                 </div>
 
                 {/* =============================================
@@ -280,23 +203,18 @@ const ApplicantFormView = ({
                 */}
                 <Button
                     variant="outline"
-                    onClick={() =>
-                        setIsEditing(true)
-                    }
+                    onClick={() => setIsEditing(true)}
                     className="flex items-center gap-2"
                 >
                     <Pencil className="h-4 w-4" />
-
                     Edit
                 </Button>
-
             </div>
 
             {/* Applicant details */}
             {currentApplicant.isWalkin ? (
                 <div className="mb-6 flex-1 overflow-y-auto">
                     <div className="rounded-lg border bg-gray-50 p-6">
-
                         <h3 className="mb-6 text-xl font-semibold">
                             Walk-In Applicant
                         </h3>
@@ -343,51 +261,31 @@ const ApplicantFormView = ({
                             </div>
                         )}
 
-                    <ApplicantDecision
-                        applicantId={
-                            currentApplicant.id
-                        }
-                        currentStatus={
-                            currentStatus
-                        }
-                        reviewScore={
-                            currentApplicant.reviewScore
-                        }
-                        remarks={
-                            currentApplicant.remarks
-                        }
-                        reviewedBy={
-                            currentApplicant.reviewedBy
-                        }
-                        onSubmitReview={
-                            handleSubmitReview
-                        }
-                    />
-
+                        <ApplicantDecision
+                            applicantId={currentApplicant.id}
+                            currentStatus={currentStatus}
+                            reviewScore={currentApplicant.reviewScore}
+                            remarks={currentApplicant.remarks}
+                            reviewedBy={currentApplicant.reviewedBy}
+                            onSubmitReview={handleSubmitReview}
+                        />
+                    </div>
                 </div>
-            </div>
-
             ) : (
-
                 <div className="mb-6 flex-1 overflow-y-auto">
-
                     <div className="rounded-lg border bg-gray-50 p-6">
-
                         <h3 className="mb-6 text-xl font-semibold">
                             Application
                         </h3>
 
                         <div className="mb-8 grid gap-6 sm:grid-cols-2">
-
                             <div>
                                 <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
                                     Name
                                 </p>
 
                                 <p className="mt-1 text-sm font-medium">
-                                    {
-                                        currentApplicant.name
-                                    }
+                                    {currentApplicant.name}
                                 </p>
                             </div>
 
@@ -397,9 +295,7 @@ const ApplicantFormView = ({
                                 </p>
 
                                 <p className="mt-1 text-sm font-medium">
-                                    {
-                                        currentApplicant.sid
-                                    }
+                                    {currentApplicant.sid}
                                 </p>
                             </div>
 
@@ -409,10 +305,7 @@ const ApplicantFormView = ({
                                 </p>
 
                                 <p className="mt-1 text-sm font-medium">
-                                    {
-                                        currentApplicant.phone ||
-                                        "Not provided"
-                                    }
+                                    {currentApplicant.phone || "Not provided"}
                                 </p>
                             </div>
 
@@ -422,103 +315,58 @@ const ApplicantFormView = ({
                                 </p>
 
                                 <p className="mt-1 text-sm font-medium">
-                                    {
-                                        currentApplicant.branch ||
-                                        "Not provided"
-                                    }
+                                    {currentApplicant.branch || "Not provided"}
                                 </p>
                             </div>
-
                         </div>
 
                         {/* Remarks */}
                         {currentApplicant.remarks && (
                             <div className="mb-8 rounded-lg border bg-white p-4">
-
                                 <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
                                     Remarks
                                 </p>
 
                                 <p className="mt-1 whitespace-pre-wrap text-sm">
-                                    {
-                                        currentApplicant.remarks
-                                    }
+                                    {currentApplicant.remarks}
                                 </p>
-
                             </div>
                         )}
 
                         {/* Application questions */}
                         <div className="space-y-6">
+                            {APPLICATION_QUESTIONS.map((question) => {
+                                const questionId = String(question.id);
 
-                            {APPLICATION_QUESTIONS.map(
-                                (question) => {
+                                return (
+                                    <div key={questionId}>
+                                        <p className="text-sm font-semibold">
+                                            {question.text}
+                                        </p>
 
-                                    const questionId =
-                                        String(
-                                            question.id
-                                        );
-
-                                    return (
-                                        <div
-                                            key={
-                                                questionId
-                                            }
-                                        >
-
-                                            <p className="text-sm font-semibold">
-                                                {
-                                                    question.text
-                                                }
+                                        <div className="mt-2 rounded-md border bg-white p-4">
+                                            <p className="whitespace-pre-wrap text-sm">
+                                                {currentApplicant.responses?.[
+                                                    questionId
+                                                ] || "No answer provided."}
                                             </p>
-
-                                            <div className="mt-2 rounded-md border bg-white p-4">
-
-                                                <p className="whitespace-pre-wrap text-sm">
-                                                    {
-                                                        currentApplicant
-                                                            .responses?.[
-                                                            questionId
-                                                        ] ||
-                                                        "No answer provided."
-                                                    }
-                                                </p>
-
-                                            </div>
-
                                         </div>
-                                    );
-                                }
-                            )}
-
+                                    </div>
+                                );
+                            })}
                         </div>
 
                         <ApplicantDecision
-                            applicantId={
-                                currentApplicant.id
-                            }
-                            currentStatus={
-                                currentStatus
-                            }
-                            reviewScore={
-                                currentApplicant.reviewScore
-                            }
-                            remarks={
-                                currentApplicant.remarks
-                            }
-                            reviewedBy={
-                                currentApplicant.reviewedBy
-                            }
-                            onSubmitReview={
-                                handleSubmitReview
-                            }
+                            applicantId={currentApplicant.id}
+                            currentStatus={currentStatus}
+                            reviewScore={currentApplicant.reviewScore}
+                            remarks={currentApplicant.remarks}
+                            reviewedBy={currentApplicant.reviewedBy}
+                            onSubmitReview={handleSubmitReview}
                         />
-
                     </div>
-
                 </div>
             )}
-
         </div>
     );
 };

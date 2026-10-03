@@ -2,11 +2,15 @@ import { useState, useEffect } from "react";
 
 const CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$*&%";
 
-export function useScrambleText(targetText: string, delayMs = 0, durationMs = 1500) {
+export function useScrambleText(
+    targetText: string,
+    delayMs = 0,
+    durationMs = 1500,
+) {
     const [displayText, setDisplayText] = useState("");
     const [isComplete, setIsComplete] = useState(false);
 
-useEffect(() => {
+    useEffect(() => {
         setIsComplete(false);
         setDisplayText("");
         let startTime: number | null = null;
@@ -24,7 +28,7 @@ useEffect(() => {
 
             // Number of characters to reveal based on progress
             const revealCount = Math.floor(targetText.length * progress);
-            
+
             let scrambled = "";
             for (let i = 0; i < targetText.length; i++) {
                 if (i < revealCount) {
@@ -32,7 +36,8 @@ useEffect(() => {
                 } else if (targetText[i] === " ") {
                     scrambled += " ";
                 } else {
-                    scrambled += CHARS[Math.floor(Math.random() * CHARS.length)];
+                    scrambled +=
+                        CHARS[Math.floor(Math.random() * CHARS.length)];
                 }
             }
 

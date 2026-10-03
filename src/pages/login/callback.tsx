@@ -26,35 +26,38 @@ export default function AuthCallback() {
             return;
         }
 
-        const { data: listener } = client.auth.onAuthStateChange(async (event, session) => {
+        const { data: listener } = client.auth.onAuthStateChange(
+            async (event, session) => {
+                if (!session) {
+                    if (event === "INITIAL_SESSION" || event === "SIGNED_OUT") {
+                        toast({
+                            title: "Sign in failed",
+                            description:
+                                "We couldn't sign you in. Please try again.",
+                            variant: "destructive",
+                        });
+                        router.replace("/login");
+                    }
+                    return;
+                }
 
-            if (!session) {
-                if (event === "INITIAL_SESSION" || event === "SIGNED_OUT") {
+                const email = session.user.email?.toLowerCase();
+
+                if (!email || !email.endsWith(PEC_DOMAIN)) {
+                    await client.auth.signOut();
                     toast({
-                        title: "Sign in failed",
-                        description: "We couldn't sign you in. Please try again.",
+                        title: "Access denied",
+                        description:
+                            "Please log in with your PEC college email.",
                         variant: "destructive",
                     });
                     router.replace("/login");
+                    return;
                 }
-                return;
-            }
 
-            const email = session.user.email?.toLowerCase();
-
-            if (!email || !email.endsWith(PEC_DOMAIN)) {
-                await client.auth.signOut();
-                toast({
-                    title: "Access denied",
-                    description: "Please log in with your PEC college email.",
-                    variant: "destructive",
-                });
-                router.replace("/login");
-                return;
-            }
-
-            router.replace(redirectTarget);
-        });
+                router.replace(redirectTarget);
+            },
+        );
 
         return () => {
             listener.subscription.unsubscribe();

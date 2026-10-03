@@ -20,7 +20,10 @@ const PageHead: React.FC<PageHeadProps> = ({ title, description }) => {
                     <meta property="og:description" content={description} />
                 </>
             )}
-            <meta name="keywords" content="PEC Robotics, Punjab Engineering College, Robotics Society, Innovation, Automation, Engineering Projects" />
+            <meta
+                name="keywords"
+                content="PEC Robotics, Punjab Engineering College, Robotics Society, Innovation, Automation, Engineering Projects"
+            />
             <meta name="author" content="PEC Robotics Society" />
             <meta property="og:title" content={title} />
             <meta property="og:image" content="/logo.png" />
@@ -29,6 +32,6 @@ const PageHead: React.FC<PageHeadProps> = ({ title, description }) => {
             <link rel="canonical" href={currentUrl} />
         </Head>
     );
-}
+};
 
 export default PageHead;

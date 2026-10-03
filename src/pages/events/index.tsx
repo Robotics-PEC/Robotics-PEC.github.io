@@ -14,7 +14,6 @@ import ReactMarkdown from "react-markdown";
 import { EventType } from "@/types";
 
 const Events = () => {
-
     const [upcomingEvents, setUpcomingEvents] = useState<EventType[]>([]);
     const [registeredEvents, setRegisteredEvents] = useState<string[]>([]);
     const [loading, setIsLoading] = useState(true);
@@ -25,7 +24,7 @@ const Events = () => {
             setUpcomingEvents(data || []);
             setRegisteredEvents(regs || []);
             setIsLoading(false);
-        }
+        };
 
         fetch();
     }, []);
@@ -42,7 +41,10 @@ const Events = () => {
                     title="Upcoming Events"
                     subtitle="Join us at our upcoming events and be part of our community."
                 >
-                    <EventCalendar events={upcomingEvents} registeredEvents={registeredEvents} />
+                    <EventCalendar
+                        events={upcomingEvents}
+                        registeredEvents={registeredEvents}
+                    />
 
                     {upcomingEvents.length > 0 && (
                         <motion.div
@@ -50,7 +52,9 @@ const Events = () => {
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ duration: 0.5, delay: 0.4 }}
                         >
-                            <h2 className="text-2xl font-medium mb-6 text-center mt-10">List View</h2>
+                            <h2 className="text-2xl font-medium mb-6 text-center mt-10">
+                                List View
+                            </h2>
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                                 {upcomingEvents.map((event) => (
                                     <motion.div
@@ -62,28 +66,46 @@ const Events = () => {
                                     >
                                         <Card className="overflow-hidden hover:shadow-lg transition-all duration-300 flex flex-col h-full">
                                             <div className="p-6 flex-grow flex flex-col">
-                                                <h3 className="text-xl font-semibold mb-3">{event.title}</h3>
-                                                <div className="sm:text-lg prose flex-grow overflow-y-auto mb-4 break-words" style={{ maxHeight: '200px' }}>
+                                                <h3 className="text-xl font-semibold mb-3">
+                                                    {event.title}
+                                                </h3>
+                                                <div
+                                                    className="sm:text-lg prose flex-grow overflow-y-auto mb-4 break-words"
+                                                    style={{
+                                                        maxHeight: "200px",
+                                                    }}
+                                                >
                                                     <ReactMarkdown>
-                                                        {HTMLToMarkdown(event.description)}
+                                                        {HTMLToMarkdown(
+                                                            event.description,
+                                                        )}
                                                     </ReactMarkdown>
                                                 </div>
                                                 <div className="space-y-2 mt-auto">
                                                     <div className="flex items-center text-sm text-gray-500">
                                                         <Calendar className="h-4 w-4 mr-2" />
-                                                        <span>{event.date}</span>
+                                                        <span>
+                                                            {event.date}
+                                                        </span>
                                                     </div>
                                                     <div className="flex items-center text-sm text-gray-500">
                                                         <Clock className="h-4 w-4 mr-2" />
-                                                        <span>{event.time}</span>
+                                                        <span>
+                                                            {event.time}
+                                                        </span>
                                                     </div>
                                                     <div className="flex items-center text-sm text-gray-500">
                                                         <MapPin className="h-4 w-4 mr-2" />
-                                                        <span>{event.location}</span>
+                                                        <span>
+                                                            {event.location}
+                                                        </span>
                                                     </div>
                                                     <div className="flex items-center text-sm text-gray-500">
                                                         <Users className="h-4 w-4 mr-2" />
-                                                        <span>Capacity: {event.capacity}</span>
+                                                        <span>
+                                                            Capacity:{" "}
+                                                            {event.capacity}
+                                                        </span>
                                                     </div>
                                                 </div>
                                             </div>

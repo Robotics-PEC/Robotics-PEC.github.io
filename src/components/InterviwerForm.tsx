@@ -1,23 +1,15 @@
 "use client";
 
-import {
-    useState,
-} from "react";
+import { useState } from "react";
 
 import {
     createInterviewer,
     updateInterviewerPersonalInfo,
 } from "@/lib/supabase/actions/interviewers.actions";
 
-import type {
-    InterviewerType,
-} from "@/types";
+import type { InterviewerType } from "@/types";
 
-const availableDaysOptions = [
-    "September 1",
-    "September 2",
-    "September 3",
-];
+const availableDaysOptions = ["September 1", "September 2", "September 3"];
 
 export const INTERVIEWER_QUESTIONS = [
     {
@@ -26,24 +18,15 @@ export const INTERVIEWER_QUESTIONS = [
     },
 ];
 
-const createEmptyResponses =
-    () =>
-        INTERVIEWER_QUESTIONS.reduce(
-            (
-                acc,
-                question
-            ) => {
-                acc[
-                    question.id
-                ] = "";
+const createEmptyResponses = () =>
+    INTERVIEWER_QUESTIONS.reduce(
+        (acc, question) => {
+            acc[question.id] = "";
 
-                return acc;
-            },
-            {} as Record<
-                string,
-                string
-            >
-        );
+            return acc;
+        },
+        {} as Record<string, string>,
+    );
 
 type FormState = {
     name: string;
@@ -52,10 +35,7 @@ type FormState = {
     phone: string;
     availableDays: string[];
 
-    responses: Record<
-        string,
-        string
-    >;
+    responses: Record<string, string>;
 };
 
 const initialForm: FormState = {
@@ -63,37 +43,22 @@ const initialForm: FormState = {
     email: "",
     sid: "",
     availableDays: [],
-    phone:"",
-    responses:
-        createEmptyResponses(),
+    phone: "",
+    responses: createEmptyResponses(),
 };
 
 export default function InterviewerForm() {
-    const [form, setForm] =
-        useState<FormState>(
-            initialForm
-        );
+    const [form, setForm] = useState<FormState>(initialForm);
 
-    const [
-        application,
-        setApplication,
-    ] =
-        useState<InterviewerType | null>(
-            null
-        );
+    const [application, setApplication] = useState<InterviewerType | null>(
+        null,
+    );
 
-    const [error, setError] =
-        useState("");
+    const [error, setError] = useState("");
 
-    const [
-        submitting,
-        setSubmitting,
-    ] = useState(false);
+    const [submitting, setSubmitting] = useState(false);
 
-    const [
-        savingPersonalInfo,
-        setSavingPersonalInfo,
-    ] = useState(false);
+    const [savingPersonalInfo, setSavingPersonalInfo] = useState(false);
 
     /*
      * ---------------------------------------------------------
@@ -102,20 +67,15 @@ export default function InterviewerForm() {
      */
 
     const updateField = <
-        K extends Exclude<
-            keyof FormState,
-            "responses" | "availableDays"
-        >
+        K extends Exclude<keyof FormState, "responses" | "availableDays">,
     >(
         field: K,
-        value: FormState[K]
+        value: FormState[K],
     ) => {
-        setForm(
-            (current) => ({
-                ...current,
-                [field]: value,
-            })
-        );
+        setForm((current) => ({
+            ...current,
+            [field]: value,
+        }));
     };
 
     /*
@@ -124,35 +84,18 @@ export default function InterviewerForm() {
      * ---------------------------------------------------------
      */
 
-    const toggleAvailableDay = (
-        day: string
-    ) => {
-        setForm(
-            (current) => {
-                const isSelected =
-                    current.availableDays.includes(
-                        day
-                    );
+    const toggleAvailableDay = (day: string) => {
+        setForm((current) => {
+            const isSelected = current.availableDays.includes(day);
 
-                return {
-                    ...current,
+            return {
+                ...current,
 
-                    availableDays:
-                        isSelected
-                            ? current.availableDays.filter(
-                                  (
-                                      d
-                                  ) =>
-                                      d !==
-                                      day
-                              )
-                            : [
-                                  ...current.availableDays,
-                                  day,
-                              ],
-                };
-            }
-        );
+                availableDays: isSelected
+                    ? current.availableDays.filter((d) => d !== day)
+                    : [...current.availableDays, day],
+            };
+        });
     };
 
     /*
@@ -161,22 +104,16 @@ export default function InterviewerForm() {
      * ---------------------------------------------------------
      */
 
-    const updateResponse = (
-        questionId: string,
-        value: string
-    ) => {
-        setForm(
-            (current) => ({
-                ...current,
+    const updateResponse = (questionId: string, value: string) => {
+        setForm((current) => ({
+            ...current,
 
-                responses: {
-                    ...current.responses,
+            responses: {
+                ...current.responses,
 
-                    [questionId]:
-                        value,
-                },
-            })
-        );
+                [questionId]: value,
+            },
+        }));
     };
 
     /*
@@ -185,235 +122,135 @@ export default function InterviewerForm() {
      * ---------------------------------------------------------
      */
 
-    const handleSubmit =
-        async (
-            event: React.FormEvent<HTMLFormElement>
-        ) => {
-            event.preventDefault();
+    const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+        event.preventDefault();
 
-            setError("");
+        setError("");
 
-            const name =
-                form.name.trim();
+        const name = form.name.trim();
 
-            const email =
-                form.email.trim();
+        const email = form.email.trim();
 
-            const sid =
-                form.sid.trim();
+        const sid = form.sid.trim();
 
-            const phone = 
-                    form.phone.trim();
+        const phone = form.phone.trim();
 
-            const availableDays =
-                form.availableDays;
+        const availableDays = form.availableDays;
 
-            /*
-             * Required fields
-             */
+        /*
+         * Required fields
+         */
 
-            if (
-                !name ||
-                !email ||
-                !sid ||
-                !phone||
-                availableDays.length ===
-                    0
-            ) {
-                setError(
-                    "Please fill in all the required fields and select at least one available day."
-                );
+        if (!name || !email || !sid || !phone || availableDays.length === 0) {
+            setError(
+                "Please fill in all the required fields and select at least one available day.",
+            );
 
-                return;
-            }
+            return;
+        }
 
-            /*
-             * Email validation
-             */
+        /*
+         * Email validation
+         */
 
-            if (
-                !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(
-                    email
-                )
-            ) {
-                setError(
-                    "Please enter a valid email address."
-                );
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+            setError("Please enter a valid email address.");
 
-                return;
-            }
+            return;
+        }
 
-            /*
-             * SID validation
-             */
+        /*
+         * SID validation
+         */
 
-            if (
-                !/^\d{8}$/.test(
-                    sid
-                )
-            ) {
-                setError(
-                    "SID must be exactly 8 digits."
-                );
+        if (!/^\d{8}$/.test(sid)) {
+            setError("SID must be exactly 8 digits.");
 
-                return;
-            }
-             if (
-                !/^\d{10}$/.test(
-                    phone
-                )
-            ) {
-                setError(
-                    "phone number is invalid."
-                );
+            return;
+        }
+        if (!/^\d{10}$/.test(phone)) {
+            setError("phone number is invalid.");
 
-                return;
-            }
+            return;
+        }
 
-            /*
-             * Check questions
-             */
+        /*
+         * Check questions
+         */
 
-            const missingResponses =
-                INTERVIEWER_QUESTIONS.some(
-                    (question) =>
-                        !(
-                            form.responses[
-                                question.id
-                            ] || ""
-                        ).trim()
-                );
+        const missingResponses = INTERVIEWER_QUESTIONS.some(
+            (question) => !(form.responses[question.id] || "").trim(),
+        );
 
-            if (
-                missingResponses
-            ) {
-                setError(
-                    "Please answer the question below."
-                );
+        if (missingResponses) {
+            setError("Please answer the question below.");
 
-                return;
-            }
+            return;
+        }
 
-            /*
-             * Trim responses
-             */
+        /*
+         * Trim responses
+         */
 
-            const trimmedResponses =
-                Object.keys(
-                    form.responses
-                ).reduce(
-                    (
-                        acc,
-                        key
-                    ) => {
-                        acc[key] =
-                            (
-                                form.responses[
-                                    key
-                                ] || ""
-                            ).trim();
+        const trimmedResponses = Object.keys(form.responses).reduce(
+            (acc, key) => {
+                acc[key] = (form.responses[key] || "").trim();
 
-                        return acc;
-                    },
-                    {} as Record<
-                        string,
-                        string
-                    >
-                );
+                return acc;
+            },
+            {} as Record<string, string>,
+        );
 
-            setSubmitting(true);
+        setSubmitting(true);
 
-            try {
-                const result =
-                    await createInterviewer(
-                        name,
-                        sid,
-                        email,
-                        phone,
-                        availableDays,
-                        trimmedResponses
+        try {
+            const result = await createInterviewer(
+                name,
+                sid,
+                email,
+                phone,
+                availableDays,
+                trimmedResponses,
+            );
+
+            if (!result.success) {
+                if (result.reason === "duplicate") {
+                    setError("You have already submitted an application.");
+                } else {
+                    setError(
+                        "We could not submit your application. Please try again.",
                     );
-
-                if (
-                    !result.success
-                ) {
-                    if (
-                        result.reason ===
-                        "duplicate"
-                    ) {
-                        setError(
-                            "You have already submitted an application."
-                        );
-                    } else {
-                        setError(
-                            "We could not submit your application. Please try again."
-                        );
-                    }
-
-                    return;
                 }
 
-                /*
-                 * Application successfully created.
-                 */
-
-                setApplication(
-                    result.applicant
-                );
-
-                setForm({
-                    name:
-                        result
-                            .applicant
-                            .name ||
-                        "",
-
-                    email:
-                        result
-                            .applicant
-                            .email ||
-                        "",
-
-                    sid:
-                        result
-                            .applicant
-                            .sid ||
-                        "",
-                    phone:
-                        result
-                            .applicant
-                            .phone ||
-                        "",
-
-                    availableDays:
-                        result
-                            .applicant
-                            .availableDays ||
-                        [],
-
-                    responses:
-                        result
-                            .applicant
-                            .responses ||
-                        createEmptyResponses(),
-                });
-            } catch (
-                submitError
-            ) {
-                console.error(
-                    "Interviewer submission error:",
-                    submitError
-                );
-
-                setError(
-                    "We could not submit your application. Please try again."
-                );
-            } finally {
-                setSubmitting(
-                    false
-                );
+                return;
             }
-        };
+
+            /*
+             * Application successfully created.
+             */
+
+            setApplication(result.applicant);
+
+            setForm({
+                name: result.applicant.name || "",
+
+                email: result.applicant.email || "",
+
+                sid: result.applicant.sid || "",
+                phone: result.applicant.phone || "",
+
+                availableDays: result.applicant.availableDays || [],
+
+                responses: result.applicant.responses || createEmptyResponses(),
+            });
+        } catch (submitError) {
+            console.error("Interviewer submission error:", submitError);
+
+            setError("We could not submit your application. Please try again.");
+        } finally {
+            setSubmitting(false);
+        }
+    };
 
     /*
      * ---------------------------------------------------------
@@ -421,188 +258,120 @@ export default function InterviewerForm() {
      * ---------------------------------------------------------
      */
 
-    const handleSavePersonalInfo =
-        async () => {
-            if (!application) {
-                return;
-            }
+    const handleSavePersonalInfo = async () => {
+        if (!application) {
+            return;
+        }
 
-            setError("");
+        setError("");
 
-            const name =
-                form.name.trim();
+        const name = form.name.trim();
 
-            const email =
-                form.email.trim();
+        const email = form.email.trim();
 
-            const sid =
-                form.sid.trim();
+        const sid = form.sid.trim();
 
-            const phone =
-                form.phone.trim();
+        const phone = form.phone.trim();
 
-            const availableDays =
-                form.availableDays;
+        const availableDays = form.availableDays;
 
-            /*
-             * Required fields
-             */
+        /*
+         * Required fields
+         */
 
-            if (
-                !name ||
-                !email ||
-                !sid ||
-                !phone ||
-                availableDays.length ===
-                    0
-            ) {
-                setError(
-                    "Please fill in all the personal information and select at least one available day."
-                );
-
-                return;
-            }
-
-            /*
-             * Email validation
-             */
-
-            if (
-                !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(
-                    email
-                )
-            ) {
-                setError(
-                    "Please enter a valid email address."
-                );
-
-                return;
-            }
-
-            /*
-             * SID validation
-             */
-
-            if (
-                !/^\d{8}$/.test(
-                    sid
-                )
-            ) {
-                setError(
-                    "SID must be exactly 8 digits."
-                );
-
-                return;
-            }
-
-            /*
-             * Phone validation
-             */
-
-            if (
-                !/^\d{10}$/.test(
-                    phone
-                )
-            ) {
-                setError(
-                    "phone number is invalid."
-                );
-
-                return;
-            }
-
-            setSavingPersonalInfo(
-                true
+        if (!name || !email || !sid || !phone || availableDays.length === 0) {
+            setError(
+                "Please fill in all the personal information and select at least one available day.",
             );
 
-            try {
-                const result =
-                    await updateInterviewerPersonalInfo(
-                        application.id,
-                        name,
-                        email,
-                        sid,
-                        phone,
-                        availableDays
-                    );
+            return;
+        }
 
-                if (
-                    !result.success
-                ) {
-                    setError(
-                        result.reason ===
-                            "not_found"
-                            ? "Your application could not be found or can no longer be edited."
-                            : "Could not update your personal information. Please try again."
-                    );
+        /*
+         * Email validation
+         */
 
-                    return;
-                }
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+            setError("Please enter a valid email address.");
 
-                /*
-                 * Update local application
-                 */
+            return;
+        }
 
-                setApplication(
-                    result.applicant
-                );
+        /*
+         * SID validation
+         */
 
-                /*
-                 * Update local form
-                 */
+        if (!/^\d{8}$/.test(sid)) {
+            setError("SID must be exactly 8 digits.");
 
-                setForm(
-                    (
-                        current
-                    ) => ({
-                        ...current,
+            return;
+        }
 
-                        name:
-                            result
-                                .applicant
-                                .name,
+        /*
+         * Phone validation
+         */
 
-                        email:
-                            result
-                                .applicant
-                                .email ||
-                            "",
+        if (!/^\d{10}$/.test(phone)) {
+            setError("phone number is invalid.");
 
-                        sid:
-                            result
-                                .applicant
-                                .sid,
+            return;
+        }
 
-                        phone:
-                            result
-                                .applicant
-                                .phone ||
-                            "",
+        setSavingPersonalInfo(true);
 
-                        availableDays:
-                            result
-                                .applicant
-                                .availableDays ||
-                            [],
-                    })
-                );
-            } catch (
-                updateError
-            ) {
-                console.error(
-                    "Interviewer update error:",
-                    updateError
-                );
+        try {
+            const result = await updateInterviewerPersonalInfo(
+                application.id,
+                name,
+                email,
+                sid,
+                phone,
+                availableDays,
+            );
 
+            if (!result.success) {
                 setError(
-                    "Could not update your personal information. Please try again."
+                    result.reason === "not_found"
+                        ? "Your application could not be found or can no longer be edited."
+                        : "Could not update your personal information. Please try again.",
                 );
-            } finally {
-                setSavingPersonalInfo(
-                    false
-                );
+
+                return;
             }
-        };
+
+            /*
+             * Update local application
+             */
+
+            setApplication(result.applicant);
+
+            /*
+             * Update local form
+             */
+
+            setForm((current) => ({
+                ...current,
+
+                name: result.applicant.name,
+
+                email: result.applicant.email || "",
+
+                sid: result.applicant.sid,
+
+                phone: result.applicant.phone || "",
+
+                availableDays: result.applicant.availableDays || [],
+            }));
+        } catch (updateError) {
+            console.error("Interviewer update error:", updateError);
+
+            setError(
+                "Could not update your personal information. Please try again.",
+            );
+        } finally {
+            setSavingPersonalInfo(false);
+        }
+    };
 
     /*
      * ---------------------------------------------------------
@@ -611,9 +380,7 @@ export default function InterviewerForm() {
      */
 
     if (application) {
-        const canEdit =
-            application.status ===
-            "pending";
+        const canEdit = application.status === "pending";
 
         return (
             <div className="mx-auto max-w-3xl space-y-8">
@@ -635,23 +402,15 @@ export default function InterviewerForm() {
 
                         <span
                             className={`rounded-full px-3 py-1 text-xs font-medium ${
-                                application.status ===
-                                "accepted"
+                                application.status === "accepted"
                                     ? "bg-green-100 text-green-700"
-                                    : application.status ===
-                                        "rejected"
+                                    : application.status === "rejected"
                                       ? "bg-red-100 text-red-700"
                                       : "bg-yellow-100 text-yellow-700"
                             }`}
                         >
-                            {application.status
-                                .charAt(
-                                    0
-                                )
-                                .toUpperCase() +
-                                application.status.slice(
-                                    1
-                                )}
+                            {application.status.charAt(0).toUpperCase() +
+                                application.status.slice(1)}
                         </span>
                     </div>
 
@@ -670,21 +429,10 @@ export default function InterviewerForm() {
                                 <input
                                     id="existing-name"
                                     type="text"
-                                    value={
-                                        form.name
-                                    }
-                                    disabled={
-                                        !canEdit
-                                    }
-                                    onChange={(
-                                        event
-                                    ) =>
-                                        updateField(
-                                            "name",
-                                            event
-                                                .target
-                                                .value
-                                        )
+                                    value={form.name}
+                                    disabled={!canEdit}
+                                    onChange={(event) =>
+                                        updateField("name", event.target.value)
                                     }
                                     className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm outline-none disabled:cursor-not-allowed disabled:opacity-60"
                                 />
@@ -701,21 +449,10 @@ export default function InterviewerForm() {
                                 <input
                                     id="existing-email"
                                     type="email"
-                                    value={
-                                        form.email
-                                    }
-                                    disabled={
-                                        !canEdit
-                                    }
-                                    onChange={(
-                                        event
-                                    ) =>
-                                        updateField(
-                                            "email",
-                                            event
-                                                .target
-                                                .value
-                                        )
+                                    value={form.email}
+                                    disabled={!canEdit}
+                                    onChange={(event) =>
+                                        updateField("email", event.target.value)
                                     }
                                     className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm outline-none disabled:cursor-not-allowed disabled:opacity-60"
                                 />
@@ -737,24 +474,16 @@ export default function InterviewerForm() {
                                     id="existing-sid"
                                     type="text"
                                     inputMode="numeric"
-                                    maxLength={
-                                        8
-                                    }
-                                    value={
-                                        form.sid
-                                    }
-                                    disabled={
-                                        !canEdit
-                                    }
-                                    onChange={(
-                                        event
-                                    ) =>
+                                    maxLength={8}
+                                    value={form.sid}
+                                    disabled={!canEdit}
+                                    onChange={(event) =>
                                         updateField(
                                             "sid",
                                             event.target.value.replace(
                                                 /\D/g,
-                                                ""
-                                            )
+                                                "",
+                                            ),
                                         )
                                     }
                                     className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm outline-none disabled:cursor-not-allowed disabled:opacity-60"
@@ -773,24 +502,16 @@ export default function InterviewerForm() {
                                     id="existing-phone"
                                     type="tel"
                                     inputMode="numeric"
-                                    maxLength={
-                                        10
-                                    }
-                                    value={
-                                        form.phone
-                                    }
-                                    disabled={
-                                        !canEdit
-                                    }
-                                    onChange={(
-                                        event
-                                    ) =>
+                                    maxLength={10}
+                                    value={form.phone}
+                                    disabled={!canEdit}
+                                    onChange={(event) =>
                                         updateField(
                                             "phone",
                                             event.target.value.replace(
                                                 /\D/g,
-                                                ""
-                                            )
+                                                "",
+                                            ),
                                         )
                                     }
                                     placeholder="10-digit phone number"
@@ -807,54 +528,38 @@ export default function InterviewerForm() {
                             </p>
 
                             <div className="flex flex-wrap gap-4">
-                                {availableDaysOptions.map(
-                                    (
-                                        day
-                                    ) => (
-                                        <label
-                                            key={
-                                                day
+                                {availableDaysOptions.map((day) => (
+                                    <label
+                                        key={day}
+                                        className={`flex items-center gap-2 rounded-md border px-3 py-2 text-sm ${
+                                            canEdit
+                                                ? "cursor-pointer"
+                                                : "cursor-not-allowed opacity-60"
+                                        }`}
+                                    >
+                                        <input
+                                            type="checkbox"
+                                            checked={form.availableDays.includes(
+                                                day,
+                                            )}
+                                            disabled={!canEdit}
+                                            onChange={() =>
+                                                toggleAvailableDay(day)
                                             }
-                                            className={`flex items-center gap-2 rounded-md border px-3 py-2 text-sm ${
-                                                canEdit
-                                                    ? "cursor-pointer"
-                                                    : "cursor-not-allowed opacity-60"
-                                            }`}
-                                        >
-                                            <input
-                                                type="checkbox"
-                                                checked={form.availableDays.includes(
-                                                    day
-                                                )}
-                                                disabled={
-                                                    !canEdit
-                                                }
-                                                onChange={() =>
-                                                    toggleAvailableDay(
-                                                        day
-                                                    )
-                                                }
-                                                className="h-4 w-4"
-                                            />
+                                            className="h-4 w-4"
+                                        />
 
-                                            {
-                                                day
-                                            }
-                                        </label>
-                                    )
-                                )}
+                                        {day}
+                                    </label>
+                                ))}
                             </div>
                         </div>
 
                         {canEdit && (
                             <button
                                 type="button"
-                                onClick={
-                                    handleSavePersonalInfo
-                                }
-                                disabled={
-                                    savingPersonalInfo
-                                }
+                                onClick={handleSavePersonalInfo}
+                                disabled={savingPersonalInfo}
                                 className="rounded-md bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
                             >
                                 {savingPersonalInfo
@@ -877,41 +582,24 @@ export default function InterviewerForm() {
                     </p>
 
                     <div className="mt-6 space-y-7">
-                        {INTERVIEWER_QUESTIONS.map(
-                            (
-                                question
-                            ) => (
-                                <div
-                                    key={
-                                        question.id
-                                    }
-                                    className="space-y-3"
-                                >
-                                    <p className="text-sm font-medium leading-6">
-                                        <span className="mr-2 text-muted-foreground">
-                                            {
-                                                question.id
-                                            }
-                                            .
-                                        </span>
+                        {INTERVIEWER_QUESTIONS.map((question) => (
+                            <div key={question.id} className="space-y-3">
+                                <p className="text-sm font-medium leading-6">
+                                    <span className="mr-2 text-muted-foreground">
+                                        {question.id}.
+                                    </span>
 
-                                        {
-                                            question.text
-                                        }
+                                    {question.text}
+                                </p>
+
+                                <div className="rounded-md border bg-gray-50 p-4">
+                                    <p className="whitespace-pre-wrap text-sm leading-6 text-gray-700">
+                                        {application.responses?.[question.id] ||
+                                            "No answer provided."}
                                     </p>
-
-                                    <div className="rounded-md border bg-gray-50 p-4">
-                                        <p className="whitespace-pre-wrap text-sm leading-6 text-gray-700">
-                                            {application
-                                                .responses?.[
-                                                question.id
-                                            ] ||
-                                                "No answer provided."}
-                                        </p>
-                                    </div>
                                 </div>
-                            )
-                        )}
+                            </div>
+                        ))}
                     </div>
                 </div>
 
@@ -931,18 +619,11 @@ export default function InterviewerForm() {
      */
 
     return (
-        <form
-            onSubmit={
-                handleSubmit
-            }
-            className="mx-auto max-w-3xl space-y-8"
-        >
+        <form onSubmit={handleSubmit} className="mx-auto max-w-3xl space-y-8">
             {/* Personal Information */}
 
             <div className="rounded-xl border bg-white p-6 shadow-sm">
-                <h2 className="text-xl font-semibold">
-                    Personal Information
-                </h2>
+                <h2 className="text-xl font-semibold">Personal Information</h2>
 
                 <p className="mt-1 text-sm text-muted-foreground">
                     Tell us a little about yourself.
@@ -963,18 +644,9 @@ export default function InterviewerForm() {
                             <input
                                 id="name"
                                 type="text"
-                                value={
-                                    form.name
-                                }
-                                onChange={(
-                                    event
-                                ) =>
-                                    updateField(
-                                        "name",
-                                        event
-                                            .target
-                                            .value
-                                    )
+                                value={form.name}
+                                onChange={(event) =>
+                                    updateField("name", event.target.value)
                                 }
                                 placeholder="Enter your full name"
                                 className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm outline-none"
@@ -992,18 +664,9 @@ export default function InterviewerForm() {
                             <input
                                 id="email"
                                 type="email"
-                                value={
-                                    form.email
-                                }
-                                onChange={(
-                                    event
-                                ) =>
-                                    updateField(
-                                        "email",
-                                        event
-                                            .target
-                                            .value
-                                    )
+                                value={form.email}
+                                onChange={(event) =>
+                                    updateField("email", event.target.value)
                                 }
                                 placeholder="you@example.com"
                                 className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm outline-none"
@@ -1026,21 +689,12 @@ export default function InterviewerForm() {
                                 id="sid"
                                 type="text"
                                 inputMode="numeric"
-                                maxLength={
-                                    8
-                                }
-                                value={
-                                    form.sid
-                                }
-                                onChange={(
-                                    event
-                                ) =>
+                                maxLength={8}
+                                value={form.sid}
+                                onChange={(event) =>
                                     updateField(
                                         "sid",
-                                        event.target.value.replace(
-                                            /\D/g,
-                                            ""
-                                        )
+                                        event.target.value.replace(/\D/g, ""),
                                     )
                                 }
                                 placeholder="8-digit SID"
@@ -1060,21 +714,12 @@ export default function InterviewerForm() {
                                 id="phone"
                                 type="tel"
                                 inputMode="numeric"
-                                maxLength={
-                                    10
-                                }
-                                value={
-                                    form.phone
-                                }
-                                onChange={(
-                                    event
-                                ) =>
+                                maxLength={10}
+                                value={form.phone}
+                                onChange={(event) =>
                                     updateField(
                                         "phone",
-                                        event.target.value.replace(
-                                            /\D/g,
-                                            ""
-                                        )
+                                        event.target.value.replace(/\D/g, ""),
                                     )
                                 }
                                 placeholder="10-digit phone number"
@@ -1086,40 +731,26 @@ export default function InterviewerForm() {
                     {/* Available days */}
 
                     <div className="space-y-2">
-                        <p className="text-sm font-medium">
-                            Days available
-                        </p>
+                        <p className="text-sm font-medium">Days available</p>
 
                         <div className="flex flex-wrap gap-4">
-                            {availableDaysOptions.map(
-                                (
-                                    day
-                                ) => (
-                                    <label
-                                        key={
-                                            day
-                                        }
-                                        className="flex cursor-pointer items-center gap-2 rounded-md border px-3 py-2 text-sm"
-                                    >
-                                        <input
-                                            type="checkbox"
-                                            checked={form.availableDays.includes(
-                                                day
-                                            )}
-                                            onChange={() =>
-                                                toggleAvailableDay(
-                                                    day
-                                                )
-                                            }
-                                            className="h-4 w-4"
-                                        />
+                            {availableDaysOptions.map((day) => (
+                                <label
+                                    key={day}
+                                    className="flex cursor-pointer items-center gap-2 rounded-md border px-3 py-2 text-sm"
+                                >
+                                    <input
+                                        type="checkbox"
+                                        checked={form.availableDays.includes(
+                                            day,
+                                        )}
+                                        onChange={() => toggleAvailableDay(day)}
+                                        className="h-4 w-4"
+                                    />
 
-                                        {
-                                            day
-                                        }
-                                    </label>
-                                )
-                            )}
+                                    {day}
+                                </label>
+                            ))}
                         </div>
                     </div>
                 </div>
@@ -1128,42 +759,20 @@ export default function InterviewerForm() {
             {/* Questions */}
 
             <div className="rounded-xl border bg-white p-6 shadow-sm">
-                <h2 className="text-xl font-semibold">
-                    Application Question
-                </h2>
+                <h2 className="text-xl font-semibold">Application Question</h2>
 
                 <div className="mt-6 space-y-7">
-                    {INTERVIEWER_QUESTIONS.map(
-                        (
-                            question
-                        ) => (
-                            <Question
-                                key={
-                                    question.id
-                                }
-                                number={
-                                    question.id
-                                }
-                                question={
-                                    question.text
-                                }
-                                value={
-                                    form
-                                        .responses[
-                                        question.id
-                                    ]
-                                }
-                                onChange={(
-                                    value
-                                ) =>
-                                    updateResponse(
-                                        question.id,
-                                        value
-                                    )
-                                }
-                            />
-                        )
-                    )}
+                    {INTERVIEWER_QUESTIONS.map((question) => (
+                        <Question
+                            key={question.id}
+                            number={question.id}
+                            question={question.text}
+                            value={form.responses[question.id]}
+                            onChange={(value) =>
+                                updateResponse(question.id, value)
+                            }
+                        />
+                    ))}
                 </div>
             </div>
 
@@ -1175,14 +784,10 @@ export default function InterviewerForm() {
 
             <button
                 type="submit"
-                disabled={
-                    submitting
-                }
+                disabled={submitting}
                 className="w-full rounded-md bg-primary px-6 py-3 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
             >
-                {submitting
-                    ? "Submitting..."
-                    : "Submit Application"}
+                {submitting ? "Submitting..." : "Submit Application"}
             </button>
         </form>
     );
@@ -1198,26 +803,17 @@ interface QuestionProps {
     number: string;
     question: string;
     value: string;
-    onChange: (
-        value: string
-    ) => void;
+    onChange: (value: string) => void;
 }
 
-function Question({
-    number,
-    question,
-    value,
-    onChange,
-}: QuestionProps) {
+function Question({ number, question, value, onChange }: QuestionProps) {
     return (
         <div className="space-y-3">
             <label
                 htmlFor={number}
                 className="block text-sm font-medium leading-6"
             >
-                <span className="mr-2 text-muted-foreground">
-                    {number}.
-                </span>
+                <span className="mr-2 text-muted-foreground">{number}.</span>
 
                 {question}
             </label>
@@ -1225,13 +821,7 @@ function Question({
             <textarea
                 id={number}
                 value={value}
-                onChange={(
-                    event
-                ) =>
-                    onChange(
-                        event.target.value
-                    )
-                }
+                onChange={(event) => onChange(event.target.value)}
                 rows={5}
                 placeholder="Write your answer here..."
                 className="flex min-h-[120px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm outline-none"

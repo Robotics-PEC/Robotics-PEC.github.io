@@ -72,33 +72,103 @@ export function FieldRenderer({ field, form }: FieldRendererProps) {
             render={({ field: formField }) => {
                 switch (fieldType) {
                     case FieldType.TEXT:
-                        return <TextFieldRenderer config={field} formField={formField} />;
+                        return (
+                            <TextFieldRenderer
+                                config={field}
+                                formField={formField}
+                            />
+                        );
                     case FieldType.EMAIL:
-                        return <EmailFieldRenderer config={field} formField={formField} />;
+                        return (
+                            <EmailFieldRenderer
+                                config={field}
+                                formField={formField}
+                            />
+                        );
                     case FieldType.TEL:
-                        return <TelFieldRenderer config={field} formField={formField} />;
+                        return (
+                            <TelFieldRenderer
+                                config={field}
+                                formField={formField}
+                            />
+                        );
                     case FieldType.PASSWORD:
-                        return <PasswordFieldRenderer config={field} formField={formField} />;
+                        return (
+                            <PasswordFieldRenderer
+                                config={field}
+                                formField={formField}
+                            />
+                        );
                     case FieldType.URL:
-                        return <UrlFieldRenderer config={field} formField={formField} />;
+                        return (
+                            <UrlFieldRenderer
+                                config={field}
+                                formField={formField}
+                            />
+                        );
                     case FieldType.SELECT:
-                        return <SelectFieldRenderer config={field} formField={formField} />;
+                        return (
+                            <SelectFieldRenderer
+                                config={field}
+                                formField={formField}
+                            />
+                        );
                     case FieldType.TEXTAREA:
-                        return <TextareaFieldRenderer config={field} formField={formField} />;
+                        return (
+                            <TextareaFieldRenderer
+                                config={field}
+                                formField={formField}
+                            />
+                        );
                     case FieldType.CHECKBOX_GROUP:
-                        return <CheckboxGroupFieldRenderer config={field} formField={formField} />;
+                        return (
+                            <CheckboxGroupFieldRenderer
+                                config={field}
+                                formField={formField}
+                            />
+                        );
                     case FieldType.RADIO_GROUP:
-                        return <RadioGroupFieldRenderer config={field} formField={formField} />;
+                        return (
+                            <RadioGroupFieldRenderer
+                                config={field}
+                                formField={formField}
+                            />
+                        );
                     case FieldType.RATING:
-                        return <RatingFieldRenderer config={field} formField={formField} />;
+                        return (
+                            <RatingFieldRenderer
+                                config={field}
+                                formField={formField}
+                            />
+                        );
                     case FieldType.MARKDOWN:
-                        return <MarkdownFieldRenderer config={field} formField={formField} />;
+                        return (
+                            <MarkdownFieldRenderer
+                                config={field}
+                                formField={formField}
+                            />
+                        );
                     case FieldType.IMAGE:
-                        return <ImageFieldRenderer config={field} formField={formField} />;
+                        return (
+                            <ImageFieldRenderer
+                                config={field}
+                                formField={formField}
+                            />
+                        );
                     case FieldType.DATE:
-                        return <DateFieldRenderer config={field} formField={formField} />;
+                        return (
+                            <DateFieldRenderer
+                                config={field}
+                                formField={formField}
+                            />
+                        );
                     case FieldType.CATEGORY:
-                        return <CategoryFieldRenderer config={field} formField={formField} />;
+                        return (
+                            <CategoryFieldRenderer
+                                config={field}
+                                formField={formField}
+                            />
+                        );
                     default:
                         const _exhaustive: never = fieldType;
                         return <></>;
@@ -165,7 +235,9 @@ function TextFieldRenderer({
                 </div>
             </FormControl>
             {config[FieldConfigKey.DESCRIPTION] && (
-                <FormDescription>{config[FieldConfigKey.DESCRIPTION]}</FormDescription>
+                <FormDescription>
+                    {config[FieldConfigKey.DESCRIPTION]}
+                </FormDescription>
             )}
             <FormMessage />
         </FormItem>
@@ -200,7 +272,9 @@ function EmailFieldRenderer({
                 </div>
             </FormControl>
             {config[FieldConfigKey.DESCRIPTION] && (
-                <FormDescription>{config[FieldConfigKey.DESCRIPTION]}</FormDescription>
+                <FormDescription>
+                    {config[FieldConfigKey.DESCRIPTION]}
+                </FormDescription>
             )}
             <FormMessage />
         </FormItem>
@@ -236,7 +310,9 @@ function TelFieldRenderer({
                 </div>
             </FormControl>
             {config[FieldConfigKey.DESCRIPTION] && (
-                <FormDescription>{config[FieldConfigKey.DESCRIPTION]}</FormDescription>
+                <FormDescription>
+                    {config[FieldConfigKey.DESCRIPTION]}
+                </FormDescription>
             )}
             <FormMessage />
         </FormItem>
@@ -269,7 +345,7 @@ function PasswordFieldRenderer({
                         disabled={config[FieldConfigKey.DISABLED]}
                         className={cn(
                             config[FieldConfigKey.ICON] && "pl-10",
-                            "pr-10"
+                            "pr-10",
                         )}
                     />
                     <button
@@ -312,7 +388,9 @@ function PasswordFieldRenderer({
                 </div>
             </FormControl>
             {config[FieldConfigKey.DESCRIPTION] && (
-                <FormDescription>{config[FieldConfigKey.DESCRIPTION]}</FormDescription>
+                <FormDescription>
+                    {config[FieldConfigKey.DESCRIPTION]}
+                </FormDescription>
             )}
             <FormMessage />
         </FormItem>
@@ -346,7 +424,9 @@ function UrlFieldRenderer({
                 </div>
             </FormControl>
             {config[FieldConfigKey.DESCRIPTION] && (
-                <FormDescription>{config[FieldConfigKey.DESCRIPTION]}</FormDescription>
+                <FormDescription>
+                    {config[FieldConfigKey.DESCRIPTION]}
+                </FormDescription>
             )}
             <FormMessage />
         </FormItem>
@@ -382,7 +462,9 @@ function SelectFieldRenderer({
                 </SelectContent>
             </Select>
             {config[FieldConfigKey.DESCRIPTION] && (
-                <FormDescription>{config[FieldConfigKey.DESCRIPTION]}</FormDescription>
+                <FormDescription>
+                    {config[FieldConfigKey.DESCRIPTION]}
+                </FormDescription>
             )}
             <FormMessage />
         </FormItem>
@@ -409,7 +491,9 @@ function TextareaFieldRenderer({
                 />
             </FormControl>
             {config[FieldConfigKey.DESCRIPTION] && (
-                <FormDescription>{config[FieldConfigKey.DESCRIPTION]}</FormDescription>
+                <FormDescription>
+                    {config[FieldConfigKey.DESCRIPTION]}
+                </FormDescription>
             )}
             <FormMessage />
         </FormItem>
@@ -431,7 +515,9 @@ function CheckboxGroupFieldRenderer({
             <div className="mb-4">
                 <FieldLabel config={config} />
                 {config[FieldConfigKey.DESCRIPTION] && (
-                    <FormDescription>{config[FieldConfigKey.DESCRIPTION]}</FormDescription>
+                    <FormDescription>
+                        {config[FieldConfigKey.DESCRIPTION]}
+                    </FormDescription>
                 )}
             </div>
             <div className="space-y-2">
@@ -477,7 +563,9 @@ function RadioGroupFieldRenderer({
             <div className="mb-4">
                 <FieldLabel config={config} />
                 {config[FieldConfigKey.DESCRIPTION] && (
-                    <FormDescription>{config[FieldConfigKey.DESCRIPTION]}</FormDescription>
+                    <FormDescription>
+                        {config[FieldConfigKey.DESCRIPTION]}
+                    </FormDescription>
                 )}
             </div>
             <FormControl>
@@ -522,27 +610,32 @@ function RatingFieldRenderer({
             <FieldLabel config={config} />
             <FormControl>
                 <div className="flex gap-2">
-                    {Array.from({ length: maxCount }, (_, i) => i + 1).map((rating) => (
-                        <button
-                            key={rating}
-                            type="button"
-                            onClick={() => formField.onChange(rating)}
-                            disabled={config[FieldConfigKey.DISABLED]}
-                            className={cn(
-                                "w-10 h-10 rounded-full border-2 transition-colors",
-                                value >= rating
-                                    ? "bg-primary border-primary text-primary-foreground"
-                                    : "border-muted-foreground/25 hover:border-primary/50",
-                                config[FieldConfigKey.DISABLED] && "opacity-50 cursor-not-allowed"
-                            )}
-                        >
-                            {rating}
-                        </button>
-                    ))}
+                    {Array.from({ length: maxCount }, (_, i) => i + 1).map(
+                        (rating) => (
+                            <button
+                                key={rating}
+                                type="button"
+                                onClick={() => formField.onChange(rating)}
+                                disabled={config[FieldConfigKey.DISABLED]}
+                                className={cn(
+                                    "w-10 h-10 rounded-full border-2 transition-colors",
+                                    value >= rating
+                                        ? "bg-primary border-primary text-primary-foreground"
+                                        : "border-muted-foreground/25 hover:border-primary/50",
+                                    config[FieldConfigKey.DISABLED] &&
+                                        "opacity-50 cursor-not-allowed",
+                                )}
+                            >
+                                {rating}
+                            </button>
+                        ),
+                    )}
                 </div>
             </FormControl>
             {config[FieldConfigKey.DESCRIPTION] && (
-                <FormDescription>{config[FieldConfigKey.DESCRIPTION]}</FormDescription>
+                <FormDescription>
+                    {config[FieldConfigKey.DESCRIPTION]}
+                </FormDescription>
             )}
             <FormMessage />
         </FormItem>
@@ -576,7 +669,9 @@ function MarkdownFieldRenderer({
                 />
             </FormControl>
             {config[FieldConfigKey.DESCRIPTION] && (
-                <FormDescription>{config[FieldConfigKey.DESCRIPTION]}</FormDescription>
+                <FormDescription>
+                    {config[FieldConfigKey.DESCRIPTION]}
+                </FormDescription>
             )}
             <FormMessage />
         </FormItem>
@@ -606,7 +701,7 @@ function ImageFieldRenderer({
                     id={config[FieldConfigKey.NAME]}
                     onChange={(value: any) => {
                         // Handle the state update from Blob
-                        if (typeof value === 'function') {
+                        if (typeof value === "function") {
                             const prev = formField.value || "";
                             formField.onChange(value(prev));
                         } else {
@@ -617,7 +712,9 @@ function ImageFieldRenderer({
                 />
             </FormControl>
             {config[FieldConfigKey.DESCRIPTION] && (
-                <FormDescription>{config[FieldConfigKey.DESCRIPTION]}</FormDescription>
+                <FormDescription>
+                    {config[FieldConfigKey.DESCRIPTION]}
+                </FormDescription>
             )}
             <FormMessage />
         </FormItem>
@@ -642,7 +739,9 @@ function DateFieldRenderer({
                 />
             </FormControl>
             {config[FieldConfigKey.DESCRIPTION] && (
-                <FormDescription>{config[FieldConfigKey.DESCRIPTION]}</FormDescription>
+                <FormDescription>
+                    {config[FieldConfigKey.DESCRIPTION]}
+                </FormDescription>
             )}
             <FormMessage />
         </FormItem>
@@ -670,7 +769,9 @@ function CategoryFieldRenderer({
                 />
             </FormControl>
             {config[FieldConfigKey.DESCRIPTION] && (
-                <FormDescription>{config[FieldConfigKey.DESCRIPTION]}</FormDescription>
+                <FormDescription>
+                    {config[FieldConfigKey.DESCRIPTION]}
+                </FormDescription>
             )}
             <FormMessage />
         </FormItem>
@@ -685,11 +786,11 @@ function CategoryFieldRenderer({
  * Normalizes option arrays from `string[] | FieldOption[]` to `FieldOption[]`
  */
 function normalizeOptions(
-    options: readonly (string | FieldOption)[]
+    options: readonly (string | FieldOption)[],
 ): FieldOption[] {
     return options.map((opt) =>
         typeof opt === "string"
             ? { [SubmitConfigKey.LABEL]: opt, value: opt }
-            : opt
+            : opt,
     );
 }

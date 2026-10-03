@@ -1,18 +1,35 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import {
+    Accordion,
+    AccordionContent,
+    AccordionItem,
+    AccordionTrigger,
+} from "@/components/ui/accordion";
 import { useToast } from "@/hooks/use-toast";
 import { Plus, Trash, Edit, Save, Calendar } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import ReactMarkdown from "react-markdown";
 import { FormEventType } from "@/types";
 import { Loader } from "@/components/layout/Loader";
-import { deleteEvent, getEvents, updateEvent, uploadEvent, updateEventAttendance, updateEventRegistration, getEventById } from "@/lib/supabase/actions/events.actions";
+import {
+    deleteEvent,
+    getEvents,
+    updateEvent,
+    uploadEvent,
+    updateEventAttendance,
+    updateEventRegistration,
+    getEventById,
+} from "@/lib/supabase/actions/events.actions";
 import { getRegistrations } from "@/lib/supabase/actions/registrations.actions";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Download } from "lucide-react";
-import { isEndTimeAfterStartTime, parseEWKBPoint, TimeValue } from "@/lib/utils";
+import {
+    isEndTimeAfterStartTime,
+    parseEWKBPoint,
+    TimeValue,
+} from "@/lib/utils";
 import TimeField from "@/components/TimeField";
 import { formatDate } from "date-fns";
 import {
@@ -22,7 +39,7 @@ import {
     FieldConfigKey,
     FieldType,
     SubmitConfigKey,
-    type FormConfig
+    type FormConfig,
 } from "@/lib/form-builder";
 
 const emptyData: FormEventType = {
@@ -52,7 +69,9 @@ const EventsEditor = () => {
     const [loading, setLoading] = useState(true);
     const [startTime, setStartTime] = useState<TimeValue | null>(null);
     const [endTime, setEndTime] = useState<TimeValue | null>(null);
-    const [validationError, setValidationError] = useState<string | undefined>(undefined);
+    const [validationError, setValidationError] = useState<string | undefined>(
+        undefined,
+    );
 
     useEffect(() => {
         if (startTime && endTime) {
@@ -70,7 +89,7 @@ const EventsEditor = () => {
             const data = await getEvents();
             setEvents(data!);
             setLoading(false);
-        }
+        };
         fetch();
     }, []);
 
@@ -92,8 +111,8 @@ const EventsEditor = () => {
             return;
         }
 
-        const stTime = `${(startTime.hours < 10) ? "0" + startTime.hours : startTime.hours}:${(startTime.minutes < 10) ? "0" + startTime.minutes : startTime.minutes} ${startTime.period}`;
-        const enTime = `${(endTime.hours < 10) ? "0" + endTime.hours : endTime.hours}:${(endTime.minutes < 10) ? "0" + endTime.minutes : endTime.minutes} ${endTime.period}`;
+        const stTime = `${startTime.hours < 10 ? "0" + startTime.hours : startTime.hours}:${startTime.minutes < 10 ? "0" + startTime.minutes : startTime.minutes} ${startTime.period}`;
+        const enTime = `${endTime.hours < 10 ? "0" + endTime.hours : endTime.hours}:${endTime.minutes < 10 ? "0" + endTime.minutes : endTime.minutes} ${endTime.period}`;
 
         const { latitude, longitude, ...restValues } = values;
 
@@ -102,7 +121,7 @@ const EventsEditor = () => {
             ...restValues,
             time: `${stTime}-${enTime}`,
             date: formatDate(values.date, "dd/MM/yyyy"),
-            event_geo_location: `SRID=4326;POINT(${longitude} ${latitude})`
+            event_geo_location: `SRID=4326;POINT(${longitude} ${latitude})`,
         };
 
         const error = await uploadEvent(newEvent);
@@ -119,7 +138,7 @@ const EventsEditor = () => {
                 title: "Success",
                 description: "Event Added Successfully",
             });
-            setEvents(prev => [...prev, newEvent]);
+            setEvents((prev) => [...prev, newEvent]);
         }
 
         setStartTime(null);
@@ -138,19 +157,18 @@ const EventsEditor = () => {
             return;
         }
 
-        const stTime = `${(startTime.hours < 10) ? "0" + startTime.hours : startTime.hours}:${(startTime.minutes < 10) ? "0" + startTime.minutes : startTime.minutes} ${startTime.period}`;
-        const enTime = `${(endTime.hours < 10) ? "0" + endTime.hours : endTime.hours}:${(endTime.minutes < 10) ? "0" + endTime.minutes : endTime.minutes} ${endTime.period}`;
+        const stTime = `${startTime.hours < 10 ? "0" + startTime.hours : startTime.hours}:${startTime.minutes < 10 ? "0" + startTime.minutes : startTime.minutes} ${startTime.period}`;
+        const enTime = `${endTime.hours < 10 ? "0" + endTime.hours : endTime.hours}:${endTime.minutes < 10 ? "0" + endTime.minutes : endTime.minutes} ${endTime.period}`;
 
-        const {longitude, latitude, ...rest} = values;
+        const { longitude, latitude, ...rest } = values;
 
         const updatedEvent = {
             id: editingId,
             ...rest,
             time: `${stTime}-${enTime}`,
             date: formatDate(values.date, "dd/MM/yyyy"),
-            event_geo_location: `SRID=4326;POINT(${values.longitude} ${values.latitude})`
+            event_geo_location: `SRID=4326;POINT(${values.longitude} ${values.latitude})`,
         };
-
 
         const error = await updateEvent(updatedEvent);
 
@@ -168,10 +186,10 @@ const EventsEditor = () => {
             });
         }
 
-        setEvents(prev =>
-            prev.map(event =>
-                event.id === editingId ? updatedEvent : event
-            )
+        setEvents((prev) =>
+            prev.map((event) =>
+                event.id === editingId ? updatedEvent : event,
+            ),
         );
         setEditingId(null);
         setStartTime(null);
@@ -186,11 +204,21 @@ const EventsEditor = () => {
         const startPeriod = event.time.split(" ")[1].slice(0, 2);
 
         const endHours = Number(event.time.split("-")[1].split(":")[0]);
-        const endMinutes = Number(event.time.split("-")[1].split(":")[1].slice(0, 2));
+        const endMinutes = Number(
+            event.time.split("-")[1].split(":")[1].slice(0, 2),
+        );
         const endPeriod = event.time.split(" ")[2];
 
-        setStartTime({ hours: startHours, minutes: startMinutes, period: startPeriod as ("AM" | "PM") });
-        setEndTime({ hours: endHours, minutes: endMinutes, period: endPeriod as ("AM" | "PM") });
+        setStartTime({
+            hours: startHours,
+            minutes: startMinutes,
+            period: startPeriod as "AM" | "PM",
+        });
+        setEndTime({
+            hours: endHours,
+            minutes: endMinutes,
+            period: endPeriod as "AM" | "PM",
+        });
     };
 
     const handleRemoveEvent = async (id: string) => {
@@ -210,7 +238,7 @@ const EventsEditor = () => {
             return;
         }
 
-        setEvents(prev => prev.filter(event => event.id !== id));
+        setEvents((prev) => prev.filter((event) => event.id !== id));
         if (editingId === id) {
             setEditingId(null);
             setStartTime(null);
@@ -218,7 +246,10 @@ const EventsEditor = () => {
         }
     };
 
-    const handleToggleAttendance = async (id: string, currentStatus: boolean) => {
+    const handleToggleAttendance = async (
+        id: string,
+        currentStatus: boolean,
+    ) => {
         const newStatus = !currentStatus;
         const error = await updateEventAttendance(id, newStatus);
 
@@ -231,10 +262,12 @@ const EventsEditor = () => {
             return;
         }
 
-        setEvents(prev =>
-            prev.map(event =>
-                event.id === id ? { ...event, attendanceOpen: newStatus } : event
-            )
+        setEvents((prev) =>
+            prev.map((event) =>
+                event.id === id
+                    ? { ...event, attendanceOpen: newStatus }
+                    : event,
+            ),
         );
         toast({
             title: "Success",
@@ -242,7 +275,10 @@ const EventsEditor = () => {
         });
     };
 
-    const handleToggleRegistration = async (id: string, currentStatus: boolean) => {
+    const handleToggleRegistration = async (
+        id: string,
+        currentStatus: boolean,
+    ) => {
         const newStatus = !currentStatus;
         const error = await updateEventRegistration(id, newStatus);
 
@@ -255,23 +291,30 @@ const EventsEditor = () => {
             return;
         }
 
-        setEvents(prev =>
-            prev.map(event =>
-                event.id === id ? { ...event, registrationOpen: newStatus } : event
-            )
+        setEvents((prev) =>
+            prev.map((event) =>
+                event.id === id
+                    ? { ...event, registrationOpen: newStatus }
+                    : event,
+            ),
         );
         toast({
             title: "Success",
             description: `Registration is now ${newStatus ? "open" : "closed"}.`,
         });
-    }
+    };
 
     const handleExportRegistrations = async (eventId: string) => {
-        const { data: eventData, error: eventError } = await getEventById(eventId);
+        const { data: eventData, error: eventError } =
+            await getEventById(eventId);
         const { data, error } = await getRegistrations(eventId);
 
         if (eventError || error) {
-            toast({ title: "Error", description: eventError?.message || error, variant: "destructive" });
+            toast({
+                title: "Error",
+                description: eventError?.message || error,
+                variant: "destructive",
+            });
             return;
         }
 
@@ -300,40 +343,45 @@ const EventsEditor = () => {
         // CSV headers
         const headers = ["Name", "Email", ...fieldLabels];
 
-        const rows = data.map(r => {
-            const profile = Array.isArray((r as any).profiles) ? (r as any).profiles[0] : (r as any).profiles;
+        const rows = data.map((r) => {
+            const profile = Array.isArray((r as any).profiles)
+                ? (r as any).profiles[0]
+                : (r as any).profiles;
             const responseData = r.responseJson || {};
 
-            const row = [
-                profile?.fullName || "N/A",
-                profile?.email || "N/A"
-            ];
+            const row = [profile?.fullName || "N/A", profile?.email || "N/A"];
 
             // Add fields based on labels
-            fieldLabels.forEach(label => {
+            fieldLabels.forEach((label) => {
                 // find the field name corresponding to this label
-                const fieldName = Object.keys(labelMap).find(key => labelMap[key] === label);
+                const fieldName = Object.keys(labelMap).find(
+                    (key) => labelMap[key] === label,
+                );
                 const value = fieldName ? responseData[fieldName] : "N/A";
                 // # ponytail: naive CSV escape, change to proper library if commas in data break files.
-                row.push((value !== undefined && value !== null ? String(value) : "N/A").replace(/"/g, '""'));
+                row.push(
+                    (value !== undefined && value !== null
+                        ? String(value)
+                        : "N/A"
+                    ).replace(/"/g, '""'),
+                );
             });
 
             return row;
         });
 
         const csvContent = [headers, ...rows]
-            .map(e => `"${e.join('","')}"`)
+            .map((e) => `"${e.join('","')}"`)
             .join("\n");
 
-        const blob = new Blob([csvContent], { type: 'text/csv' });
+        const blob = new Blob([csvContent], { type: "text/csv" });
         const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
+        const a = document.createElement("a");
         a.href = url;
         a.download = `registrations-${eventId}.csv`;
         a.click();
         window.URL.revokeObjectURL(url);
     };
-
 
     const eventFormConfig: FormConfig = {
         [FormConfigKey.SECTIONS]: [
@@ -350,7 +398,8 @@ const EventsEditor = () => {
                         [FieldConfigKey.NAME]: "description",
                         [FieldConfigKey.LABEL]: "Description",
                         [FieldConfigKey.TYPE]: FieldType.MARKDOWN,
-                        [FieldConfigKey.PLACEHOLDER]: "Detailed Description (Markdown)",
+                        [FieldConfigKey.PLACEHOLDER]:
+                            "Detailed Description (Markdown)",
                         [FieldConfigKey.REQUIRED]: true,
                     },
                 ],
@@ -407,33 +456,41 @@ const EventsEditor = () => {
         ],
         [FormConfigKey.SUBMIT]: {
             [SubmitConfigKey.LABEL]: editingId ? "Update Event" : "Add Event",
-            [SubmitConfigKey.LOADING_LABEL]: editingId ? "Updating..." : "Adding...",
+            [SubmitConfigKey.LOADING_LABEL]: editingId
+                ? "Updating..."
+                : "Adding...",
         },
     };
 
-    const editingEvent = editingId ? events.find(e => e.id === editingId) : null;
+    const editingEvent = editingId
+        ? events.find((e) => e.id === editingId)
+        : null;
     const eventGeoLocation = editingEvent?.event_geo_location;
     let latitude = undefined;
     let longitude = undefined;
     if (eventGeoLocation) {
-        console.log({eventGeoLocation});
-        const {lat,lng} = parseEWKBPoint(eventGeoLocation);
+        console.log({ eventGeoLocation });
+        const { lat, lng } = parseEWKBPoint(eventGeoLocation);
 
         latitude = lat;
         longitude = lng;
     }
 
-    const defaultValues = editingEvent ? {
-        title: editingEvent.title,
-        description: editingEvent.description,
-        date: editingEvent.date
-            ? new Date(`${editingEvent.date.split("/")[2]}-${editingEvent.date.split("/")[1]}-${editingEvent.date.split("/")[0]}`)
-            : undefined,
-        location: editingEvent.location,
-        latitude: latitude ?? editingEvent.latitude,
-        longitude: longitude ?? editingEvent.longitude,
-        capacity: editingEvent.capacity,
-    } : undefined;
+    const defaultValues = editingEvent
+        ? {
+              title: editingEvent.title,
+              description: editingEvent.description,
+              date: editingEvent.date
+                  ? new Date(
+                        `${editingEvent.date.split("/")[2]}-${editingEvent.date.split("/")[1]}-${editingEvent.date.split("/")[0]}`,
+                    )
+                  : undefined,
+              location: editingEvent.location,
+              latitude: latitude ?? editingEvent.latitude,
+              longitude: longitude ?? editingEvent.longitude,
+              capacity: editingEvent.capacity,
+          }
+        : undefined;
 
     return (
         <Loader isLoading={loading}>
@@ -445,7 +502,9 @@ const EventsEditor = () => {
 
                     <DynamicForm
                         config={eventFormConfig}
-                        onSubmit={editingId ? handleUpdateEvent : handleAddEvent}
+                        onSubmit={
+                            editingId ? handleUpdateEvent : handleAddEvent
+                        }
                         defaultValues={defaultValues}
                         key={editingId || "new"}
                         footer={
@@ -482,7 +541,9 @@ const EventsEditor = () => {
                     <h3 className="text-lg font-medium">Current Events</h3>
 
                     {events.length === 0 ? (
-                        <p className="text-gray-500 italic">No events added yet.</p>
+                        <p className="text-gray-500 italic">
+                            No events added yet.
+                        </p>
                     ) : (
                         <Accordion type="single" collapsible className="w-full">
                             {events.map((event) => (
@@ -493,73 +554,136 @@ const EventsEditor = () => {
                                                 <Calendar className="h-4 w-4 mr-2 text-gray-500" />
                                                 <span>{event.title}</span>
                                             </div>
-                                            <span className="text-sm text-gray-500 mr-4">{event.date}</span>
+                                            <span className="text-sm text-gray-500 mr-4">
+                                                {event.date}
+                                            </span>
                                         </div>
                                     </AccordionTrigger>
                                     <AccordionContent>
                                         <div className="p-4 space-y-4">
                                             <div className="flex gap-4">
                                                 <div className="flex-1">
-                                                    <p className="text-sm font-medium">Description:</p>
+                                                    <p className="text-sm font-medium">
+                                                        Description:
+                                                    </p>
                                                     <div className="prose prose-sm max-w-none">
-                                                        <ReactMarkdown>{event.description}</ReactMarkdown>
+                                                        <ReactMarkdown>
+                                                            {event.description}
+                                                        </ReactMarkdown>
                                                     </div>
                                                 </div>
                                             </div>
 
                                             <div className="grid grid-cols-2 gap-4">
                                                 <div>
-                                                    <p className="text-sm font-medium">Date:</p>
-                                                    <p className="text-sm text-gray-600">{event.date}</p>
+                                                    <p className="text-sm font-medium">
+                                                        Date:
+                                                    </p>
+                                                    <p className="text-sm text-gray-600">
+                                                        {event.date}
+                                                    </p>
                                                 </div>
                                                 <div>
-                                                    <p className="text-sm font-medium">Time:</p>
-                                                    <p className="text-sm text-gray-600">{event.time}</p>
+                                                    <p className="text-sm font-medium">
+                                                        Time:
+                                                    </p>
+                                                    <p className="text-sm text-gray-600">
+                                                        {event.time}
+                                                    </p>
                                                 </div>
                                                 <div>
-                                                    <p className="text-sm font-medium">Location:</p>
-                                                    <p className="text-sm text-gray-600">{event.location}</p>
+                                                    <p className="text-sm font-medium">
+                                                        Location:
+                                                    </p>
+                                                    <p className="text-sm text-gray-600">
+                                                        {event.location}
+                                                    </p>
                                                 </div>
                                                 <div>
-                                                    <p className="text-sm font-medium">Capacity:</p>
-                                                    <p className="text-sm text-gray-600">{event.capacity}</p>
+                                                    <p className="text-sm font-medium">
+                                                        Capacity:
+                                                    </p>
+                                                    <p className="text-sm text-gray-600">
+                                                        {event.capacity}
+                                                    </p>
                                                 </div>
                                             </div>
 
                                             <div className="flex items-center gap-2 p-2 border rounded-md">
                                                 <Switch
                                                     id={`attendance-${event.id}`}
-                                                    checked={event.attendanceOpen || false}
-                                                    onCheckedChange={() => handleToggleAttendance(event.id, !!event.attendanceOpen)}
+                                                    checked={
+                                                        event.attendanceOpen ||
+                                                        false
+                                                    }
+                                                    onCheckedChange={() =>
+                                                        handleToggleAttendance(
+                                                            event.id,
+                                                            !!event.attendanceOpen,
+                                                        )
+                                                    }
                                                 />
-                                                <Label htmlFor={`attendance-${event.id}`}>Attendance Window Open</Label>
+                                                <Label
+                                                    htmlFor={`attendance-${event.id}`}
+                                                >
+                                                    Attendance Window Open
+                                                </Label>
                                             </div>
                                             <div className="flex items-center gap-2 p-2 border rounded-md">
                                                 <Switch
                                                     id={`registration-${event.id}`}
-                                                    checked={event.registrationOpen || false}
-                                                    onCheckedChange={() => handleToggleRegistration(event.id, !!event.registrationOpen)}
+                                                    checked={
+                                                        event.registrationOpen ||
+                                                        false
+                                                    }
+                                                    onCheckedChange={() =>
+                                                        handleToggleRegistration(
+                                                            event.id,
+                                                            !!event.registrationOpen,
+                                                        )
+                                                    }
                                                 />
-                                                <Label htmlFor={`attendance-${event.id}`}>Registration Window Open</Label>
+                                                <Label
+                                                    htmlFor={`attendance-${event.id}`}
+                                                >
+                                                    Registration Window Open
+                                                </Label>
                                             </div>
 
                                             <div className="flex gap-2 justify-end">
-                                                <Button size="sm" variant="outline" onClick={() => handleExportRegistrations(event.id)}>
-                                                    <Download className="h-4 w-4 mr-1" /> Export CSV
+                                                <Button
+                                                    size="sm"
+                                                    variant="outline"
+                                                    onClick={() =>
+                                                        handleExportRegistrations(
+                                                            event.id,
+                                                        )
+                                                    }
+                                                >
+                                                    <Download className="h-4 w-4 mr-1" />{" "}
+                                                    Export CSV
                                                 </Button>
                                                 <Button
                                                     size="sm"
                                                     variant="outline"
-                                                    onClick={() => handleEditEvent(event)}
+                                                    onClick={() =>
+                                                        handleEditEvent(event)
+                                                    }
                                                 >
-                                                    <Edit className="h-4 w-4 mr-1" /> Edit
+                                                    <Edit className="h-4 w-4 mr-1" />{" "}
+                                                    Edit
                                                 </Button>
                                                 <Button
                                                     size="sm"
                                                     variant="destructive"
-                                                    onClick={() => handleRemoveEvent(event.id)}
+                                                    onClick={() =>
+                                                        handleRemoveEvent(
+                                                            event.id,
+                                                        )
+                                                    }
                                                 >
-                                                    <Trash className="h-4 w-4 mr-1" /> Delete
+                                                    <Trash className="h-4 w-4 mr-1" />{" "}
+                                                    Delete
                                                 </Button>
                                             </div>
                                         </div>

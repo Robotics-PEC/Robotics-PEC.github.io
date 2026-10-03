@@ -17,23 +17,31 @@ interface EventCalendarProps {
     registeredEvents: string[];
 }
 
-const EventCalendar: React.FC<EventCalendarProps> = ({ events, registeredEvents }) => {
-    const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
+const EventCalendar: React.FC<EventCalendarProps> = ({
+    events,
+    registeredEvents,
+}) => {
+    const [selectedDate, setSelectedDate] = useState<Date | undefined>(
+        new Date(),
+    );
     const { toast } = useToast();
     const router = useRouter();
 
     // Format events for calendar display
-    const eventDates = events?.reduce((acc: Record<string, EventType[]>, event) => {
-        const dateKey = event?.date;
-        if (!acc[dateKey]) {
-            acc[dateKey] = [];
-        }
-        acc[dateKey].push(event);
-        return acc;
-    }, {}) || [];
+    const eventDates =
+        events?.reduce((acc: Record<string, EventType[]>, event) => {
+            const dateKey = event?.date;
+            if (!acc[dateKey]) {
+                acc[dateKey] = [];
+            }
+            acc[dateKey].push(event);
+            return acc;
+        }, {}) || [];
 
     // Get events for selected date
-    const selectedDateStr = selectedDate ? format(selectedDate, "dd/MM/yyyy") : "";
+    const selectedDateStr = selectedDate
+        ? format(selectedDate, "dd/MM/yyyy")
+        : "";
     const eventsOnSelectedDate = eventDates[selectedDateStr] || [];
 
     // Add to Google Calendar
@@ -41,9 +49,9 @@ const EventCalendar: React.FC<EventCalendarProps> = ({ events, registeredEvents 
         const startTime = new Date(`${event?.date}T${event?.time}`);
         const endTime = new Date(startTime.getTime() + 2 * 60 * 60 * 1000); // 2 hours duration
 
-        const googleCalendarUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(event?.title)}&details=${encodeURIComponent(event?.description)}&location=${encodeURIComponent(event?.location)}&dates=${startTime.toISOString().replace(/[-:]/g, '').split('.')[0]}Z/${endTime.toISOString().replace(/[-:]/g, '').split('.')[0]}Z`;
+        const googleCalendarUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(event?.title)}&details=${encodeURIComponent(event?.description)}&location=${encodeURIComponent(event?.location)}&dates=${startTime.toISOString().replace(/[-:]/g, "").split(".")[0]}Z/${endTime.toISOString().replace(/[-:]/g, "").split(".")[0]}Z`;
 
-        window.open(googleCalendarUrl, '_blank');
+        window.open(googleCalendarUrl, "_blank");
         toast({
             title: "Event Added to Google Calendar",
             description: `${event?.title} has been added to your calendar`,
@@ -56,21 +64,23 @@ const EventCalendar: React.FC<EventCalendarProps> = ({ events, registeredEvents 
         const endTime = new Date(startTime.getTime() + 2 * 60 * 60 * 1000); // 2 hours duration
 
         const icsContent = [
-            'BEGIN:VCALENDAR',
-            'VERSION:2.0',
-            'BEGIN:VEVENT',
+            "BEGIN:VCALENDAR",
+            "VERSION:2.0",
+            "BEGIN:VEVENT",
             `SUMMARY:${event?.title}`,
             `DESCRIPTION:${event?.description}`,
             `LOCATION:${event?.location}`,
-            `DTSTART:${startTime.toISOString().replace(/[-:]/g, '').split('.')[0]}Z`,
-            `DTEND:${endTime.toISOString().replace(/[-:]/g, '').split('.')[0]}Z`,
-            'END:VEVENT',
-            'END:VCALENDAR'
-        ].join('\n');
+            `DTSTART:${startTime.toISOString().replace(/[-:]/g, "").split(".")[0]}Z`,
+            `DTEND:${endTime.toISOString().replace(/[-:]/g, "").split(".")[0]}Z`,
+            "END:VEVENT",
+            "END:VCALENDAR",
+        ].join("\n");
 
-        const blob = new Blob([icsContent], { type: 'text/calendar;charset=utf-8' });
+        const blob = new Blob([icsContent], {
+            type: "text/calendar;charset=utf-8",
+        });
         const url = URL.createObjectURL(blob);
-        const link = document.createElement('a');
+        const link = document.createElement("a");
         link.href = url;
         link.download = `${event?.title}.ics`;
         document.body.appendChild(link);
@@ -104,15 +114,14 @@ const EventCalendar: React.FC<EventCalendarProps> = ({ events, registeredEvents 
                         onSelect={setSelectedDate}
                         className="w-full"
                         classNames={{
-                            months:
-                                "flex w-full flex-col sm:flex-row space-y-4 sm:space-x-4 sm:space-y-0 flex-1",
+                            months: "flex w-full flex-col sm:flex-row space-y-4 sm:space-x-4 sm:space-y-0 flex-1",
                             month: "space-y-4 w-full flex flex-col",
                             table: "w-full border-collapse space-y-1",
                             head_row: "",
                             row: "w-full mt-2",
                         }}
                         modifiers={{
-                            hasEvent: (date) => isDayWithEvent(date)
+                            hasEvent: (date) => isDayWithEvent(date),
                         }}
                         modifiersStyles={{
                             hasEvent: {
@@ -122,8 +131,8 @@ const EventCalendar: React.FC<EventCalendarProps> = ({ events, registeredEvents 
                                 color: "#000000",
                             },
                             selected: {
-                                backgroundColor: "#2563eb"
-                            }
+                                backgroundColor: "#2563eb",
+                            },
                         }}
                     />
                     <div className="mt-4 text-sm text-gray-500">
@@ -143,7 +152,9 @@ const EventCalendar: React.FC<EventCalendarProps> = ({ events, registeredEvents 
             >
                 <Card className="bg-white p-6 rounded-lg shadow-md flex flex-col min-h-0 h-[334px]">
                     <h2 className="text-xl font-semibold mb-4 flex-shrink-0">
-                        {selectedDate ? format(selectedDate, "dd MMMM , yyyy") : "Select a date"}
+                        {selectedDate
+                            ? format(selectedDate, "dd MMMM , yyyy")
+                            : "Select a date"}
                     </h2>
 
                     {eventsOnSelectedDate.length > 0 ? (
@@ -153,7 +164,9 @@ const EventCalendar: React.FC<EventCalendarProps> = ({ events, registeredEvents 
                                     key={event?.id}
                                     className="border border-gray-200 rounded-lg p-4"
                                 >
-                                    <h3 className="text-lg font-medium mb-2">{event?.title}</h3>
+                                    <h3 className="text-lg font-medium mb-2">
+                                        {event?.title}
+                                    </h3>
                                     <div className="sm:text-lg prose mb-3">
                                         <ReactMarkdown>
                                             {HTMLToMarkdown(event?.description)}
@@ -170,28 +183,40 @@ const EventCalendar: React.FC<EventCalendarProps> = ({ events, registeredEvents 
                                         </div>
                                         <div className="flex items-center text-sm text-gray-500">
                                             <Users className="h-4 w-4 mr-2" />
-                                            <span>Capacity: {event?.capacity}</span>
+                                            <span>
+                                                Capacity: {event?.capacity}
+                                            </span>
                                         </div>
                                     </div>
                                     <div className="grid grid-row max-sm:gap-2 md:flex md:space-x-2">
-                                        {
-                                            event.registrationOpen && (
-                                                <Button
-                                                    size="sm"
-                                                    className="text-white"
-                                                    onClick={() => router.push(`/events/register/${event.id}`)}
-                                                    disabled={registeredEvents.includes(event.id)}
-                                                >
-                                                    <PlusCircle className="h-4 w-4 mr-2" />
-                                                    {registeredEvents.includes(event.id) ? "Registered" : "Register"}
-                                                </Button>
-                                            )
-                                        }
-                                        
+                                        {event.registrationOpen && (
+                                            <Button
+                                                size="sm"
+                                                className="text-white"
+                                                onClick={() =>
+                                                    router.push(
+                                                        `/events/register/${event.id}`,
+                                                    )
+                                                }
+                                                disabled={registeredEvents.includes(
+                                                    event.id,
+                                                )}
+                                            >
+                                                <PlusCircle className="h-4 w-4 mr-2" />
+                                                {registeredEvents.includes(
+                                                    event.id,
+                                                )
+                                                    ? "Registered"
+                                                    : "Register"}
+                                            </Button>
+                                        )}
+
                                         <Button
                                             size="sm"
                                             className="text-white"
-                                            onClick={() => addToGoogleCalendar(event)}
+                                            onClick={() =>
+                                                addToGoogleCalendar(event)
+                                            }
                                         >
                                             <PlusCircle className="h-4 w-4 mr-2" />
                                             Google
@@ -199,31 +224,36 @@ const EventCalendar: React.FC<EventCalendarProps> = ({ events, registeredEvents 
                                         <Button
                                             size="sm"
                                             className="bg-gray-700 hover:bg-gray-800 text-white"
-                                            onClick={() => addToAppleCalendar(event)}
+                                            onClick={() =>
+                                                addToAppleCalendar(event)
+                                            }
                                         >
                                             <PlusCircle className="h-4 w-4 mr-2" />
                                             Apple
                                         </Button>
-                                        {
-                                            event.attendanceOpen && (
+                                        {event.attendanceOpen && (
                                             <Button
                                                 size="sm"
                                                 variant="outline"
-                                                onClick={() => router.push(`/events/${event.id}/attendance`)}
+                                                onClick={() =>
+                                                    router.push(
+                                                        `/events/${event.id}/attendance`,
+                                                    )
+                                                }
                                             >
                                                 <Users className="h-4 w-4 mr-2" />
                                                 Attendance
                                             </Button>
-                                            )
-                                        }
-                                        
+                                        )}
                                     </div>
                                 </div>
                             ))}
                         </div>
                     ) : (
                         <div className="text-center py-8 text-gray-500 flex-1 min-h-0 content-center">
-                            {selectedDate ? "No events scheduled for this date" : "Select a date to view events"}
+                            {selectedDate
+                                ? "No events scheduled for this date"
+                                : "Select a date to view events"}
                         </div>
                     )}
                 </Card>

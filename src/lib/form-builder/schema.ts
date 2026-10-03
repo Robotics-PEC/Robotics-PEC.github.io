@@ -16,7 +16,7 @@ import {
  * Zod validator for each field type, with required/validation rules applied.
  */
 export function buildFormSchema<C extends FormConfig>(
-    config: C
+    config: C,
 ): z.ZodObject<any> {
     const shape: Record<string, z.ZodTypeAny> = {};
 
@@ -37,7 +37,7 @@ export function buildFormSchema<C extends FormConfig>(
  */
 function buildFieldSchema(
     field: FieldConfig,
-    isRequired: boolean
+    isRequired: boolean,
 ): z.ZodTypeAny {
     const fieldType = field[FieldConfigKey.TYPE];
 
@@ -50,7 +50,9 @@ function buildFieldSchema(
             return buildStringSchema(
                 fieldType,
                 isRequired,
-                "validation" in field ? field[FieldConfigKey.VALIDATION] : undefined
+                "validation" in field
+                    ? field[FieldConfigKey.VALIDATION]
+                    : undefined,
             );
 
         case FieldType.SELECT:
@@ -62,8 +64,12 @@ function buildFieldSchema(
         case FieldType.MARKDOWN:
             return buildTextareaSchema(
                 isRequired,
-                "validation" in field ? field[FieldConfigKey.VALIDATION] : undefined,
-                "maxLength" in field ? field[FieldConfigKey.MAX_LENGTH] : undefined
+                "validation" in field
+                    ? field[FieldConfigKey.VALIDATION]
+                    : undefined,
+                "maxLength" in field
+                    ? field[FieldConfigKey.MAX_LENGTH]
+                    : undefined,
             );
 
         case FieldType.CHECKBOX_GROUP:
@@ -97,7 +103,7 @@ function buildFieldSchema(
 function buildStringSchema(
     fieldType: FieldType,
     isRequired: boolean,
-    validation?: FieldValidation
+    validation?: FieldValidation,
 ): z.ZodTypeAny {
     let schema = z.string();
 
@@ -118,28 +124,30 @@ function buildStringSchema(
         if (validation[ValidationKey.MIN_LENGTH]) {
             schema = schema.min(
                 validation[ValidationKey.MIN_LENGTH],
-                validation[ValidationKey.MESSAGE] ?? `Minimum ${validation[ValidationKey.MIN_LENGTH]} characters`
+                validation[ValidationKey.MESSAGE] ??
+                    `Minimum ${validation[ValidationKey.MIN_LENGTH]} characters`,
             );
         }
 
         if (validation[ValidationKey.MAX_LENGTH]) {
             schema = schema.max(
                 validation[ValidationKey.MAX_LENGTH],
-                validation[ValidationKey.MESSAGE] ?? `Maximum ${validation[ValidationKey.MAX_LENGTH]} characters`
+                validation[ValidationKey.MESSAGE] ??
+                    `Maximum ${validation[ValidationKey.MAX_LENGTH]} characters`,
             );
         }
 
         if (validation[ValidationKey.PATTERN]) {
             schema = schema.regex(
                 validation[ValidationKey.PATTERN],
-                validation[ValidationKey.MESSAGE] ?? "Invalid format"
+                validation[ValidationKey.MESSAGE] ?? "Invalid format",
             );
         }
 
         if (validation[ValidationKey.CUSTOM]) {
             const refined = schema.refine(
                 validation[ValidationKey.CUSTOM],
-                validation[ValidationKey.MESSAGE] ?? "Validation failed"
+                validation[ValidationKey.MESSAGE] ?? "Validation failed",
             );
             return isRequired ? refined : refined.optional();
         }
@@ -154,7 +162,7 @@ function buildStringSchema(
 function buildTextareaSchema(
     isRequired: boolean,
     validation?: FieldValidation,
-    maxLength?: number
+    maxLength?: number,
 ): z.ZodTypeAny {
     let schema = z.string();
 
@@ -171,28 +179,30 @@ function buildTextareaSchema(
         if (validation[ValidationKey.MIN_LENGTH]) {
             schema = schema.min(
                 validation[ValidationKey.MIN_LENGTH],
-                validation[ValidationKey.MESSAGE] ?? `Minimum ${validation[ValidationKey.MIN_LENGTH]} characters`
+                validation[ValidationKey.MESSAGE] ??
+                    `Minimum ${validation[ValidationKey.MIN_LENGTH]} characters`,
             );
         }
 
         if (validation[ValidationKey.MAX_LENGTH]) {
             schema = schema.max(
                 validation[ValidationKey.MAX_LENGTH],
-                validation[ValidationKey.MESSAGE] ?? `Maximum ${validation[ValidationKey.MAX_LENGTH]} characters`
+                validation[ValidationKey.MESSAGE] ??
+                    `Maximum ${validation[ValidationKey.MAX_LENGTH]} characters`,
             );
         }
 
         if (validation[ValidationKey.PATTERN]) {
             schema = schema.regex(
                 validation[ValidationKey.PATTERN],
-                validation[ValidationKey.MESSAGE] ?? "Invalid format"
+                validation[ValidationKey.MESSAGE] ?? "Invalid format",
             );
         }
 
         if (validation[ValidationKey.CUSTOM]) {
             const refined = schema.refine(
                 validation[ValidationKey.CUSTOM],
-                validation[ValidationKey.MESSAGE] ?? "Validation failed"
+                validation[ValidationKey.MESSAGE] ?? "Validation failed",
             );
             return isRequired ? refined : refined.optional();
         }
@@ -216,7 +226,5 @@ function buildCheckboxGroupSchema(isRequired: boolean): z.ZodTypeAny {
  */
 function buildRatingSchema(isRequired: boolean): z.ZodTypeAny {
     const schema = z.number();
-    return isRequired
-        ? schema.min(1, "Rating is required")
-        : schema.optional();
+    return isRequired ? schema.min(1, "Rating is required") : schema.optional();
 }

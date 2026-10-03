@@ -1,16 +1,13 @@
-
-import React, { useEffect, useState } from 'react'
-import ResourceCard from './components/ResourceCard';
-import { FormResourceType } from '@/types';
-import PageHead from '@/components/layout/PageHead';
-import { getResourceData } from '@/lib/supabase/actions/resources.actions';
-import { toast } from '@/hooks/use-toast';
-import { Loader } from '@/components/layout/Loader';
-import PageSection from '@/components/layout/PageSection';
-
+import React, { useEffect, useState } from "react";
+import ResourceCard from "./components/ResourceCard";
+import { FormResourceType } from "@/types";
+import PageHead from "@/components/layout/PageHead";
+import { getResourceData } from "@/lib/supabase/actions/resources.actions";
+import { toast } from "@/hooks/use-toast";
+import { Loader } from "@/components/layout/Loader";
+import PageSection from "@/components/layout/PageSection";
 
 const ResourcePage = () => {
-
     const [data, setData] = useState<FormResourceType[]>([]);
     const [loading, setLoading] = useState(true);
 
@@ -22,7 +19,7 @@ const ResourcePage = () => {
                 toast({
                     title: "Error",
                     description: error.message,
-                    variant: "destructive"
+                    variant: "destructive",
                 });
                 return;
             }
@@ -30,7 +27,7 @@ const ResourcePage = () => {
                 toast({
                     title: "Error",
                     description: "Could not fetch data",
-                    variant: "destructive"
+                    variant: "destructive",
                 });
                 return;
             }
@@ -51,13 +48,17 @@ const ResourcePage = () => {
                     title="Resources"
                     subtitle="Feel Free to look at the resources"
                 >
-                    {data.length > 0 && data.map((resource: FormResourceType) => (
-                        <ResourceCard resource={resource} key={resource.name} />
-                    ))}
+                    {data.length > 0 &&
+                        data.map((resource: FormResourceType) => (
+                            <ResourceCard
+                                resource={resource}
+                                key={resource.name}
+                            />
+                        ))}
                 </PageSection>
             </section>
         </Loader>
-    )
-}
+    );
+};
 
 export default ResourcePage;

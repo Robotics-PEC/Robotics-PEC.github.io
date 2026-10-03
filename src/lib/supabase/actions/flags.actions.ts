@@ -1,46 +1,63 @@
 import { FeatureFlagType } from "@/types";
-import { client } from "../supabase"
+import { client } from "../supabase";
 
-export const createFeatureFlag = async (value: Omit<FeatureFlagType, "id" | "created_at" | "updatedAt">) => {
-    const {error} = await client.from("featureFlags").insert(value);
+export const createFeatureFlag = async (
+    value: Omit<FeatureFlagType, "id" | "created_at" | "updatedAt">,
+) => {
+    const { error } = await client.from("featureFlags").insert(value);
 
-    if(error) {
+    if (error) {
         console.log(error);
         return error;
     }
 
     return null;
-}
+};
 
-export const getFeatureFlags= async (): Promise<FeatureFlagType[]>  => {
-    const {data,error} = await client.from("featureFlags").select("*").order("name", {ascending: true});
+export const getFeatureFlags = async (): Promise<FeatureFlagType[]> => {
+    const { data, error } = await client
+        .from("featureFlags")
+        .select("*")
+        .order("name", { ascending: true });
 
-    if(error) console.log(error);
+    if (error) console.log(error);
 
     return (data ?? []) as FeatureFlagType[];
-}
+};
 
 export const updateFeatureFlag = async (id: string, isEnabled: boolean) => {
-    const {error} = await client.from("featureFlags").update({isEnabled}).eq("id", id);
+    const { error } = await client
+        .from("featureFlags")
+        .update({ isEnabled })
+        .eq("id", id);
 
-    if(error) {
+    if (error) {
         console.log(error);
         return error;
     }
     return null;
-}
+};
 
-export const getFeatureFlagByName = async (name: string): Promise<FeatureFlagType | null> => {
-    const {data,error} = await client.from("featureFlags").select("*").eq("name", name).maybeSingle();
+export const getFeatureFlagByName = async (
+    name: string,
+): Promise<FeatureFlagType | null> => {
+    const { data, error } = await client
+        .from("featureFlags")
+        .select("*")
+        .eq("name", name)
+        .maybeSingle();
 
-    if(error) {
+    if (error) {
         console.log(error);
     }
 
     return data as FeatureFlagType;
-}
+};
 
-export const updateFeatureFlagByName = async (name: string, isEnabled: boolean): Promise<boolean> => {
+export const updateFeatureFlagByName = async (
+    name: string,
+    isEnabled: boolean,
+): Promise<boolean> => {
     let flag = await getFeatureFlagByName(name);
     if (!flag) {
         const error = await createFeatureFlag({ name, isEnabled });
@@ -48,4 +65,4 @@ export const updateFeatureFlagByName = async (name: string, isEnabled: boolean):
     }
     const error = await updateFeatureFlag(flag.id, isEnabled);
     return !error;
-}
+};

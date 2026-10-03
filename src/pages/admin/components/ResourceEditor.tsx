@@ -1,12 +1,22 @@
-import { Loader } from '@/components/layout/Loader';
-import { Card } from '@/components/ui/card';
-import { FormResourceType } from '@/types';
-import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from '@radix-ui/react-accordion';
-import { Save, Plus, Edit, Trash, Badge } from 'lucide-react';
-import React, { useEffect, useState } from 'react'
-import { Button } from '@/components/ui/button';
-import { toast } from '@/hooks/use-toast';
-import { deleteResource, getResourceData, updateResource, uploadResource } from '@/lib/supabase/actions/resources.actions';
+import { Loader } from "@/components/layout/Loader";
+import { Card } from "@/components/ui/card";
+import { FormResourceType } from "@/types";
+import {
+    Accordion,
+    AccordionItem,
+    AccordionTrigger,
+    AccordionContent,
+} from "@radix-ui/react-accordion";
+import { Save, Plus, Edit, Trash, Badge } from "lucide-react";
+import React, { useEffect, useState } from "react";
+import { Button } from "@/components/ui/button";
+import { toast } from "@/hooks/use-toast";
+import {
+    deleteResource,
+    getResourceData,
+    updateResource,
+    uploadResource,
+} from "@/lib/supabase/actions/resources.actions";
 import {
     DynamicForm,
     FormConfigKey,
@@ -14,15 +24,15 @@ import {
     FieldConfigKey,
     FieldType,
     SubmitConfigKey,
-    type FormConfig
-} from '@/lib/form-builder';
+    type FormConfig,
+} from "@/lib/form-builder";
 
 const ResourceEditor = () => {
     const defaultData = {
         id: "",
         name: "",
-        url: ""
-    }
+        url: "",
+    };
 
     const [loading, setLoading] = useState(false);
     const [editingId, setEditingId] = useState<string | null>(null);
@@ -36,7 +46,7 @@ const ResourceEditor = () => {
                 toast({
                     title: "Error",
                     description: error.message,
-                    variant: "destructive"
+                    variant: "destructive",
                 });
                 return;
             }
@@ -55,26 +65,29 @@ const ResourceEditor = () => {
             toast({
                 title: error.name,
                 description: error.message,
-                variant: "destructive"
+                variant: "destructive",
             });
         } else {
             toast({
                 title: "Success",
-                description: "Resource has been Uploaded"
+                description: "Resource has been Uploaded",
             });
-            setResources(prev => [...prev, newResource]);
+            setResources((prev) => [...prev, newResource]);
         }
     };
 
-    const handleUpdateResource = async (values: { name: string; url: string }) => {
+    const handleUpdateResource = async (values: {
+        name: string;
+        url: string;
+    }) => {
         if (!editingId) return;
 
         const updatedResource = { ...defaultData, id: editingId, ...values };
 
-        setResources(prev =>
-            prev.map(resource =>
-                resource.id === editingId ? updatedResource : resource
-            )
+        setResources((prev) =>
+            prev.map((resource) =>
+                resource.id === editingId ? updatedResource : resource,
+            ),
         );
 
         const error = await updateResource(updatedResource);
@@ -84,12 +97,12 @@ const ResourceEditor = () => {
             toast({
                 title: error.name,
                 description: error.message,
-                variant: "destructive"
+                variant: "destructive",
             });
         } else {
             toast({
                 title: "Success",
-                description: "Resource has been Updated"
+                description: "Resource has been Updated",
             });
         }
     };
@@ -99,17 +112,17 @@ const ResourceEditor = () => {
     };
 
     const handleRemoveResource = async (resource: FormResourceType) => {
-        setResources(prev => prev.filter(pr => pr.id !== resource.id));
+        setResources((prev) => prev.filter((pr) => pr.id !== resource.id));
         const response = await deleteResource(resource);
         if (response.status == 204) {
             toast({
                 title: "Resource Deleted Successfully",
-                description: `${resource.name} was successfully deleted`
+                description: `${resource.name} was successfully deleted`,
             });
         } else {
             toast({
                 title: "Resource Couldn't be deleted",
-                description: `${resource.name} unable to be deleted`
+                description: `${resource.name} unable to be deleted`,
             });
         }
     };
@@ -137,19 +150,26 @@ const ResourceEditor = () => {
                         [FieldConfigKey.NAME]: "url",
                         [FieldConfigKey.LABEL]: "URL",
                         [FieldConfigKey.TYPE]: FieldType.URL,
-                        [FieldConfigKey.PLACEHOLDER]: "https://www.roboticspec.com",
+                        [FieldConfigKey.PLACEHOLDER]:
+                            "https://www.roboticspec.com",
                         [FieldConfigKey.REQUIRED]: true,
                     },
                 ],
             },
         ],
         [FormConfigKey.SUBMIT]: {
-            [SubmitConfigKey.LABEL]: editingId ? "Update Resource" : "Add Resource",
-            [SubmitConfigKey.LOADING_LABEL]: editingId ? "Updating..." : "Adding...",
+            [SubmitConfigKey.LABEL]: editingId
+                ? "Update Resource"
+                : "Add Resource",
+            [SubmitConfigKey.LOADING_LABEL]: editingId
+                ? "Updating..."
+                : "Adding...",
         },
     };
 
-    const editingResource = editingId ? resources.find(r => r.id === editingId) : null;
+    const editingResource = editingId
+        ? resources.find((r) => r.id === editingId)
+        : null;
 
     return (
         <Loader isLoading={loading}>
@@ -160,10 +180,15 @@ const ResourceEditor = () => {
                     </h3>
                     <DynamicForm
                         config={resourceFormConfig}
-                        onSubmit={editingId ? handleUpdateResource : handleAddResource}
+                        onSubmit={
+                            editingId ? handleUpdateResource : handleAddResource
+                        }
                         defaultValues={
                             editingResource
-                                ? { name: editingResource.name, url: editingResource.url }
+                                ? {
+                                      name: editingResource.name,
+                                      url: editingResource.url,
+                                  }
                                 : undefined
                         }
                         key={editingId || "new"} // Force re-render when switching between add/edit
@@ -186,11 +211,20 @@ const ResourceEditor = () => {
                     <h3 className="text-lg font-medium">Current Resources</h3>
 
                     {resources.length === 0 ? (
-                        <p className="text-gray-500 italic">No resources added yet.</p>
+                        <p className="text-gray-500 italic">
+                            No resources added yet.
+                        </p>
                     ) : (
-                        <Accordion type="single" collapsible className="w-full space-y-6">
+                        <Accordion
+                            type="single"
+                            collapsible
+                            className="w-full space-y-6"
+                        >
                             {resources.map((resource) => (
-                                <AccordionItem key={resource.id} value={resource.id}>
+                                <AccordionItem
+                                    key={resource.id}
+                                    value={resource.id}
+                                >
                                     <AccordionTrigger>
                                         <div className="flex justify-between items-center w-full pr-4 space-x-4">
                                             <Badge className="w-5 h-5" />
@@ -201,23 +235,35 @@ const ResourceEditor = () => {
                                         <div className="p-4 space-y-4">
                                             <div className="flex gap-4">
                                                 <div className="flex-1">
-                                                    <p className="text-sm text-gray-600 mb-2">{resource.url}</p>
+                                                    <p className="text-sm text-gray-600 mb-2">
+                                                        {resource.url}
+                                                    </p>
                                                 </div>
                                             </div>
                                             <div className="flex gap-2 justify-end">
                                                 <Button
                                                     size="sm"
                                                     variant="outline"
-                                                    onClick={() => handleEditResource(resource)}
+                                                    onClick={() =>
+                                                        handleEditResource(
+                                                            resource,
+                                                        )
+                                                    }
                                                 >
-                                                    <Edit className="h-4 w-4 mr-1" /> Edit
+                                                    <Edit className="h-4 w-4 mr-1" />{" "}
+                                                    Edit
                                                 </Button>
                                                 <Button
                                                     size="sm"
                                                     variant="destructive"
-                                                    onClick={() => handleRemoveResource(resource)}
+                                                    onClick={() =>
+                                                        handleRemoveResource(
+                                                            resource,
+                                                        )
+                                                    }
                                                 >
-                                                    <Trash className="h-4 w-4 mr-1" /> Delete
+                                                    <Trash className="h-4 w-4 mr-1" />{" "}
+                                                    Delete
                                                 </Button>
                                             </div>
                                         </div>
@@ -233,7 +279,7 @@ const ResourceEditor = () => {
                 </div>
             </div>
         </Loader>
-    )
-}
+    );
+};
 
 export default ResourceEditor;

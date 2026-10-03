@@ -2,9 +2,22 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+    Card,
+    CardContent,
+    CardDescription,
+    CardHeader,
+    CardTitle,
+} from "@/components/ui/card";
 import Link from "next/link";
-import { Home, FileText, Calendar, Users, ExternalLink, Book } from "lucide-react";
+import {
+    Home,
+    FileText,
+    Calendar,
+    Users,
+    ExternalLink,
+    Book,
+} from "lucide-react";
 import HeroEditor from "@/pages/admin/components/HeroEditor";
 import ProjectsEditor from "@/pages/admin/components/ProjectsEditor";
 import ActivitiesEditor from "@/pages/admin/components/ActivitiesEditor";
@@ -17,25 +30,24 @@ import BlogsEditor from "@/pages/admin/components/BlogsEditor";
 import RolesEditor from "@/pages/admin/components/Role";
 import FeatureFlags from "@/pages/admin/components/FeatureFlags";
 import TalkShowEditor from "@/pages/admin/components/TalkShowEditor";
-import EventsFormEditor  from "@/pages/admin/components/EventsFormEditor";
-
+import EventsFormEditor from "@/pages/admin/components/EventsFormEditor";
 
 export enum TabValues {
-    HERO="hero",
-    PROJECTS="projects",
-    ACTIVITIES="activities",
-    EVENTS="events",
-    TEAM="team",
+    HERO = "hero",
+    PROJECTS = "projects",
+    ACTIVITIES = "activities",
+    EVENTS = "events",
+    TEAM = "team",
     BLOGS = "blogs",
-    RESOURCES="resources",
-    ROLES="roles",
-    FEATURE_FLAGS="feature_flags",
-    TALK_SHOW="talk_show",
-    EVENTS_FORM="events_form",
-    ATTENDANCE_FORM="attendance_form"
+    RESOURCES = "resources",
+    ROLES = "roles",
+    FEATURE_FLAGS = "feature_flags",
+    TALK_SHOW = "talk_show",
+    EVENTS_FORM = "events_form",
+    ATTENDANCE_FORM = "attendance_form",
 }
 
-const tabComponentMap: Record<TabValues,React.ReactNode> = {
+const tabComponentMap: Record<TabValues, React.ReactNode> = {
     [TabValues.HERO]: (
         <TabsContent value={TabValues.HERO} className="mt-0">
             <HeroEditor />
@@ -96,70 +108,64 @@ const tabComponentMap: Record<TabValues,React.ReactNode> = {
             <TalkShowEditor />
         </TabsContent>
     ),
-}
+};
 
 const tabTriggerList: React.ReactNode[] = [
-    (
-        <TabsTrigger value={TabValues.HERO} className="flex items-center gap-2">
-            <Home className="h-4 w-4" /> Hero Section
-        </TabsTrigger>
-    ),
-    (
-        <TabsTrigger value={TabValues.PROJECTS} className="flex items-center gap-2">
-            <FileText className="h-4 w-4" /> Projects
-        </TabsTrigger>
-    ),
-    (
-        <TabsTrigger value={TabValues.ACTIVITIES} className="flex items-center gap-2">
-            <FileText className="h-4 w-4" /> Activities
-        </TabsTrigger>
-    ),
-    (
-        <TabsTrigger value={TabValues.EVENTS} className="flex items-center gap-2">
-            <Calendar className="h-4 w-4" /> Events
-        </TabsTrigger>
-    ),
-    (
-        <TabsTrigger value={TabValues.TEAM} className="flex items-center gap-2">
-            <Users className="h-4 w-4" /> Team
-        </TabsTrigger>
-    ),
-    (
-        <TabsTrigger value={TabValues.BLOGS} className="flex items-center gap-2">
-            <Users className="h-4 w-4" /> Blogs
-        </TabsTrigger>
-    ),
-    (
-        <TabsTrigger value={TabValues.RESOURCES} className="flex items-center gap-2">
-            <Book className="h-4 w-4" /> Resources
-        </TabsTrigger>
-    ),
-    (
-        <TabsTrigger value={TabValues.ROLES} className="flex items-center gap-2">
-            <Book className="h-4 w-4" /> Roles
-        </TabsTrigger>
-    ),
-    (
-        <TabsTrigger value={TabValues.FEATURE_FLAGS} className="flex items-center gap-2">
-            <Book className="h-4 w-4" /> Feature Flags
-        </TabsTrigger>
-    ),
-    (
-        <TabsTrigger value={TabValues.TALK_SHOW} className="flex items-center gap-2">
-            <Book className="h-4 w-4" /> Talk Show Details
-        </TabsTrigger>
-    ),
-    (
-        <TabsTrigger value={TabValues.EVENTS_FORM} className="flex items-center gap-2">
-            <Calendar className="h-4 w-4" /> Events Form Builder
-        </TabsTrigger>
-    ),
-    (
-        <TabsTrigger value={TabValues.ATTENDANCE_FORM} className="flex items-center gap-2">
-            <Calendar className="h-4 w-4" /> Attendance Form Builder
-        </TabsTrigger>
-    ),
-]
+    <TabsTrigger value={TabValues.HERO} className="flex items-center gap-2">
+        <Home className="h-4 w-4" /> Hero Section
+    </TabsTrigger>,
+    <TabsTrigger value={TabValues.PROJECTS} className="flex items-center gap-2">
+        <FileText className="h-4 w-4" /> Projects
+    </TabsTrigger>,
+    <TabsTrigger
+        value={TabValues.ACTIVITIES}
+        className="flex items-center gap-2"
+    >
+        <FileText className="h-4 w-4" /> Activities
+    </TabsTrigger>,
+    <TabsTrigger value={TabValues.EVENTS} className="flex items-center gap-2">
+        <Calendar className="h-4 w-4" /> Events
+    </TabsTrigger>,
+    <TabsTrigger value={TabValues.TEAM} className="flex items-center gap-2">
+        <Users className="h-4 w-4" /> Team
+    </TabsTrigger>,
+    <TabsTrigger value={TabValues.BLOGS} className="flex items-center gap-2">
+        <Users className="h-4 w-4" /> Blogs
+    </TabsTrigger>,
+    <TabsTrigger
+        value={TabValues.RESOURCES}
+        className="flex items-center gap-2"
+    >
+        <Book className="h-4 w-4" /> Resources
+    </TabsTrigger>,
+    <TabsTrigger value={TabValues.ROLES} className="flex items-center gap-2">
+        <Book className="h-4 w-4" /> Roles
+    </TabsTrigger>,
+    <TabsTrigger
+        value={TabValues.FEATURE_FLAGS}
+        className="flex items-center gap-2"
+    >
+        <Book className="h-4 w-4" /> Feature Flags
+    </TabsTrigger>,
+    <TabsTrigger
+        value={TabValues.TALK_SHOW}
+        className="flex items-center gap-2"
+    >
+        <Book className="h-4 w-4" /> Talk Show Details
+    </TabsTrigger>,
+    <TabsTrigger
+        value={TabValues.EVENTS_FORM}
+        className="flex items-center gap-2"
+    >
+        <Calendar className="h-4 w-4" /> Events Form Builder
+    </TabsTrigger>,
+    <TabsTrigger
+        value={TabValues.ATTENDANCE_FORM}
+        className="flex items-center gap-2"
+    >
+        <Calendar className="h-4 w-4" /> Attendance Form Builder
+    </TabsTrigger>,
+];
 
 const titleMap: Record<TabValues, string> = {
     [TabValues.HERO]: "Hero Section Editor",
@@ -173,24 +179,23 @@ const titleMap: Record<TabValues, string> = {
     [TabValues.FEATURE_FLAGS]: "Feature Flags",
     [TabValues.TALK_SHOW]: "Talk Show",
     [TabValues.EVENTS_FORM]: "Events Form Builder",
-    [TabValues.ATTENDANCE_FORM]: "Attendance Form Builder"
-}
+    [TabValues.ATTENDANCE_FORM]: "Attendance Form Builder",
+};
 
 const descriptionMap: Record<TabValues, string> = {
-    [TabValues.HERO]:"Edit the main heading, text and background images",
-    [TabValues.PROJECTS]:"Add, edit or remove projects",
-    [TabValues.ACTIVITIES]:"Manage robotics activities and workshops",
-    [TabValues.EVENTS]:"Add or edit upcoming events and competitions",
-    [TabValues.TEAM]:"Manage team members and their information",
-    [TabValues.BLOGS]:"Manage blog posts",
-    [TabValues.RESOURCES]:"Manage Resources and Links",
-    [TabValues.ROLES]:"Manage Roles for different society members",
+    [TabValues.HERO]: "Edit the main heading, text and background images",
+    [TabValues.PROJECTS]: "Add, edit or remove projects",
+    [TabValues.ACTIVITIES]: "Manage robotics activities and workshops",
+    [TabValues.EVENTS]: "Add or edit upcoming events and competitions",
+    [TabValues.TEAM]: "Manage team members and their information",
+    [TabValues.BLOGS]: "Manage blog posts",
+    [TabValues.RESOURCES]: "Manage Resources and Links",
+    [TabValues.ROLES]: "Manage Roles for different society members",
     [TabValues.FEATURE_FLAGS]: "Manage Enabling and Disabling Features",
     [TabValues.TALK_SHOW]: "Manage Talk Show Details",
     [TabValues.EVENTS_FORM]: "Configure registration forms for events",
     [TabValues.ATTENDANCE_FORM]: "Configure attendance forms for events",
-}
-
+};
 
 const Admin = () => {
     const [activeTab, setActiveTab] = useState(TabValues.HERO);
@@ -198,12 +203,12 @@ const Admin = () => {
         <>
             <PageHead
                 title="Robotics Society | Punjab Engineering College"
-                description='PEC Robotics Society at Punjab Engineering College is dedicated to innovation in robotics and automation. Explore our projects and join our team.'
+                description="PEC Robotics Society at Punjab Engineering College is dedicated to innovation in robotics and automation. Explore our projects and join our team."
             />
             <section className="py-24" id="events">
                 <PageSection
-                    title='Admin Dashboard'
-                    subtitle='Manage website content'
+                    title="Admin Dashboard"
+                    subtitle="Manage website content"
                 >
                     <div className="min-h-screen bg-white p-6">
                         <motion.div
@@ -212,12 +217,16 @@ const Admin = () => {
                             transition={{ duration: 0.6 }}
                             className="max-w-6xl mx-auto"
                         >
-
-                            <Tabs defaultValue={TabValues.HERO} value={activeTab} onValueChange={(value: unknown) => setActiveTab(value as TabValues)} className="w-full mb-12">
+                            <Tabs
+                                defaultValue={TabValues.HERO}
+                                value={activeTab}
+                                onValueChange={(value: unknown) =>
+                                    setActiveTab(value as TabValues)
+                                }
+                                className="w-full mb-12"
+                            >
                                 <div className="overflow-x-auto pb-2">
-                                    <TabsList>
-                                        {tabTriggerList}
-                                    </TabsList>
+                                    <TabsList>{tabTriggerList}</TabsList>
                                 </div>
 
                                 <Card className="shadow-md">
@@ -236,14 +245,28 @@ const Admin = () => {
                             </Tabs>
 
                             <div className="mt-8">
-                                <h2 className="text-xl font-semibold mb-4">Preview Pages</h2>
+                                <h2 className="text-xl font-semibold mb-4">
+                                    Preview Pages
+                                </h2>
                                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                                     <Card className="hover:shadow-md transition-shadow">
                                         <CardContent className="p-6">
-                                            <h3 className="text-lg font-medium mb-2">Activities Page</h3>
-                                            <p className="text-gray-600 text-sm mb-4">View all robotics activities and workshops.</p>
-                                            <Button asChild variant="outline" className="w-full">
-                                                <Link href="/activities" target="_blank">
+                                            <h3 className="text-lg font-medium mb-2">
+                                                Activities Page
+                                            </h3>
+                                            <p className="text-gray-600 text-sm mb-4">
+                                                View all robotics activities and
+                                                workshops.
+                                            </p>
+                                            <Button
+                                                asChild
+                                                variant="outline"
+                                                className="w-full"
+                                            >
+                                                <Link
+                                                    href="/activities"
+                                                    target="_blank"
+                                                >
                                                     <ExternalLink className="h-4 w-4 mr-2" />
                                                     View Page
                                                 </Link>
@@ -253,10 +276,22 @@ const Admin = () => {
 
                                     <Card className="hover:shadow-md transition-shadow">
                                         <CardContent className="p-6">
-                                            <h3 className="text-lg font-medium mb-2">Events Page</h3>
-                                            <p className="text-gray-600 text-sm mb-4">View upcoming events and competitions.</p>
-                                            <Button asChild variant="outline" className="w-full">
-                                                <Link href="/events" target="_blank">
+                                            <h3 className="text-lg font-medium mb-2">
+                                                Events Page
+                                            </h3>
+                                            <p className="text-gray-600 text-sm mb-4">
+                                                View upcoming events and
+                                                competitions.
+                                            </p>
+                                            <Button
+                                                asChild
+                                                variant="outline"
+                                                className="w-full"
+                                            >
+                                                <Link
+                                                    href="/events"
+                                                    target="_blank"
+                                                >
                                                     <ExternalLink className="h-4 w-4 mr-2" />
                                                     View Page
                                                 </Link>
@@ -266,10 +301,22 @@ const Admin = () => {
 
                                     <Card className="hover:shadow-md transition-shadow">
                                         <CardContent className="p-6">
-                                            <h3 className="text-lg font-medium mb-2">Team Page</h3>
-                                            <p className="text-gray-600 text-sm mb-4">View all team members and their profiles.</p>
-                                            <Button asChild variant="outline" className="w-full">
-                                                <Link href="/team" target="_blank">
+                                            <h3 className="text-lg font-medium mb-2">
+                                                Team Page
+                                            </h3>
+                                            <p className="text-gray-600 text-sm mb-4">
+                                                View all team members and their
+                                                profiles.
+                                            </p>
+                                            <Button
+                                                asChild
+                                                variant="outline"
+                                                className="w-full"
+                                            >
+                                                <Link
+                                                    href="/team"
+                                                    target="_blank"
+                                                >
                                                     <ExternalLink className="h-4 w-4 mr-2" />
                                                     View Page
                                                 </Link>

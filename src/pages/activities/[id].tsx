@@ -1,10 +1,10 @@
-import { Loader } from '@/components/layout/Loader';
-import PageHead from '@/components/layout/PageHead';
-import { getMarkdownFile } from '@/lib/supabase/actions/storage.actions';
-import { AnimatePresence, motion } from 'framer-motion';
-import { useRouter } from 'next/router';
-import React, { useEffect, useState } from 'react'
-import ReactMarkdown from 'react-markdown';
+import { Loader } from "@/components/layout/Loader";
+import PageHead from "@/components/layout/PageHead";
+import { getMarkdownFile } from "@/lib/supabase/actions/storage.actions";
+import { AnimatePresence, motion } from "framer-motion";
+import { useRouter } from "next/router";
+import React, { useEffect, useState } from "react";
+import ReactMarkdown from "react-markdown";
 
 const ActivityPage = () => {
     const router = useRouter();
@@ -44,14 +44,34 @@ const ActivityPage = () => {
                     <div className="flex flex-col items-center mb-8">
                         <div className="container mx-auto">
                             <div className="max-w-3xl mx-auto mb-12 px-4 sm:px-0">
-
                                 <ReactMarkdown
                                     components={{
-                                        h1: ({ node, ...props }) => <h1 className="text-4xl font-bold mb-4" {...props} />,
-                                        h2: ({ node, ...props }) => <h2 className="text-2xl font-bold mb-4" {...props} />,
-                                        p: ({ node, ...props }) => <p className="text-gray-700 leading-relaxed mb-2" {...props} />,
-                                        a: ({ node, ...props }) => <a className="text-blue-600 underline" {...props} />,
-                                    }}>
+                                        h1: ({ node, ...props }) => (
+                                            <h1
+                                                className="text-4xl font-bold mb-4"
+                                                {...props}
+                                            />
+                                        ),
+                                        h2: ({ node, ...props }) => (
+                                            <h2
+                                                className="text-2xl font-bold mb-4"
+                                                {...props}
+                                            />
+                                        ),
+                                        p: ({ node, ...props }) => (
+                                            <p
+                                                className="text-gray-700 leading-relaxed mb-2"
+                                                {...props}
+                                            />
+                                        ),
+                                        a: ({ node, ...props }) => (
+                                            <a
+                                                className="text-blue-600 underline"
+                                                {...props}
+                                            />
+                                        ),
+                                    }}
+                                >
                                     {`${eventData}`}
                                 </ReactMarkdown>
                             </div>
@@ -59,8 +79,8 @@ const ActivityPage = () => {
                     </div>
                 </motion.div>
             </AnimatePresence>
-        </Loader >
-    )
-}
+        </Loader>
+    );
+};
 
 export default ActivityPage;

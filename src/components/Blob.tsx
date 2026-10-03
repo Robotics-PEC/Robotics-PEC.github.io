@@ -1,25 +1,52 @@
-import React, { SetStateAction, useRef, useState } from 'react'
+import React, { SetStateAction, useRef, useState } from "react";
 import { toast } from "sonner";
-import { Button } from './ui/button';
-import { FormTeamType, FormProjectType, FormActivityType, FormEventType, ImageObjectType, HeroType, FormResourceType } from '@/types';
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from './ui/card';
-import { FileImage, Upload, X } from 'lucide-react';
-import { ImageData } from '@/types';
-import { compressImage } from '@/lib/utils';
+import { Button } from "./ui/button";
+import {
+    FormTeamType,
+    FormProjectType,
+    FormActivityType,
+    FormEventType,
+    ImageObjectType,
+    HeroType,
+    FormResourceType,
+} from "@/types";
+import {
+    Card,
+    CardContent,
+    CardFooter,
+    CardHeader,
+    CardTitle,
+} from "./ui/card";
+import { FileImage, Upload, X } from "lucide-react";
+import { ImageData } from "@/types";
+import { compressImage } from "@/lib/utils";
 
 interface BlobProps {
     id?: string;
-    onChange?: ((value: SetStateAction<FormProjectType>) => void) | ((value: SetStateAction<FormTeamType>) => void) | ((value: SetStateAction<FormActivityType>) => void) | ((value: SetStateAction<FormEventType>) => void) | ((value: SetStateAction<ImageObjectType>) => void) | ((value: SetStateAction<HeroType>) => void) | ((value: SetStateAction<string>) => void) | ((value: SetStateAction<FormResourceType>) => void);
+    onChange?:
+        | ((value: SetStateAction<FormProjectType>) => void)
+        | ((value: SetStateAction<FormTeamType>) => void)
+        | ((value: SetStateAction<FormActivityType>) => void)
+        | ((value: SetStateAction<FormEventType>) => void)
+        | ((value: SetStateAction<ImageObjectType>) => void)
+        | ((value: SetStateAction<HeroType>) => void)
+        | ((value: SetStateAction<string>) => void)
+        | ((value: SetStateAction<FormResourceType>) => void);
     setFileName?: (value: SetStateAction<string>) => void;
     uploadCallback?: () => void;
     setData?: (value: SetStateAction<string>) => void;
-};
+}
 
-const Blob = ({ id, onChange, setFileName, uploadCallback, setData }: BlobProps) => {
+const Blob = ({
+    id,
+    onChange,
+    setFileName,
+    uploadCallback,
+    setData,
+}: BlobProps) => {
     const [imageData, setImageData] = useState<ImageData | null>(null);
     const [isDragging, setIsDragging] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
-
 
     const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files && e.target.files.length > 0) {
@@ -52,7 +79,7 @@ const Blob = ({ id, onChange, setFileName, uploadCallback, setData }: BlobProps)
     };
 
     const processFile = (file: File) => {
-        if (!file.type.match('image.*')) {
+        if (!file.type.match("image.*")) {
             toast.error("Please select an image file");
             return;
         }
@@ -64,7 +91,10 @@ const Blob = ({ id, onChange, setFileName, uploadCallback, setData }: BlobProps)
                     setFileName(file.name);
                 }
                 if (onChange && id) {
-                    onChange((prev: any) => ({ ...prev, [id]: event.target?.result as string }));
+                    onChange((prev: any) => ({
+                        ...prev,
+                        [id]: event.target?.result as string,
+                    }));
                 }
 
                 if (setData) {
@@ -73,7 +103,7 @@ const Blob = ({ id, onChange, setFileName, uploadCallback, setData }: BlobProps)
 
                 setImageData({
                     name: file.name,
-                    base64: event.target?.result as string
+                    base64: event.target?.result as string,
                 });
 
                 toast.success(`Image "${file.name}" loaded successfully`);
@@ -97,17 +127,20 @@ const Blob = ({ id, onChange, setFileName, uploadCallback, setData }: BlobProps)
     };
 
     const handleCallbacks = () => {
-        if (uploadCallback) uploadCallback()
+        if (uploadCallback) uploadCallback();
         else handleBrowseClick();
         clearImage();
-    }
+    };
 
     return (
         <div className="w-full max-w-3xl mx-auto p-4">
             {!imageData ? (
                 <Card
-                    className={`border-2 border-dashed ${isDragging ? "border-primary bg-primary/5" : "border-muted-foreground/20"
-                        } transition-colors duration-200`}
+                    className={`border-2 border-dashed ${
+                        isDragging
+                            ? "border-primary bg-primary/5"
+                            : "border-muted-foreground/20"
+                    } transition-colors duration-200`}
                 >
                     <CardContent className="p-6">
                         <div
@@ -117,8 +150,13 @@ const Blob = ({ id, onChange, setFileName, uploadCallback, setData }: BlobProps)
                             onDrop={handleDrop}
                             onClick={handleBrowseClick}
                         >
-                            <Upload size={48} className="text-muted-foreground mb-4" />
-                            <h3 className="text-xl font-semibold mb-2">Upload Image</h3>
+                            <Upload
+                                size={48}
+                                className="text-muted-foreground mb-4"
+                            />
+                            <h3 className="text-xl font-semibold mb-2">
+                                Upload Image
+                            </h3>
                             <p className="text-muted-foreground text-sm text-center mb-4">
                                 Drag & drop an image here, or click to browse
                             </p>
@@ -141,7 +179,11 @@ const Blob = ({ id, onChange, setFileName, uploadCallback, setData }: BlobProps)
                                 <FileImage size={20} />
                                 Image Blob Viewer
                             </CardTitle>
-                            <Button variant="ghost" size="icon" onClick={clearImage}>
+                            <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={clearImage}
+                            >
                                 <X size={18} />
                             </Button>
                         </div>
@@ -150,7 +192,9 @@ const Blob = ({ id, onChange, setFileName, uploadCallback, setData }: BlobProps)
                     <CardContent className="p-4 space-y-4">
                         <div className="flex flex-col gap-2">
                             <p className="text-sm font-medium">File Name:</p>
-                            <p className="text-sm bg-muted p-2 rounded">{imageData.name}</p>
+                            <p className="text-sm bg-muted p-2 rounded">
+                                {imageData.name}
+                            </p>
                         </div>
 
                         <div className="overflow-hidden rounded-md border bg-white flex justify-center">

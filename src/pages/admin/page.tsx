@@ -1,9 +1,9 @@
-import Admin from '@/components/Admin';
-import PageHead from '@/components/layout/PageHead';
-import NotFound from '@/pages/404';
-import { client } from '@/lib/supabase/supabase';
-import React, { useEffect, useState } from 'react'
-import { useRouter } from 'next/router';
+import Admin from "@/components/Admin";
+import PageHead from "@/components/layout/PageHead";
+import NotFound from "@/pages/404";
+import { client } from "@/lib/supabase/supabase";
+import React, { useEffect, useState } from "react";
+import { useRouter } from "next/router";
 
 const AdminPage = () => {
     const [validUser, setValidUser] = useState(false);
@@ -11,20 +11,24 @@ const AdminPage = () => {
 
     useEffect(() => {
         const checkSession = async () => {
-            const { data: { session } } = await client.auth.getSession();
+            const {
+                data: { session },
+            } = await client.auth.getSession();
 
             if (session) {
                 setValidUser(true);
                 return;
             }
             return;
-        }
-        const { data: subscription } = client.auth.onAuthStateChange((event, session) => {
-            if (event === "SIGNED_OUT") {
-                setValidUser(false);
-                router.replace("/login");
-            }
-        });
+        };
+        const { data: subscription } = client.auth.onAuthStateChange(
+            (event, session) => {
+                if (event === "SIGNED_OUT") {
+                    setValidUser(false);
+                    router.replace("/login");
+                }
+            },
+        );
         checkSession();
 
         return () => {
@@ -38,9 +42,9 @@ const AdminPage = () => {
                 title="Robotics Society of PEC Admin"
                 description="You are in full control"
             />
-            {validUser ? (<Admin />) : (< NotFound />)}
+            {validUser ? <Admin /> : <NotFound />}
         </>
-    )
-}
+    );
+};
 
-export default AdminPage
+export default AdminPage;

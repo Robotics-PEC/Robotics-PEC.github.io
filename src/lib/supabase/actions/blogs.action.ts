@@ -1,8 +1,12 @@
 import { BlogUserType } from "@/types";
-import { client } from "../supabase"
+import { client } from "../supabase";
 
 export const fetchUserByEmail = async (email: string) => {
-    const { data, error } = await client.from("blogs").select("*").eq("email", email).maybeSingle();
+    const { data, error } = await client
+        .from("blogs")
+        .select("*")
+        .eq("email", email)
+        .maybeSingle();
 
     if (error) {
         console.log(error);
@@ -13,7 +17,11 @@ export const fetchUserByEmail = async (email: string) => {
 };
 
 export const fetchUserBySID = async (sid: string) => {
-    const { data, error } = await client.from("blogs").select("*").eq("sid", sid).maybeSingle();
+    const { data, error } = await client
+        .from("blogs")
+        .select("*")
+        .eq("sid", sid)
+        .maybeSingle();
 
     if (error) {
         console.log(error);
@@ -31,4 +39,4 @@ export const insertBlogPost = async (data: BlogUserType) => {
     }
 
     return null;
-}
+};

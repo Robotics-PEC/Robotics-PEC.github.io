@@ -7,7 +7,9 @@ import PageHead from "@/components/layout/PageHead";
 import PageSection from "@/components/layout/PageSection";
 import ProjectCard from "@/pages/project/components/ProjectCard";
 
-const ProjectSection: React.FC<{ projects: ProjectType[] }> = ({ projects }) => {
+const ProjectSection: React.FC<{ projects: ProjectType[] }> = ({
+    projects,
+}) => {
     return (
         <section className="py-24" id="projects">
             <PageSection
@@ -20,11 +22,9 @@ const ProjectSection: React.FC<{ projects: ProjectType[] }> = ({ projects }) => 
             </PageSection>
         </section>
     );
-}
-
+};
 
 const Projects = () => {
-
     const [loading, setLoading] = useState(true);
     const [projects, setProjects] = useState<ProjectType[]>([]);
 
@@ -36,7 +36,6 @@ const Projects = () => {
         };
         fetch();
     }, []);
-
 
     return (
         <Loader isLoading={loading}>

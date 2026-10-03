@@ -5,7 +5,13 @@ import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { addWalkInAttendance } from "@/lib/supabase/actions/attendance.actions";
 
-const AttendanceManager = ({ eventId, eventTitle }: { eventId: string; eventTitle: string }) => {
+const AttendanceManager = ({
+    eventId,
+    eventTitle,
+}: {
+    eventId: string;
+    eventTitle: string;
+}) => {
     const { toast } = useToast();
     const [name, setName] = useState("");
     const [studentId, setStudentId] = useState("");
@@ -13,7 +19,7 @@ const AttendanceManager = ({ eventId, eventTitle }: { eventId: string; eventTitl
 
     useEffect(() => {
         const fetchCode = async () => {
-            const response = await fetch('/api/get-attendance-code');
+            const response = await fetch("/api/get-attendance-code");
             const data = await response.json();
             if (data.code) {
                 setOtpCode(data.code);
@@ -27,13 +33,21 @@ const AttendanceManager = ({ eventId, eventTitle }: { eventId: string; eventTitl
 
     const handleAddWalkIn = async () => {
         if (!name || !studentId) {
-            toast({ title: "Error", description: "Name and Student ID required", variant: "destructive" });
+            toast({
+                title: "Error",
+                description: "Name and Student ID required",
+                variant: "destructive",
+            });
             return;
         }
 
         const error = await addWalkInAttendance(eventId, name, studentId);
         if (error) {
-            toast({ title: "Error", description: error.message, variant: "destructive" });
+            toast({
+                title: "Error",
+                description: error.message,
+                variant: "destructive",
+            });
         } else {
             toast({ title: "Success", description: "Walk-in added" });
             setName("");
@@ -46,19 +60,30 @@ const AttendanceManager = ({ eventId, eventTitle }: { eventId: string; eventTitl
             <h4 className="font-semibold text-lg">Attendance: {eventTitle}</h4>
             {otpCode && (
                 <div className="p-3 bg-slate-100 rounded-md text-center">
-                    <p className="text-sm text-gray-500">Current Attendance Code:</p>
-                    <p className="text-3xl font-mono font-bold tracking-widest">{otpCode}</p>
+                    <p className="text-sm text-gray-500">
+                        Current Attendance Code:
+                    </p>
+                    <p className="text-3xl font-mono font-bold tracking-widest">
+                        {otpCode}
+                    </p>
                 </div>
             )}
             <div className="flex gap-2">
-                <Input placeholder="Name" value={name} onChange={(e) => setName(e.target.value)} />
-                <Input placeholder="Student ID" value={studentId} onChange={(e) => setStudentId(e.target.value)} />
+                <Input
+                    placeholder="Name"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                />
+                <Input
+                    placeholder="Student ID"
+                    value={studentId}
+                    onChange={(e) => setStudentId(e.target.value)}
+                />
                 <Button onClick={handleAddWalkIn}>Add Walk-in</Button>
             </div>
             {/* TODO: Add Table view of real-time attendance */}
         </Card>
     );
 };
-
 
 export default AttendanceManager;

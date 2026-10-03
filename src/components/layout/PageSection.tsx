@@ -6,7 +6,11 @@ interface PageSectionProps {
     children: React.ReactNode;
 }
 
-const PageSection: React.FC<PageSectionProps> = ({ title, subtitle, children }) => {
+const PageSection: React.FC<PageSectionProps> = ({
+    title,
+    subtitle,
+    children,
+}) => {
     return (
         <div className="container mx-auto px-6">
             <motion.div
@@ -16,7 +20,9 @@ const PageSection: React.FC<PageSectionProps> = ({ title, subtitle, children }) 
                 transition={{ duration: 0.5 }}
             >
                 <h1 className="text-5xl font-medium mb-4">{title}</h1>
-                <p className="text-xl text-gray-600 max-w-2xl mx-auto">{subtitle}</p>
+                <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+                    {subtitle}
+                </p>
             </motion.div>
 
             <motion.div

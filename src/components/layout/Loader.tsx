@@ -1,4 +1,3 @@
-
 import React, { ReactNode } from "react";
 import { cn } from "@/lib/utils";
 
@@ -17,7 +16,7 @@ export const Loader = ({
     className,
     variant = "spinner",
     isLoading,
-    children
+    children,
 }: LoaderProps) => {
     const sizeClasses = {
         sm: "w-8 h-8",
@@ -33,7 +32,7 @@ export const Loader = ({
                         className={cn(
                             "relative animate-spin rounded-full border-4 border-primary/30 border-t-primary",
                             sizeClasses[size],
-                            className
+                            className,
                         )}
                     />
                 );
@@ -43,7 +42,7 @@ export const Loader = ({
                         className={cn(
                             "relative flex items-center justify-center",
                             sizeClasses[size],
-                            className
+                            className,
                         )}
                     >
                         <div className="absolute w-full h-full rounded-full bg-primary/20 animate-ping" />
@@ -59,9 +58,17 @@ export const Loader = ({
                                 key={i}
                                 className={cn(
                                     "rounded-full bg-primary",
-                                    size === "sm" ? "w-2 h-2" : size === "md" ? "w-3 h-3" : "w-4 h-4",
+                                    size === "sm"
+                                        ? "w-2 h-2"
+                                        : size === "md"
+                                          ? "w-3 h-3"
+                                          : "w-4 h-4",
                                     "animate-bounce",
-                                    i === 0 ? "animate-delay-0" : i === 1 ? "animate-delay-150" : "animate-delay-300"
+                                    i === 0
+                                        ? "animate-delay-0"
+                                        : i === 1
+                                          ? "animate-delay-150"
+                                          : "animate-delay-300",
                                 )}
                             />
                         ))}
@@ -73,16 +80,22 @@ export const Loader = ({
     };
 
     return (
-        <>{
-            isLoading ? (
+        <>
+            {isLoading ? (
                 <div className="flex flex-col items-center justify-center p-6 bg-background border w-full h-full min-h-screen">
                     <div className="flex flex-col items-center justify-center gap-4">
                         {renderLoader()}
-                        {text && <p className="text-foreground/80 animate-pulse text-sm md:text-base">{text}</p>}
+                        {text && (
+                            <p className="text-foreground/80 animate-pulse text-sm md:text-base">
+                                {text}
+                            </p>
+                        )}
                     </div>
                     <span className="mt-4 font-medium">Loading...</span>
                 </div>
-            ) : children
-        }</>
+            ) : (
+                children
+            )}
+        </>
     );
 };

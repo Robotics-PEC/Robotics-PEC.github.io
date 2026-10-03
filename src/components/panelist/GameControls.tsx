@@ -4,11 +4,13 @@ import { useAuthRole } from "@/lib/useAuthRole";
 
 const GameControls = () => {
     const { role } = useAuthRole();
-    const isPanelist = role && (role.slug === "admin" || role.slug.includes("panel"));
+    const isPanelist =
+        role && (role.slug === "admin" || role.slug.includes("panel"));
 
     const [isGameEnabled, setIsGameEnabled] = useState<boolean | null>(null);
-    const [isResultsPublished, setIsResultsPublished] = useState<boolean>(false);
-    
+    const [isResultsPublished, setIsResultsPublished] =
+        useState<boolean>(false);
+
     const [isToggling, setIsToggling] = useState(false);
     const [isTogglingResults, setIsTogglingResults] = useState(false);
 
@@ -32,15 +34,17 @@ const GameControls = () => {
     const handleToggleGame = async () => {
         setIsToggling(true);
         try {
-            const { data: { session } } = await client.auth.getSession();
-            
+            const {
+                data: { session },
+            } = await client.auth.getSession();
+
             const res = await fetch("/api/game/toggle", {
                 method: "POST",
-                headers: { 
+                headers: {
                     "Content-Type": "application/json",
-                    "Authorization": `Bearer ${session?.access_token || ""}`
+                    Authorization: `Bearer ${session?.access_token || ""}`,
                 },
-                body: JSON.stringify({ enabled: !isGameEnabled })
+                body: JSON.stringify({ enabled: !isGameEnabled }),
             });
             if (res.ok) {
                 setIsGameEnabled(!isGameEnabled);
@@ -57,15 +61,20 @@ const GameControls = () => {
     const handleToggleResults = async () => {
         setIsTogglingResults(true);
         try {
-            const { data: { session } } = await client.auth.getSession();
-            
+            const {
+                data: { session },
+            } = await client.auth.getSession();
+
             const res = await fetch("/api/game/toggle", {
                 method: "POST",
-                headers: { 
+                headers: {
                     "Content-Type": "application/json",
-                    "Authorization": `Bearer ${session?.access_token || ""}`
+                    Authorization: `Bearer ${session?.access_token || ""}`,
                 },
-                body: JSON.stringify({ action: "toggleResults", resultsPublished: !isResultsPublished })
+                body: JSON.stringify({
+                    action: "toggleResults",
+                    resultsPublished: !isResultsPublished,
+                }),
             });
             if (res.ok) {
                 setIsResultsPublished(!isResultsPublished);
@@ -111,7 +120,9 @@ const GameControls = () => {
     return (
         <div className="space-y-6">
             <div>
-                <h2 className="text-xl font-semibold text-gray-900">Game Controls</h2>
+                <h2 className="text-xl font-semibold text-gray-900">
+                    Game Controls
+                </h2>
                 <p className="text-sm text-gray-500 mt-1">
                     Manage the Dino game state and leaderboard publishing.
                 </p>
@@ -120,13 +131,19 @@ const GameControls = () => {
             <div className="grid sm:grid-cols-2 gap-4">
                 <div className="p-5 border border-gray-200 rounded-lg bg-gray-50 flex items-center justify-between">
                     <div>
-                        <p className="font-medium text-gray-900">Dino Game Status</p>
-                        <p className="text-sm text-gray-500">{isGameEnabled ? 'Live & Accepting Scores' : 'Disabled / Suspended'}</p>
+                        <p className="font-medium text-gray-900">
+                            Dino Game Status
+                        </p>
+                        <p className="text-sm text-gray-500">
+                            {isGameEnabled
+                                ? "Live & Accepting Scores"
+                                : "Disabled / Suspended"}
+                        </p>
                     </div>
-                    <button 
+                    <button
                         onClick={handleToggleGame}
                         disabled={isToggling}
-                        className={`px-5 py-2 rounded-md font-semibold text-white transition-opacity text-sm ${isToggling ? 'opacity-50' : ''} ${isGameEnabled ? 'bg-red-500 hover:bg-red-600' : 'bg-green-500 hover:bg-green-600'}`}
+                        className={`px-5 py-2 rounded-md font-semibold text-white transition-opacity text-sm ${isToggling ? "opacity-50" : ""} ${isGameEnabled ? "bg-red-500 hover:bg-red-600" : "bg-green-500 hover:bg-green-600"}`}
                     >
                         {isGameEnabled ? "Disable Game" : "Enable Game"}
                     </button>
@@ -134,15 +151,23 @@ const GameControls = () => {
 
                 <div className="p-5 border border-gray-200 rounded-lg bg-gray-50 flex items-center justify-between">
                     <div>
-                        <p className="font-medium text-gray-900">Game Leaderboard</p>
-                        <p className="text-sm text-gray-500">{isResultsPublished ? 'Visible to public' : 'Hidden'}</p>
+                        <p className="font-medium text-gray-900">
+                            Game Leaderboard
+                        </p>
+                        <p className="text-sm text-gray-500">
+                            {isResultsPublished
+                                ? "Visible to public"
+                                : "Hidden"}
+                        </p>
                     </div>
-                    <button 
+                    <button
                         onClick={handleToggleResults}
                         disabled={isTogglingResults}
-                        className={`px-5 py-2 rounded-md font-semibold text-white transition-opacity text-sm ${isTogglingResults ? 'opacity-50' : ''} ${isResultsPublished ? 'bg-orange-500 hover:bg-orange-600' : 'bg-blue-500 hover:bg-blue-600'}`}
+                        className={`px-5 py-2 rounded-md font-semibold text-white transition-opacity text-sm ${isTogglingResults ? "opacity-50" : ""} ${isResultsPublished ? "bg-orange-500 hover:bg-orange-600" : "bg-blue-500 hover:bg-blue-600"}`}
                     >
-                        {isResultsPublished ? "Hide Leaderboard" : "Publish Leaderboard"}
+                        {isResultsPublished
+                            ? "Hide Leaderboard"
+                            : "Publish Leaderboard"}
                     </button>
                 </div>
             </div>

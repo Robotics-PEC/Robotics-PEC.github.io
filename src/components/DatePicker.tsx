@@ -18,9 +18,14 @@ interface DatePickerProps {
     placeholder?: string;
 }
 
-const DatePicker = ({ date, setDate, className, placeholder = "Select date" }: DatePickerProps) => {
+const DatePicker = ({
+    date,
+    setDate,
+    className,
+    placeholder = "Select date",
+}: DatePickerProps) => {
     const [inputValue, setInputValue] = React.useState<string>(
-        date ? format(date, "dd/MM/yyyy") : ""
+        date ? format(date, "dd/MM/yyyy") : "",
     );
     const [isOpen, setIsOpen] = React.useState(false);
     const [error, setError] = React.useState<string | null>(null);
@@ -86,18 +91,22 @@ const DatePicker = ({ date, setDate, className, placeholder = "Select date" }: D
                             onChange={handleInputChange}
                             className={cn(
                                 "pl-3 pr-10 py-2",
-                                error ? "border-red-500 focus-visible:ring-red-500" : ""
+                                error
+                                    ? "border-red-500 focus-visible:ring-red-500"
+                                    : "",
                             )}
                         />
                         {error && (
-                            <div className="text-red-500 text-xs mt-1 absolute">{error}</div>
+                            <div className="text-red-500 text-xs mt-1 absolute">
+                                {error}
+                            </div>
                         )}
                     </div>
                     <PopoverTrigger asChild>
                         <Button
                             variant="outline"
                             className={cn(
-                                "px-3 h-10 w-10 flex items-center justify-center"
+                                "px-3 h-10 w-10 flex items-center justify-center",
                             )}
                             onClick={() => setIsOpen(true)}
                         >
@@ -111,7 +120,9 @@ const DatePicker = ({ date, setDate, className, placeholder = "Select date" }: D
                         selected={date}
                         onSelect={handleCalendarSelect}
                         initialFocus
-                        className={cn("p-3 pointer-events-auto border rounded-md shadow-md")}
+                        className={cn(
+                            "p-3 pointer-events-auto border rounded-md shadow-md",
+                        )}
                     />
                 </PopoverContent>
             </Popover>

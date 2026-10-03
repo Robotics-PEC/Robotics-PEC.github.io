@@ -11,7 +11,10 @@ const PanelistIndex = () => {
         if (!loading) {
             if (!userId) {
                 router.replace("/login");
-            } else if (role && (role.slug === "admin" || role.slug.includes("panel"))) {
+            } else if (
+                role &&
+                (role.slug === "admin" || role.slug.includes("panel"))
+            ) {
                 router.replace("/panelist/dashboard");
             }
         }

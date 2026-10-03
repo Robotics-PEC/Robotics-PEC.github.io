@@ -305,7 +305,9 @@ export type InferFormValues<C extends FormConfig> = Record<
  * Props for the DynamicForm component
  * ================================================================ */
 
-export interface DynamicFormProps<TValues extends Record<string, unknown> = Record<string, unknown>> {
+export interface DynamicFormProps<
+    TValues extends Record<string, unknown> = Record<string, unknown>,
+> {
     readonly config: FormConfig;
     readonly onSubmit: (values: TValues) => void | Promise<void>;
     readonly disabled?: boolean;
