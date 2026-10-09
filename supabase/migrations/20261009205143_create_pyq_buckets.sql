@@ -18,9 +18,6 @@ VALUES (
   NULL
 );
 
--- Enable RLS for storage.objects if not already enabled
-ALTER TABLE storage.objects ENABLE ROW LEVEL SECURITY;
-
 CREATE POLICY "Owner or admin can select unverified papers" ON storage.objects
   FOR SELECT TO authenticated
   USING (
