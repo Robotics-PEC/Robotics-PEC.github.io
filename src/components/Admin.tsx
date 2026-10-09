@@ -31,6 +31,7 @@ import RolesEditor from "@/pages/admin/components/Role";
 import FeatureFlags from "@/pages/admin/components/FeatureFlags";
 import TalkShowEditor from "@/pages/admin/components/TalkShowEditor";
 import EventsFormEditor from "@/pages/admin/components/EventsFormEditor";
+import PyqPapersEditor from "@/pages/admin/components/PyqPapersEditor";
 
 export enum TabValues {
     HERO = "hero",
@@ -45,6 +46,7 @@ export enum TabValues {
     TALK_SHOW = "talk_show",
     EVENTS_FORM = "events_form",
     ATTENDANCE_FORM = "attendance_form",
+    PYQ = "pyq",
 }
 
 const tabComponentMap: Record<TabValues, React.ReactNode> = {
@@ -108,6 +110,11 @@ const tabComponentMap: Record<TabValues, React.ReactNode> = {
             <TalkShowEditor />
         </TabsContent>
     ),
+    [TabValues.PYQ]: (
+        <TabsContent value={TabValues.PYQ} className="mt-0">
+            <PyqPapersEditor />
+        </TabsContent>
+    ),
 };
 
 const tabTriggerList: React.ReactNode[] = [
@@ -165,6 +172,9 @@ const tabTriggerList: React.ReactNode[] = [
     >
         <Calendar className="h-4 w-4" /> Attendance Form Builder
     </TabsTrigger>,
+    <TabsTrigger value={TabValues.PYQ} className="flex items-center gap-2">
+        <Book className="h-4 w-4" /> PYQ Management
+    </TabsTrigger>,
 ];
 
 const titleMap: Record<TabValues, string> = {
@@ -180,6 +190,7 @@ const titleMap: Record<TabValues, string> = {
     [TabValues.TALK_SHOW]: "Talk Show",
     [TabValues.EVENTS_FORM]: "Events Form Builder",
     [TabValues.ATTENDANCE_FORM]: "Attendance Form Builder",
+    [TabValues.PYQ]: "PYQ Management",
 };
 
 const descriptionMap: Record<TabValues, string> = {
@@ -195,6 +206,7 @@ const descriptionMap: Record<TabValues, string> = {
     [TabValues.TALK_SHOW]: "Manage Talk Show Details",
     [TabValues.EVENTS_FORM]: "Configure registration forms for events",
     [TabValues.ATTENDANCE_FORM]: "Configure attendance forms for events",
+    [TabValues.PYQ]: "Manage and verify question papers",
 };
 
 const Admin = () => {

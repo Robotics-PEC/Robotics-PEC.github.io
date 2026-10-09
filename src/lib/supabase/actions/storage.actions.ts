@@ -112,7 +112,10 @@ export const getMarkdownPublicURL = (fileName: string, folder: string) => {
     return data.publicUrl;
 };
 
-export const getStorageImageUrl = async (path: string) => {
+export const getStorageImageUrl = async (
+    path: string,
+    bucket: string = STORAGE_BUCKET,
+) => {
     const cleanPath = path.trim().replace(/^\/+/, "");
 
     if (!cleanPath) {
@@ -125,7 +128,7 @@ export const getStorageImageUrl = async (path: string) => {
     }
 
     const { data: signedData, error: signedError } = await client.storage
-        .from(STORAGE_BUCKET)
+        .from(bucket)
         .createSignedUrl(cleanPath, SIGNED_URL_TTL_SECONDS);
 
     if (!signedError && signedData?.signedUrl) {
@@ -133,7 +136,7 @@ export const getStorageImageUrl = async (path: string) => {
     }
 
     const { data: publicData } = client.storage
-        .from(STORAGE_BUCKET)
+        .from(bucket)
         .getPublicUrl(cleanPath);
     return publicData.publicUrl || null;
 };
@@ -201,4 +204,33 @@ export const deleteMarkdownFile = async (
     }
 
     return data;
+};
+
+export const uploadPaper = async (
+    fileName: string,
+    file: File,
+    bucket: "unverifiedPapers" | "verifiedPapers",
+) => {
+    const { data, error } = await client.storage
+        .from(bucket)
+        .upload(fileName, file);
+
+    if (error) {
+        throw new Error(error.message);
+    }
+
+    return data;
+};
+
+export const deletePaper = async (
+    fileName: string,
+    bucket: "unverifiedPapers" | "verifiedPapers",
+) => {
+    const { data, error } = await client.storage
+        .from(bucket)
+        .remove([fileName]);
+    if (error) throw new Error(error.message);
+    if (!data || data.length === 0) {
+        throw new Error("Delete failed: file not found or permission denied");
+    }
 };

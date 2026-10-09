@@ -62,6 +62,7 @@ export enum FieldType {
     // Admin-specific field types
     MARKDOWN = "markdown",
     IMAGE = "image",
+    FILE = "file",
     DATE = "date",
     CATEGORY = "category",
 }
@@ -224,6 +225,11 @@ export interface ImageFieldConfig extends BaseFieldConfig {
     readonly onFileNameChange?: (fileName: string) => void;
 }
 
+export interface FileFieldConfig extends BaseFieldConfig {
+    readonly [FieldConfigKey.TYPE]: FieldType.FILE;
+    readonly onFileAccepted?: (file: File) => void;
+}
+
 export interface DateFieldConfig extends BaseFieldConfig {
     readonly [FieldConfigKey.TYPE]: FieldType.DATE;
     readonly [FieldConfigKey.PLACEHOLDER]?: string;
@@ -249,6 +255,7 @@ export type FieldConfig =
     | RatingFieldConfig
     | MarkdownFieldConfig
     | ImageFieldConfig
+    | FileFieldConfig
     | DateFieldConfig
     | CategoryFieldConfig;
 

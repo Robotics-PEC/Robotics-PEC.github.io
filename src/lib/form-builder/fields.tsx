@@ -25,6 +25,7 @@ import MarkdownEditor from "@/pages/admin/components/MarkdownEditor";
 import Blob from "@/components/Blob";
 import DatePicker from "@/components/DatePicker";
 import SelectSearch from "@/pages/admin/components/SelectSearch";
+import { FileUploader } from "@/components/FileUploader";
 import {
     FieldConfig,
     FieldConfigKey,
@@ -41,6 +42,7 @@ import {
     type RatingFieldConfig,
     type MarkdownFieldConfig,
     type ImageFieldConfig,
+    type FileFieldConfig,
     type DateFieldConfig,
     type CategoryFieldConfig,
     type FieldOption,
@@ -155,6 +157,13 @@ export function FieldRenderer({ field, form }: FieldRendererProps) {
                                 formField={formField}
                             />
                         );
+                    case FieldType.FILE:
+                        return (
+                            <FileFieldRenderer
+                                config={field}
+                                formField={formField}
+                            />
+                        );
                     case FieldType.DATE:
                         return (
                             <DateFieldRenderer
@@ -170,7 +179,6 @@ export function FieldRenderer({ field, form }: FieldRendererProps) {
                             />
                         );
                     default:
-                        const _exhaustive: never = fieldType;
                         return <></>;
                 }
             }}
@@ -709,6 +717,34 @@ function ImageFieldRenderer({
                         }
                     }}
                     setFileName={setFileName}
+                />
+            </FormControl>
+            {config[FieldConfigKey.DESCRIPTION] && (
+                <FormDescription>
+                    {config[FieldConfigKey.DESCRIPTION]}
+                </FormDescription>
+            )}
+            <FormMessage />
+        </FormItem>
+    );
+}
+
+function FileFieldRenderer({
+    config,
+    formField,
+}: {
+    config: FileFieldConfig;
+    formField: any;
+}) {
+    return (
+        <FormItem className={config[FieldConfigKey.CLASS_NAME]}>
+            <FieldLabel config={config} />
+            <FormControl>
+                <FileUploader
+                    onFileAccepted={(file) => {
+                        formField.onChange(file);
+                        if (config.onFileAccepted) config.onFileAccepted(file);
+                    }}
                 />
             </FormControl>
             {config[FieldConfigKey.DESCRIPTION] && (
