@@ -304,3 +304,9 @@ export type TechTalkSubmissionInsert = Omit<
     TechTalkSubmission,
     "id" | "created_at"
 >;
+
+export enum DocumentType {
+    ROOM_PERMISSION = "RoomPermission",
+    LETTER = "Letter",
+    AuditoriumPermission = "AuditoriumPermission",
+}

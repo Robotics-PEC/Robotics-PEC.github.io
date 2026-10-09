@@ -262,3 +262,5 @@ export function parseEWKBPoint(hex: string): Record<string, number> {
         lat: view.getFloat64(offset + 8, littleEndian),
     };
 }
+
+export const getBasePath = () => process.env.NEXT_PUBLIC_BASE_PATH || "/";
