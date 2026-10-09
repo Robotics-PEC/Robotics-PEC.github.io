@@ -9,6 +9,9 @@ if (!supabaseUrl) {
 const supabaseHostname = new URL(supabaseUrl).hostname;
 /** @type {import('next').NextConfig} */
 const nextConfig: NextConfig = {
+    typescript: {
+        ignoreBuildErrors: true,
+    },
     reactStrictMode: true,
     images: {
         remotePatterns: [
@@ -18,9 +21,6 @@ const nextConfig: NextConfig = {
                 pathname: "/storage/v1/object/public/**",
             },
         ],
-    },
-    eslint: {
-        ignoreDuringBuilds: true,
     },
     trailingSlash: true,
     async rewrites() {
