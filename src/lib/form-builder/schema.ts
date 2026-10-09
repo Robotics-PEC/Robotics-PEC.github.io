@@ -90,6 +90,12 @@ function buildFieldSchema(
                 ? z.date({ required_error: "Date is required" })
                 : z.date().optional();
 
+        case FieldType.FILE:
+            // File fields store File objects
+            return isRequired
+                ? z.instanceof(File, { message: "File is required" })
+                : z.instanceof(File).optional();
+
         default:
             // Exhaustiveness check — TypeScript will error if a FieldType is unhandled
             const _exhaustive: never = fieldType;
