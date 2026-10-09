@@ -12,7 +12,7 @@ import PECHeader from "./PECHeader";
 import { getBasePath } from "@/lib/utils";
 
 export const AuditoriumPermission = ({ formData }: { formData: any }) => {
-    const formatDate = (date) => {
+    const formatDate = (date: string) => {
         if (!date) return "N/A";
         const options: Intl.DateTimeFormatOptions = {
             day: "2-digit",
@@ -22,12 +22,12 @@ export const AuditoriumPermission = ({ formData }: { formData: any }) => {
         return new Date(date).toLocaleDateString("en-GB", options);
     };
 
-    const formatTime = (time) => {
+    const formatTime = (time: string) => {
         if (!time) return "N/A";
-        const [hours, minutes] = time.split(":");
+        const [hours, minutes] = time.split(":").map(Number);
         const period = hours >= 12 ? "PM" : "AM";
         const formattedHours = hours % 12 || 12;
-        return `${formattedHours}:${minutes} ${period}`;
+        return `${String(formattedHours).padStart(2, "0")}:${String(minutes).padStart(2, "0")} ${period}`;
     };
 
     const styles = StyleSheet.create({
@@ -58,7 +58,6 @@ export const AuditoriumPermission = ({ formData }: { formData: any }) => {
             flexGrow: 1,
         },
         table: {
-            display: "table",
             width: "auto",
             borderStyle: "solid",
             borderWidth: 1,
@@ -163,16 +162,18 @@ export const AuditoriumPermission = ({ formData }: { formData: any }) => {
                             <View
                                 style={[
                                     styles.tableRow,
-                                    index === array.length - 1 &&
-                                        styles.lastRow,
+                                    index === array.length - 1
+                                        ? styles.lastRow
+                                        : undefined,
                                 ]}
                                 key={row.label}
                             >
                                 <View
                                     style={[
                                         styles.tableCol,
-                                        index === array.length - 1 &&
-                                            styles.lastRow,
+                                        index === array.length - 1
+                                            ? styles.lastRow
+                                            : undefined,
                                     ]}
                                 >
                                     <Text style={styles.tableCellMain}>
@@ -183,8 +184,9 @@ export const AuditoriumPermission = ({ formData }: { formData: any }) => {
                                     style={[
                                         styles.tableCol,
                                         styles.lastCol,
-                                        index === array.length - 1 &&
-                                            styles.lastRow,
+                                        index === array.length - 1
+                                            ? styles.lastRow
+                                            : undefined,
                                     ]}
                                 >
                                     <Text style={styles.tableCell}>
@@ -223,7 +225,7 @@ export const AuditoriumPermission = ({ formData }: { formData: any }) => {
                         style={{
                             ...styles.titleText,
                             marginTop: 30,
-                            textDecoration: null,
+                            textDecoration: "none",
                         }}
                     >
                         <Text>AVAILABLE /NOT AVAILABLE</Text>
