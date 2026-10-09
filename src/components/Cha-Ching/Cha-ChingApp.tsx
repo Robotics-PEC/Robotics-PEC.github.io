@@ -39,7 +39,7 @@ const App = () => {
 
         if (typeof window !== undefined) {
             const form = sessionStorage.getItem("formData");
-            const originalFormData = JSON.parse(form || "");
+            const originalFormData = JSON.parse(form || "{}");
 
             if (originalFormData) {
                 setFormData(originalFormData);
