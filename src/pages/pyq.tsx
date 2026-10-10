@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { client } from "@/lib/supabase/supabase";
 import {
     fetchVerifiedPapers,
@@ -21,6 +21,12 @@ import {
     DialogTitle,
     DialogTrigger,
 } from "@/components/ui/dialog";
+import {
+    Accordion,
+    AccordionContent,
+    AccordionItem,
+    AccordionTrigger,
+} from "@/components/ui/accordion";
 import { Button } from "@/components/ui/button";
 import {
     DynamicForm,
@@ -42,6 +48,20 @@ const PYQPage = () => {
     );
     const [paperUrl, setPaperUrl] = useState<string | null>(null);
     const { user, userId } = useAuthRole();
+
+    const groupedPapers = useMemo(() => {
+        const groups: Record<number, QuestionPaper[]> = {};
+        papers.forEach((paper) => {
+            if (!groups[paper.year]) {
+                groups[paper.year] = [];
+            }
+            groups[paper.year].push(paper);
+        });
+
+        return Object.entries(groups)
+            .sort(([a], [b]) => Number(b) - Number(a))
+            .map(([year, papers]) => ({ year: Number(year), papers }));
+    }, [papers]);
 
     const pyqUploadFormConfig: FormConfig = {
         [FormConfigKey.SECTIONS]: [
@@ -225,24 +245,36 @@ const PYQPage = () => {
                     )}
                 </div>
 
-                {papers.length === 0 ? (
+                {groupedPapers.length === 0 ? (
                     <p>No papers found.</p>
                 ) : (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                        {papers.map((paper) => (
-                            <div
-                                key={paper.id}
-                                className="border p-4 rounded shadow cursor-pointer hover:bg-gray-50"
-                                onClick={() => setSelectedPaper(paper)}
-                            >
-                                <h2 className="text-xl font-semibold">
-                                    {paper.courseCode}
-                                </h2>
-                                <p>Year: {paper.year}</p>
-                                <p>Type: {paper.type}</p>
-                            </div>
+                    <Accordion type="single" collapsible className="w-full">
+                        {groupedPapers.map(({ year, papers }) => (
+                            <AccordionItem key={year} value={year.toString()}>
+                                <AccordionTrigger className="text-2xl font-bold">
+                                    {year}
+                                </AccordionTrigger>
+                                <AccordionContent>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                        {papers.map((paper) => (
+                                            <div
+                                                key={paper.id}
+                                                className="border p-4 rounded shadow cursor-pointer hover:bg-gray-50"
+                                                onClick={() =>
+                                                    setSelectedPaper(paper)
+                                                }
+                                            >
+                                                <h3 className="text-xl font-semibold">
+                                                    {paper.courseCode}
+                                                </h3>
+                                                <p>Type: {paper.type}</p>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </AccordionContent>
+                            </AccordionItem>
                         ))}
-                    </div>
+                    </Accordion>
                 )}
 
                 {/* PDF Preview Dialog */}

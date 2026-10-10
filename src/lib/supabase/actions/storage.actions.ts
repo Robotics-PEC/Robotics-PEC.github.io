@@ -234,3 +234,21 @@ export const deletePaper = async (
         throw new Error("Delete failed: file not found or permission denied");
     }
 };
+
+export const getSignedUrl = async (
+    bucket: "unverifiedPapers" | "verifiedPapers",
+    path: string,
+) => {
+    const cleanPath = path.trim().replace(/^\/+/, "");
+    if (!cleanPath) return null;
+
+    const { data, error } = await client.storage
+        .from(bucket)
+        .createSignedUrl(cleanPath, SIGNED_URL_TTL_SECONDS);
+
+    if (error) {
+        console.error("Error creating signed URL:", error);
+        return null;
+    }
+    return data.signedUrl;
+};
