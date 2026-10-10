@@ -7,6 +7,7 @@ import {
     QuestionPaper,
     fetchAllPapers,
 } from "@/lib/supabase/actions/pyq.actions";
+import { getSignedUrl } from "@/lib/supabase/actions/storage.actions";
 import {
     Table,
     TableBody,
@@ -15,17 +16,43 @@ import {
     TableHeader,
     TableRow,
 } from "@/components/ui/table";
+import {
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+} from "@/components/ui/dialog";
 import { Switch } from "@/components/ui/switch";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Button } from "@/components/ui/button";
 
 export default function PyqPapersEditor() {
     const [papers, setPapers] = useState<QuestionPaper[]>([]);
     const [loading, setLoading] = useState(true);
     const [togglingId, setTogglingId] = useState<string | null>(null);
+    const [selectedPaper, setSelectedPaper] = useState<QuestionPaper | null>(
+        null,
+    );
+    const [paperUrl, setPaperUrl] = useState<string | null>(null);
 
     useEffect(() => {
         loadPapers();
     }, []);
+
+    useEffect(() => {
+        const fetchUrl = async () => {
+            if (selectedPaper) {
+                const bucket = selectedPaper.isVerified
+                    ? "verifiedPapers"
+                    : "unverifiedPapers";
+                const url = await getSignedUrl(bucket, selectedPaper.filePath);
+                setPaperUrl(url);
+            } else {
+                setPaperUrl(null);
+            }
+        };
+        fetchUrl();
+    }, [selectedPaper]);
 
     async function loadPapers() {
         setLoading(true);
@@ -85,18 +112,23 @@ export default function PyqPapersEditor() {
         }
     }
 
+    async function viewPaper(paper: QuestionPaper) {
+        setSelectedPaper(paper);
+    }
+
     if (loading) {
         return <Skeleton className="h-60 w-full" />;
     }
 
     return (
-        <div className="rounded-lg border">
+        <div className="rounded-lg border max-h-[50vh] overflow-y-auto">
             <Table>
                 <TableHeader>
                     <TableRow>
                         <TableHead>Course Code</TableHead>
                         <TableHead>Year</TableHead>
                         <TableHead>Type</TableHead>
+                        <TableHead>Action</TableHead>
                         <TableHead>Verified</TableHead>
                     </TableRow>
                 </TableHeader>
@@ -106,6 +138,15 @@ export default function PyqPapersEditor() {
                             <TableCell>{paper.courseCode}</TableCell>
                             <TableCell>{paper.year}</TableCell>
                             <TableCell>{paper.type}</TableCell>
+                            <TableCell>
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => viewPaper(paper)}
+                                >
+                                    View
+                                </Button>
+                            </TableCell>
                             <TableCell>
                                 <Switch
                                     checked={paper.isVerified}
@@ -119,6 +160,38 @@ export default function PyqPapersEditor() {
                     ))}
                 </TableBody>
             </Table>
+
+            {/* PDF Preview Dialog */}
+            <Dialog
+                open={!!selectedPaper}
+                onOpenChange={() => setSelectedPaper(null)}
+            >
+                <DialogContent className="max-w-4xl h-[80vh] flex flex-col gap-3">
+                    <DialogHeader>
+                        <DialogTitle>
+                            {selectedPaper?.courseCode} - {selectedPaper?.year}
+                        </DialogTitle>
+                    </DialogHeader>
+                    {paperUrl ? (
+                        <>
+                            <iframe
+                                src={paperUrl}
+                                title="PDF Preview"
+                                className="w-full flex-1 min-h-0 rounded border"
+                            />
+                            <a
+                                href={paperUrl}
+                                download
+                                className="text-sm text-blue-500 hover:underline"
+                            >
+                                Download PDF
+                            </a>
+                        </>
+                    ) : (
+                        <p>Loading...</p>
+                    )}
+                </DialogContent>
+            </Dialog>
         </div>
     );
 }
