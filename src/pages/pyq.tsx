@@ -38,6 +38,17 @@ import {
     SubmitConfigKey,
     InputMode,
 } from "@/lib/form-builder";
+import dynamic from "next/dynamic";
+import DinoSubmitOverlay from "@/components/DinoSubmitOverlay";
+
+const PdfPreview = dynamic(() => import("@/components/PdfPreview"), {
+    ssr: false,
+});
+
+const labelMapping: Record<string, string> = {
+    midterm: "Mid Semester Papers",
+    endterm: "End Semester Papers",
+};
 
 const PYQPage = () => {
     const [papers, setPapers] = useState<QuestionPaper[]>([]);
@@ -50,17 +61,25 @@ const PYQPage = () => {
     const { user, userId } = useAuthRole();
 
     const groupedPapers = useMemo(() => {
-        const groups: Record<number, QuestionPaper[]> = {};
+        const years: Record<number, Record<string, QuestionPaper[]>> = {};
+
         papers.forEach((paper) => {
-            if (!groups[paper.year]) {
-                groups[paper.year] = [];
-            }
-            groups[paper.year].push(paper);
+            ((years[paper.year] ??= {})[paper.type] ??= []).push(paper);
         });
 
-        return Object.entries(groups)
+        const typeOrder = ["midterm", "endterm"]; // match your DB values
+
+        return Object.entries(years)
             .sort(([a], [b]) => Number(b) - Number(a))
-            .map(([year, papers]) => ({ year: Number(year), papers }));
+            .map(([year, types]) => ({
+                year: Number(year),
+                types: Object.entries(types)
+                    .sort(
+                        ([a], [b]) =>
+                            typeOrder.indexOf(a) - typeOrder.indexOf(b),
+                    )
+                    .map(([type, papers]) => ({ type, papers })),
+            }));
     }, [papers]);
 
     const pyqUploadFormConfig: FormConfig = {
@@ -249,28 +268,45 @@ const PYQPage = () => {
                     <p>No papers found.</p>
                 ) : (
                     <Accordion type="single" collapsible className="w-full">
-                        {groupedPapers.map(({ year, papers }) => (
+                        {groupedPapers.map(({ year, types }) => (
                             <AccordionItem key={year} value={year.toString()}>
                                 <AccordionTrigger className="text-2xl font-bold">
                                     {year}
                                 </AccordionTrigger>
                                 <AccordionContent>
-                                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                                        {papers.map((paper) => (
-                                            <div
-                                                key={paper.id}
-                                                className="border p-4 rounded shadow cursor-pointer hover:bg-gray-50"
-                                                onClick={() =>
-                                                    setSelectedPaper(paper)
-                                                }
+                                    <Accordion type="multiple" className="pl-2">
+                                        {types.map(({ type, papers }) => (
+                                            <AccordionItem
+                                                key={type}
+                                                value={type}
                                             >
-                                                <h3 className="text-xl font-semibold">
-                                                    {paper.courseCode}
-                                                </h3>
-                                                <p>Type: {paper.type}</p>
-                                            </div>
+                                                <AccordionTrigger className="text-lg font-semibold">
+                                                    {labelMapping[type]}
+                                                </AccordionTrigger>
+                                                <AccordionContent>
+                                                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                                        {papers.map((paper) => (
+                                                            <div
+                                                                key={paper.id}
+                                                                className="border p-4 rounded shadow cursor-pointer hover:bg-gray-50"
+                                                                onClick={() =>
+                                                                    setSelectedPaper(
+                                                                        paper,
+                                                                    )
+                                                                }
+                                                            >
+                                                                <h4 className="text-xl font-semibold">
+                                                                    {
+                                                                        paper.courseCode
+                                                                    }
+                                                                </h4>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                </AccordionContent>
+                                            </AccordionItem>
                                         ))}
-                                    </div>
+                                    </Accordion>
                                 </AccordionContent>
                             </AccordionItem>
                         ))}
@@ -291,11 +327,7 @@ const PYQPage = () => {
                         </DialogHeader>
                         {paperUrl ? (
                             <>
-                                <iframe
-                                    src={paperUrl}
-                                    title="PDF Preview"
-                                    className="w-full flex-1 min-h-0 rounded border"
-                                />
+                                <PdfPreview url={paperUrl} />
                                 <a
                                     href={paperUrl}
                                     download
@@ -305,7 +337,10 @@ const PYQPage = () => {
                                 </a>
                             </>
                         ) : (
-                            <p>Loading...</p>
+                            <DinoSubmitOverlay
+                                submitting={true}
+                                onClose={() => {}}
+                            />
                         )}
                     </DialogContent>
                 </Dialog>
