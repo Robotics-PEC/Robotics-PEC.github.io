@@ -264,3 +264,6 @@ export function parseEWKBPoint(hex: string): Record<string, number> {
 }
 
 export const getBasePath = () => process.env.NEXT_PUBLIC_BASE_PATH || "/";
+
+export const round2 = (n: number) =>
+    Math.round((n + Number.EPSILON) * 100) / 100;

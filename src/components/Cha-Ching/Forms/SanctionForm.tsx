@@ -4,7 +4,7 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Card } from "@/components/ui/card";
-import { Plus, Trash2 } from "lucide-react";
+import { GripVertical, Plus, Trash2 } from "lucide-react";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
 import {
@@ -14,6 +14,7 @@ import {
     SortableItemHandle,
     SortableOverlay,
 } from "@/components/ui/sortable";
+import { round2 } from "@/lib/utils";
 
 export const SanctionForm = ({
     onFormDataChange,
@@ -36,6 +37,13 @@ export const SanctionForm = ({
         advanceAmount: "",
         recipientName: "",
     });
+
+    const stopDrag = {
+        onPointerDown: (e: React.PointerEvent) => e.stopPropagation(),
+        onMouseDown: (e: React.MouseEvent) => e.stopPropagation(),
+        onTouchStart: (e: React.TouchEvent) => e.stopPropagation(),
+        onKeyDown: (e: React.KeyboardEvent) => e.stopPropagation(),
+    };
 
     useEffect(() => {
         if (typeof window !== undefined) {
@@ -77,21 +85,15 @@ export const SanctionForm = ({
         field: string,
         value: string,
     ) => {
-        const updatedItems = formData.expenditureItems.map((item: any) => {
-            if (item.id === id) {
-                return {
-                    ...item,
-                    [field]:
-                        field === "cost" || field === "quantity"
-                            ? parseFloat(value) || 0
-                            : value,
-                };
-            }
-            return item;
-        });
+        const updatedItems = formData.expenditureItems.map((item: any) =>
+            item.id === id ? { ...item, [field]: value } : item,
+        );
 
         const totalAmount = updatedItems.reduce(
-            (sum: number, item: any) => sum + item.cost * item.quantity,
+            (sum: number, item: any) =>
+                sum +
+                round2(parseFloat(item.cost) || 0) *
+                    round2(parseFloat(item.quantity) || 0),
             0,
         );
 
@@ -100,7 +102,6 @@ export const SanctionForm = ({
             expenditureItems: updatedItems,
             totalAmount,
         };
-
         setFormData(updatedData);
         onFormDataChange(updatedData);
     };
@@ -304,6 +305,7 @@ export const SanctionForm = ({
                                                                         .value,
                                                                 )
                                                             }
+                                                            {...stopDrag}
                                                             placeholder="Item description..."
                                                             className="text-xs w-full h-7"
                                                         />
@@ -327,6 +329,7 @@ export const SanctionForm = ({
                                                                             .value,
                                                                     )
                                                                 }
+                                                                {...stopDrag}
                                                                 className="text-xs w-full h-7"
                                                                 min="0"
                                                                 step="0.01"
@@ -350,6 +353,7 @@ export const SanctionForm = ({
                                                                             .value,
                                                                     )
                                                                 }
+                                                                {...stopDrag}
                                                                 className="text-xs w-full h-7"
                                                                 min="0"
                                                                 step="0.01"
@@ -374,6 +378,7 @@ export const SanctionForm = ({
                                                                             .value,
                                                                     )
                                                                 }
+                                                                {...stopDrag}
                                                                 placeholder="Justification..."
                                                                 className="text-xs w-full h-7"
                                                             />
@@ -386,6 +391,7 @@ export const SanctionForm = ({
                                                                         item.id,
                                                                     )
                                                                 }
+                                                                {...stopDrag}
                                                                 variant="outline"
                                                                 size="sm"
                                                                 className="text-red-600 hover:text-red-700 hover:bg-red-50 h-7 w-7 p-0"

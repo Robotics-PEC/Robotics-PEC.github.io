@@ -1,3 +1,4 @@
+import { round2 } from "@/lib/utils";
 import { Page, Text, View, Document, StyleSheet } from "@react-pdf/renderer";
 
 const Sanction = ({ formData = {} }: { formData: any }) => {
@@ -377,7 +378,7 @@ const Sanction = ({ formData = {} }: { formData: any }) => {
                                     style={[styles.tableCell, styles.colCost]}
                                 >
                                     {item.cost && item.quantity
-                                        ? `Rs. ${item.cost}x${item.quantity}=${item.cost * item.quantity}`
+                                        ? `Rs. ${item.cost}x${item.quantity}=${round2(item.cost * item.quantity)}`
                                         : ""}
                                 </Text>
                                 <Text
