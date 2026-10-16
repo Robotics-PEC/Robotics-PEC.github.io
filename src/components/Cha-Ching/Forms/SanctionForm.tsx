@@ -4,9 +4,17 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Card } from "@/components/ui/card";
-import { Plus, Trash2 } from "lucide-react";
+import { GripVertical, Plus, Trash2 } from "lucide-react";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
+import {
+    Sortable,
+    SortableContent,
+    SortableItem,
+    SortableItemHandle,
+    SortableOverlay,
+} from "@/components/ui/sortable";
+import { round2 } from "@/lib/utils";
 
 export const SanctionForm = ({
     onFormDataChange,
@@ -29,6 +37,13 @@ export const SanctionForm = ({
         advanceAmount: "",
         recipientName: "",
     });
+
+    const stopDrag = {
+        onPointerDown: (e: React.PointerEvent) => e.stopPropagation(),
+        onMouseDown: (e: React.MouseEvent) => e.stopPropagation(),
+        onTouchStart: (e: React.TouchEvent) => e.stopPropagation(),
+        onKeyDown: (e: React.KeyboardEvent) => e.stopPropagation(),
+    };
 
     useEffect(() => {
         if (typeof window !== undefined) {
@@ -70,21 +85,15 @@ export const SanctionForm = ({
         field: string,
         value: string,
     ) => {
-        const updatedItems = formData.expenditureItems.map((item: any) => {
-            if (item.id === id) {
-                return {
-                    ...item,
-                    [field]:
-                        field === "cost" || field === "quantity"
-                            ? parseFloat(value) || 0
-                            : value,
-                };
-            }
-            return item;
-        });
+        const updatedItems = formData.expenditureItems.map((item: any) =>
+            item.id === id ? { ...item, [field]: value } : item,
+        );
 
         const totalAmount = updatedItems.reduce(
-            (sum: number, item: any) => sum + item.cost * item.quantity,
+            (sum: number, item: any) =>
+                sum +
+                round2(parseFloat(item.cost) || 0) *
+                    round2(parseFloat(item.quantity) || 0),
             0,
         );
 
@@ -93,7 +102,6 @@ export const SanctionForm = ({
             expenditureItems: updatedItems,
             totalAmount,
         };
-
         setFormData(updatedData);
         onFormDataChange(updatedData);
     };
@@ -247,114 +255,159 @@ export const SanctionForm = ({
                 </div>
 
                 <div className="max-h-48 overflow-y-auto pr-1 space-y-2">
-                    {formData.expenditureItems.map(
-                        (item: any, index: number) => (
-                            <motion.div
-                                key={item.id}
-                                initial={{ opacity: 0, x: -10 }}
-                                animate={{ opacity: 1, x: 0 }}
-                                transition={{ delay: index * 0.05 }}
-                            >
-                                <Card className="p-3">
-                                    <div className="space-y-2">
-                                        <div>
-                                            <Label className="text-xs font-medium text-gray-700 block mb-1">
-                                                Description
-                                            </Label>
-                                            <Input
-                                                value={item.description}
-                                                onChange={(e) =>
-                                                    updateExpenditureItem(
-                                                        item.id,
-                                                        "description",
-                                                        e.target.value,
-                                                    )
-                                                }
-                                                placeholder="Item description..."
-                                                className="text-xs w-full h-7"
-                                            />
-                                        </div>
-                                        <div className="grid grid-cols-2 gap-2">
-                                            <div>
-                                                <Label className="text-xs font-medium text-gray-700 block mb-1">
-                                                    Cost Per Unit (₹)
-                                                </Label>
-                                                <Input
-                                                    type="text"
-                                                    value={item.cost}
-                                                    onChange={(e) =>
-                                                        updateExpenditureItem(
-                                                            item.id,
-                                                            "cost",
-                                                            e.target.value,
-                                                        )
-                                                    }
-                                                    className="text-xs w-full h-7"
-                                                    min="0"
-                                                    step="0.01"
-                                                    placeholder="0.00"
-                                                />
-                                            </div>
-                                            <div>
-                                                <Label className="text-xs font-medium text-gray-700 block mb-1">
-                                                    Quantity
-                                                </Label>
-                                                <Input
-                                                    type="text"
-                                                    value={item.quantity}
-                                                    onChange={(e) =>
-                                                        updateExpenditureItem(
-                                                            item.id,
-                                                            "quantity",
-                                                            e.target.value,
-                                                        )
-                                                    }
-                                                    className="text-xs w-full h-7"
-                                                    min="0"
-                                                    step="0.01"
-                                                    placeholder="0.00"
-                                                />
-                                            </div>
-                                        </div>
-                                        <div className="flex gap-2">
-                                            <div className="flex-1">
-                                                <Label className="text-xs font-medium text-gray-700 block mb-1">
-                                                    Justification
-                                                </Label>
-                                                <Input
-                                                    value={item.justification}
-                                                    onChange={(e) =>
-                                                        updateExpenditureItem(
-                                                            item.id,
-                                                            "justification",
-                                                            e.target.value,
-                                                        )
-                                                    }
-                                                    placeholder="Justification..."
-                                                    className="text-xs w-full h-7"
-                                                />
-                                            </div>
-                                            <div className="flex items-end">
-                                                <Button
-                                                    type="button"
-                                                    onClick={() =>
-                                                        removeExpenditureItem(
-                                                            item.id,
-                                                        )
-                                                    }
-                                                    variant="outline"
-                                                    size="sm"
-                                                    className="text-red-600 hover:text-red-700 hover:bg-red-50 h-7 w-7 p-0"
-                                                >
-                                                    <Trash2 className="w-3 h-3" />
-                                                </Button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </Card>
-                            </motion.div>
-                        ),
-                    )}
+                    <Sortable
+                        value={formData.expenditureItems}
+                        onValueChange={(items) => {
+                            console.log({ items });
+                            handleChange({
+                                target: {
+                                    name: "expenditureItems",
+                                    value: items,
+                                },
+                            });
+                        }}
+                        getItemValue={(item: any) => item.id}
+                    >
+                        <SortableContent>
+                            {formData.expenditureItems.map(
+                                (item: any, index: number) => (
+                                    <SortableItem
+                                        key={item.id}
+                                        value={item.id}
+                                        asHandle
+                                    >
+                                        <motion.div
+                                            key={item.id}
+                                            initial={{ opacity: 0, x: -10 }}
+                                            animate={{ opacity: 1, x: 0 }}
+                                            transition={{ delay: index * 0.05 }}
+                                        >
+                                            <Card className="p-3">
+                                                <div className="space-y-2">
+                                                    <div>
+                                                        <Label className="text-xs font-medium text-gray-700 block mb-1">
+                                                            <Label className="text-xl">
+                                                                <strong>
+                                                                    {index + 1}
+                                                                </strong>
+                                                            </Label>{" "}
+                                                            Description
+                                                        </Label>
+                                                        <Input
+                                                            value={
+                                                                item.description
+                                                            }
+                                                            onChange={(e) =>
+                                                                updateExpenditureItem(
+                                                                    item.id,
+                                                                    "description",
+                                                                    e.target
+                                                                        .value,
+                                                                )
+                                                            }
+                                                            {...stopDrag}
+                                                            placeholder="Item description..."
+                                                            className="text-xs w-full h-7"
+                                                        />
+                                                    </div>
+                                                    <div className="grid grid-cols-2 gap-2">
+                                                        <div>
+                                                            <Label className="text-xs font-medium text-gray-700 block mb-1">
+                                                                Cost Per Unit
+                                                                (₹)
+                                                            </Label>
+                                                            <Input
+                                                                type="text"
+                                                                value={
+                                                                    item.cost
+                                                                }
+                                                                onChange={(e) =>
+                                                                    updateExpenditureItem(
+                                                                        item.id,
+                                                                        "cost",
+                                                                        e.target
+                                                                            .value,
+                                                                    )
+                                                                }
+                                                                {...stopDrag}
+                                                                className="text-xs w-full h-7"
+                                                                min="0"
+                                                                step="0.01"
+                                                                placeholder="0.00"
+                                                            />
+                                                        </div>
+                                                        <div>
+                                                            <Label className="text-xs font-medium text-gray-700 block mb-1">
+                                                                Quantity
+                                                            </Label>
+                                                            <Input
+                                                                type="text"
+                                                                value={
+                                                                    item.quantity
+                                                                }
+                                                                onChange={(e) =>
+                                                                    updateExpenditureItem(
+                                                                        item.id,
+                                                                        "quantity",
+                                                                        e.target
+                                                                            .value,
+                                                                    )
+                                                                }
+                                                                {...stopDrag}
+                                                                className="text-xs w-full h-7"
+                                                                min="0"
+                                                                step="0.01"
+                                                                placeholder="0.00"
+                                                            />
+                                                        </div>
+                                                    </div>
+                                                    <div className="flex gap-2">
+                                                        <div className="flex-1">
+                                                            <Label className="text-xs font-medium text-gray-700 block mb-1">
+                                                                Justification
+                                                            </Label>
+                                                            <Input
+                                                                value={
+                                                                    item.justification
+                                                                }
+                                                                onChange={(e) =>
+                                                                    updateExpenditureItem(
+                                                                        item.id,
+                                                                        "justification",
+                                                                        e.target
+                                                                            .value,
+                                                                    )
+                                                                }
+                                                                {...stopDrag}
+                                                                placeholder="Justification..."
+                                                                className="text-xs w-full h-7"
+                                                            />
+                                                        </div>
+                                                        <div className="flex items-end">
+                                                            <Button
+                                                                type="button"
+                                                                onClick={() =>
+                                                                    removeExpenditureItem(
+                                                                        item.id,
+                                                                    )
+                                                                }
+                                                                {...stopDrag}
+                                                                variant="outline"
+                                                                size="sm"
+                                                                className="text-red-600 hover:text-red-700 hover:bg-red-50 h-7 w-7 p-0"
+                                                            >
+                                                                <Trash2 className="w-3 h-3" />
+                                                            </Button>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </Card>
+                                        </motion.div>
+                                    </SortableItem>
+                                ),
+                            )}
+                        </SortableContent>
+                    </Sortable>
 
                     {formData.expenditureItems.length === 0 && (
                         <motion.div
