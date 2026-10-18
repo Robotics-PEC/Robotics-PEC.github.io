@@ -14,10 +14,8 @@ export const AuditoriumPermissionForm = ({
     const [formData, setFormData] = useState<Record<string, any>>({
         society: "",
         eventName: "",
-        fromDate: "",
-        toDate: "",
-        fromTime: "",
-        toTime: "",
+        date: "",
+        time: "",
         eventDescription: "",
     });
 
@@ -38,10 +36,8 @@ export const AuditoriumPermissionForm = ({
             type: "textarea",
         },
         { label: "Event Name", name: "eventName", type: "textarea" },
-        { label: "From Date", name: "fromDate", type: "date" },
-        { label: "To Date", name: "toDate", type: "date" },
-        { label: "From Time", name: "fromTime", type: "time" },
-        { label: "To Time", name: "toTime", type: "time" },
+        { label: "Date", name: "date", type: "text" },
+        { label: "Time", name: "time", type: "text" },
         {
             label: "Brief Event Description",
             name: "eventDescription",
@@ -100,7 +96,12 @@ export const AuditoriumPermissionForm = ({
                                 value={formData[field.name]}
                                 onChange={handleChange}
                                 placeholder={`Enter ${field.label.toLowerCase()}...`}
-                                className="w-full "
+                                className={`w-full ${
+                                    field.type === "date" ||
+                                    field.type === "time"
+                                        ? "bg-transparent [&::-webkit-datetime-edit]:text-transparent focus:[&::-webkit-datetime-edit]:text-black valid:[&::-webkit-datetime-edit]:text-black"
+                                        : ""
+                                }`}
                             />
                         )}
                     </motion.div>
