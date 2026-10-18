@@ -237,10 +237,7 @@ const Sanction = ({ formData = {} }: { formData: any }) => {
                             >
                                 Date:{" "}
                                 <Text style={{ fontFamily: "Times-Roman" }}>
-                                    {`${formatDate(formData.fromEventDate)} ${
-                                        formData.toEventDate &&
-                                        `- ${formatDate(formData.toEventDate)}`
-                                    }`}
+                                    {formData.eventDate || ""}
                                 </Text>
                             </Text>
                             <Text
@@ -266,7 +263,7 @@ const Sanction = ({ formData = {} }: { formData: any }) => {
                             >
                                 Time:{" "}
                                 <Text style={{ fontFamily: "Times-Roman" }}>
-                                    {`${formatTime(formData.fromTime)} - ${formatTime(formData.toTime)}`}
+                                    {formData.time || ""}
                                 </Text>
                             </Text>
                         </View>
