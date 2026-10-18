@@ -153,13 +153,11 @@ export const RoomPermission = ({ formData }: { formData: any }) => {
                             },
                             {
                                 label: "Date",
-                                value: `${formatDate(formData.fromDate)} ${formData.toDate ? `- ${formatDate(formData.toDate)}` : ""}`,
+                                value: formData.date,
                             },
                             {
                                 label: "Time",
-                                value: `${formatTime(formData.fromTime)} - ${formatTime(
-                                    formData.toTime,
-                                )}`,
+                                value: formData.time,
                             },
                             {
                                 label: "Room Number",

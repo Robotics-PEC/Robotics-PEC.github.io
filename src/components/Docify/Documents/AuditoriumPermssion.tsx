@@ -152,7 +152,7 @@ export const AuditoriumPermission = ({ formData }: { formData: any }) => {
                             { label: "Event Name", value: formData.eventName },
                             {
                                 label: "Date & Time",
-                                value: `${formatDate(formData.fromDate)}${formData.toDate ? ` - ${formatDate(formData.toDate)}` : ""}, ${formatTime(formData.fromTime)} - ${formatTime(formData.toTime)}`,
+                                value: `${formData.date ? `${formData.date},` : ""} ${formData.time ?? ""}`,
                             },
                             {
                                 label: "Brief Event Description",
