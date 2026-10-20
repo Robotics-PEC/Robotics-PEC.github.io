@@ -14,7 +14,7 @@ This guide covers cloning, installing, and running the project locally.
 1. Clone the repository: `git clone <repo-url>`
 2. Install dependencies:
     ```bash
-    yarn install
+      yarn install
     ```
 
 ## Supabase One-time Setup
@@ -28,27 +28,38 @@ Before running the application, you **must complete the setup in [SUPABASE.md](S
 
 ## Environment Variables
 
-The project uses `.env.local` for configuration.
+The project requires a `.env.local` file in the root directory. Supabase-related keys and local auth credentials are **Required**, while feature-specific and admin keys are **Optional / Conditional**:
 
-| Variable Type  | Purpose                                     | How to manage          |
-| :------------- | :------------------------------------------ | :--------------------- |
-| Next.js Public | Client-side app config (`NEXT_PUBLIC_*`)    | Define in `.env.local` |
-| Supabase CLI   | CLI-read secrets (`GOOGLE_CLIENT_ID`, etc.) | Define in `.env.local` |
+| Variable Name                       | Status                     | Purpose / Description                                                                                 |
+| :---------------------------------- | :------------------------- | :---------------------------------------------------------------------------------------------------- |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY`     | **Required**               | Public anonymous API key for client-side Supabase queries.                                            |
+| `NEXT_PUBLIC_SUPABASE_API_ENDPOINT` | **Required**               | Supabase project URL / API endpoint.                                                                  |
+| `NEXT_PUBLIC_PROJECT_REF`           | **Required**               | Supabase project reference identifier.                                                                |
+| `SUPABASE_SERVICE_ROLE_KEY`         | **Required**               | Privileged service role key for server-side operations (bypasses RLS).                                |
+| `NEXT_SUPABASE_SECRET_KEY_SANCTION` | **Required**               | Supabase secret key from the Supabase dashboard for sanction API operations.                          |
+| `GOOGLE_CLIENT_ID`                  | **Required**               | Google OAuth Client ID for local docker Supabase authentication (see [SUPABASE.md](SUPABASE.md)).     |
+| `GOOGLE_CLIENT_SECRET`              | **Required**               | Google OAuth Client Secret for local docker Supabase authentication (see [SUPABASE.md](SUPABASE.md)). |
+| `NEXT_PUBLIC_ADMIN_EMAIL`           | **Optional / Conditional** | Designated email address; required only if accessing the admin portal.                                |
+| `NEXT_PUBLIC_PASSWORD_HASH`         | **Optional / Conditional** | Hashed password; required only if accessing the admin portal.                                         |
+| `GAME_SECRET`                       | **Optional / Feature**     | Secret key required when trying to play the game.                                                     |
+| `GOOGLE_APPS_SCRIPT_URL`            | **Optional / Feature**     | Web app URL required for the game / recruitment process.                                              |
+| `ATTENDANCE_SECRET`                 | **Optional / Feature**     | Secret key required for generating the attendance code (timed OTP).                                   |
+| `NEXT_PUBLIC_GA_ID`                 | **Optional**               | Google Analytics tracking ID (only required for analytics, not useful for local dev).                 |
 
-_Note: Required Supabase URL and Anon Key are deterministic for the local stack; refer to `SUPABASE.md` for details._
+_Note: For local development setup and stack credentials, refer to [SUPABASE.md](SUPABASE.md)._
 
 ## Running the App
 
 1. Start the local Supabase stack (if not already running):
     ```bash
-    yarn db:start
+      yarn db:start
     ```
 2. Start the Next.js development server:
     ```bash
-    yarn dev
+      yarn dev
     ```
-3. Access the app: **`http://localhost:3000`**
-4. Access local Supabase Studio: **`http://localhost:54323`**
+3. Access the app: `http://localhost:3000`
+4. Access local Supabase Studio: `http://localhost:54323`
 
 ## Database Changes
 
@@ -78,7 +89,7 @@ For schema or database changes, see the **[SUPABASE.md](SUPABASE.md)** migration
 
 1. `git pull`
 2. `yarn install` (if `package.json` changed)
-3. `yarn db:reset` (if teammate added migrations)
+3. `yarn db:up` (if teammate added migrations)
 4. `yarn dev` (start dev server)
 
 ## Troubleshooting

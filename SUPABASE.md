@@ -69,6 +69,7 @@ This documentation covers the Supabase local development workflow and production
 | `yarn db:start`      | Start local Dockerized Supabase stack.                                 |
 | `yarn db:stop`       | Stop local Dockerized Supabase stack.                                  |
 | `yarn db:reset`      | Reset local database to match current migration files.                 |
+| `yarn db:up`         | Apply any pending unapplied local migrations without resetting.        |
 | `yarn db:new <name>` | Generate SQL migration from local schema changes.                      |
 | `yarn db:pull`       | Pull remote schema changes into local migration files (use carefully). |
 | `yarn db:push`       | (Rarely used) Manual force-push migrations to remote.                  |
