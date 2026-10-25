@@ -13,6 +13,9 @@ const nextConfig: NextConfig = {
         ignoreBuildErrors: true,
     },
     reactStrictMode: true,
+    experimental: {
+        agentUpgrade: "security",
+    },
     images: {
         remotePatterns: [
             {
