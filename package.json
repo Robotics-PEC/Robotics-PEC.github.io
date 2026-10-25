@@ -7,6 +7,7 @@
         "build": "next build",
         "start": "next start",
         "lint": "next lint",
+        "test:inventory": "node scripts/run-inventory-tests.cjs",
         "storybook": "storybook dev -p 6006",
         "postbuild": "next-sitemap",
         "db:new": "supabase db diff -f",
